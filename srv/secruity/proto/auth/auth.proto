@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package kit.iron.srv.secruity;
+
+service Auth {
+  rpc Signin(AuthRequest) returns(AuthResponse) {}
+  rpc SignupWithMobile(SignupWithMobileRequest) returns(SignupResponse) {}
+}
+
+message SignupWithMobileRequest {
+  string password = 1;
+  string school = 2;
+  string mobile = 3;
+  int32 mobileAreaCode = 4;
+  string validateCode = 5;
+  string firstName = 6;
+  string lastName = 7;
+  string confirmPassword = 8;
+}
+
+message SignupResponse {
+  bool ok = 1;
+}
+
+message AuthRequest {
+  string identify = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  string token = 1;
+}
