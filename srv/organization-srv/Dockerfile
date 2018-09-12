@@ -1,3 +1,10 @@
 FROM alpine:3.2
-ADD organization-srv-srv /organization-srv-srv
-ENTRYPOINT [ "/organization-srv-srv" ]
+
+RUN mkdir /app
+
+WORKDIR /app
+
+ADD organization-srv /app/organization-srv
+
+# ENTRYPOINT [ "/user-srv" ]
+CMD ["./organization-srv"]

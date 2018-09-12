@@ -20,6 +20,6 @@ test:
 run:
 	docker run --net="host" \
 	-e MICRO_REGISTRY=mdns \
-	-e DB_HOST="127.0.0.1:27018" \
+	-e DB_HOST="127.0.0.1:27017" \
 	-e DB_NAME="unite" \
 	user-srv

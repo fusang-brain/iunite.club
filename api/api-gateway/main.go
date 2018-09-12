@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/iron-kit/unite-services/api-gateway/handler"
-	auth "github.com/iron-kit/unite-services/api-gateway/proto/auth"
 	"github.com/micro/go-api"
 	"github.com/micro/go-api/handler/rpc"
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
+	"iunite.club/api/api-gateway/handler"
+	auth "iunite.club/api/api-gateway/proto/auth"
 )
 
 func main() {

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/iron-kit/go-ironic/micro-assistant"
 	"github.com/iron-kit/monger"
-	"github.com/iron-kit/unite-services/secruity/wrappers"
-	"github.com/iron-kit/unite-services/user-srv/handler"
-	"github.com/iron-kit/unite-services/user-srv/models"
-	"github.com/iron-kit/unite-services/user-srv/services"
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
+	"iunite.club/models"
+	"iunite.club/srv/secruity/wrappers"
+	"iunite.club/srv/user-srv/handler"
+	"iunite.club/srv/user-srv/services"
 	"os"
 
-	user "github.com/iron-kit/unite-services/user-srv/proto/user"
+	user "iunite.club/srv/user-srv/proto/user"
 )
 
 func main() {

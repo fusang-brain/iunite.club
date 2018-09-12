@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package kit.iron.srv.organization.club;
+
+import "iunite.club/srv/organization-srv/proto/organization.proto";
+
+service Club {
+  rpc CreateClub(CreateClubRequest) returns(CreateClubResponse) {}
+  // FindClubListByPage 获取社团列表
+  rpc FindClubListByPage(GetClubListRequest) returns(ClubListResponse) {}
+  rpc GetClubsByUserID(GetClubsByUserIDRequest) returns(ClubListResponse) {}
+  rpc AcceptJoinOneClub(AcceptJoinOneClubRequest) returns(Response) {}
+  rpc ExecuteJoinClubAccept(ExecuteJoinClubAcceptRequest) returns(Response) {}
+}
+
+message ExecuteJoinClubAcceptRequest {
+  bool IsPassed = 1;
+  string AcceptID = 2;
+}
+
+message Response {
+  bool OK = 1;
+}
+
+message AcceptJoinOneClubRequest {
+  string UserID = 1;
+  string ClubID = 2;
+  string JobID = 3;
+  string DepartmentID = 4;
+}
+
+message GetClubsByUserIDRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string UserID = 3;
+}
+
+message CreateClubRequest {
+  string Name = 1;
+  string SchoolID = 2;
+  int32 Scale = 3;
+  repeated string Paperworks = 4;
+  string CreatorID = 5;
+}
+
+message CreateClubResponse {
+  bool OK = 1;
+}
+
+message GetClubListRequest {
+  string SinceFlag = 1;
+  string MaxFlag = 2;
+  int64 page = 3;
+  int64 limit = 4;
+}
+
+message ClubListResponse {
+  int64 Total = 1;
+  repeated kit.iron.srv.organization.Organization Organizations = 2;
+  string FirstID = 3;
+  string LastID = 4;
+}
