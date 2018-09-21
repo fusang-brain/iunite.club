@@ -56,7 +56,7 @@ func main() {
 		&models.JoinOrganizationAccept{},
 	)
 
-	assistant := assistant.NewAssistant(
+	ass := assistant.NewAssistant(
 		assistant.Name("kit.iron.srv.origanization-srv"),
 		assistant.Connection(connection),
 		assistant.RegisterHandler(
@@ -79,22 +79,22 @@ func main() {
 	// Register Handler
 	schoolPB.RegisterSchoolSrvHandler(
 		service.Server(),
-		assistant.Handler("handler.SchoolHandler").(*handler.SchoolHandler),
+		ass.Handler("handler.SchoolHandler").(*handler.SchoolHandler),
 	)
 
 	clubPB.RegisterClubHandler(
 		service.Server(),
-		assistant.Handler("handler.ClubHandler").(*handler.ClubHandler),
+		ass.Handler("handler.ClubHandler").(*handler.ClubHandler),
 	)
 
 	jobPB.RegisterJobHandler(
 		service.Server(),
-		assistant.Handler("handler.JobHandler").(*handler.JobHandler),
+		ass.Handler("handler.JobHandler").(*handler.JobHandler),
 	)
 
 	deptPB.RegisterDepartmentHandler(
 		service.Server(),
-		assistant.Handler("handler.DepartmentHandler").(*handler.DepartmentHandler),
+		ass.Handler("handler.DepartmentHandler").(*handler.DepartmentHandler),
 	)
 	// Register Struct as Subscriber
 	// micro.RegisterSubscriber("kit.iron.srv.srv.organization-srv", service.Server(), new(subscriber.Example))

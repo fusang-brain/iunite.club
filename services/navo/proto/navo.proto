@@ -1,0 +1,233 @@
+syntax = "proto3";
+
+package iunite.club.api.navo;
+
+import "github.com/micro/go-api/proto/api.proto";
+
+service NavoHandler {
+  rpc TaskCounts(go.api.Request) returns (go.api.Response) {}
+  rpc GetHomeCounts(go.api.Request) returns (go.api.Response) {}
+  rpc Pictures(go.api.Request) returns (go.api.Response) {}
+  rpc CheckUpgrade(go.api.Request) returns (go.api.Response) {}
+  rpc UploadPackage(go.api.Request) returns (go.api.Response) {}
+}
+
+service SMSHandler {
+  rpc SendVerifyCode(go.api.Request) returns (go.api.Response) {}
+  rpc ValidateSimpleCode(go.api.Request) returns (go.api.Response) {}
+}
+
+service UserHandler {
+  rpc Info(go.api.Request) returns (go.api.Response) {}
+  rpc UpdateCurrentOrg(go.api.Request) returns (go.api.Response) {}
+  rpc ForgetPassword(go.api.Request) returns (go.api.Response) {}
+  rpc AllUser(go.api.Request) returns (go.api.Response) {}
+  rpc GetCurrentOrganization(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllMembers(go.api.Request) returns (go.api.Response) {}
+  rpc CreateMember(go.api.Request) returns (go.api.Response) {}
+  rpc RemvoeMemberFromOrg(go.api.Request) returns (go.api.Response) {}
+  rpc UpdateMember(go.api.Request) returns (go.api.Response) {}
+  rpc GetMemberDetails(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveOrg(go.api.Request) returns (go.api.Response) {}
+  rpc UpdateUserInfo(go.api.Request) returns (go.api.Response) {}
+  rpc FlagMemberState(go.api.Request) returns (go.api.Response) {}
+  rpc GetHotUsers(go.api.Request) returns (go.api.Response) {}
+  rpc UploadAvatar(go.api.Request) returns (go.api.Response) {}
+  rpc ExportList(go.api.Request) returns (go.api.Response) {}
+  rpc DownloadExportTemplate(go.api.Request) returns (go.api.Response) {}
+  rpc UploadUserList(go.api.Request) returns (go.api.Response) {}
+}
+
+service FileHandler {
+  rpc UploadSingleFile(go.api.Request) returns (go.api.Response) {}
+  rpc UploadMutipartFile(go.api.Request) returns (go.api.Response) {}
+}
+
+service OrganizationHandler {
+  rpc CreateOrganization(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllOrgByUserID(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllOrgUsersByUserID(go.api.Request) returns (go.api.Response) {}
+  rpc SearchHostOrganization(go.api.Request) returns (go.api.Response) {}
+  rpc AcceptJoin(go.api.Request) returns (go.api.Response) {}
+  rpc AgreeJoin(go.api.Request) returns (go.api.Response) {}
+  rpc RefuseJoin(go.api.Request) returns (go.api.Response) {}
+  rpc FindRefusedAccept(go.api.Request) returns (go.api.Response) {}
+  rpc GetDepartmentDetails(go.api.Request) returns (go.api.Response) {}
+  rpc Info(go.api.Request) returns (go.api.Response) {}
+  rpc UploadLogo(go.api.Request) returns (go.api.Response) {}
+  rpc UpdateOrganizationDescription(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllOrganizationBySchool(go.api.Request) returns (go.api.Response) {}
+  rpc GetOrganizationDetails(go.api.Request) returns (go.api.Response) {}
+  rpc GetOrganizationUserInfoDetails(go.api.Request) returns (go.api.Response) {}
+  rpc SelectOrganizations(go.api.Request) returns (go.api.Response) {}
+}
+
+service DepartmentHandler {
+  rpc AddDept(go.api.Request) returns (go.api.Response) {} 
+  rpc GetDepartmentByOrg(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllDepartmentByOrg(go.api.Request) returns (go.api.Response) {}
+  rpc SearchDepartment(go.api.Request) returns (go.api.Response) {}
+  rpc AddUserToDepartment(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveUserFromDepartment(go.api.Request) returns (go.api.Response) {}
+  rpc AllCanSelectedUsers(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllUsersWithDepartment(go.api.Request) returns (go.api.Response) {}
+  rpc Update(go.api.Request) returns (go.api.Response) {}
+  rpc Remove(go.api.Request) returns (go.api.Response) {}
+}
+
+service JobHandler {
+  rpc CreateJob(go.api.Request) returns (go.api.Response) {}
+  rpc GetUsersWithJob(go.api.Request) returns (go.api.Response) {}
+  rpc AllCanSelectedUsers(go.api.Request) returns (go.api.Response) {}
+  rpc AddUsersToJob(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveUsersFromJob(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllJobs(go.api.Request) returns (go.api.Response) {}
+  rpc Update(go.api.Request) returns (go.api.Response) {}
+  rpc Remove(go.api.Request) returns (go.api.Response) {}
+}
+
+service RoleHandler {
+  rpc CreateRoleOrGroup(go.api.Request) returns (go.api.Response) {}
+  rpc AddUsersToRole(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveUsersFromRole(go.api.Request) returns (go.api.Response) {}
+  rpc GetUsersInRole(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllCanUseRoles(go.api.Request) returns (go.api.Response) {}
+  rpc UpdateRoleOrGroup(go.api.Request) returns (go.api.Response) {}
+  rpc DeleteRoleOrGroup(go.api.Request) returns (go.api.Response) {}
+}
+
+service ContactsHandler {
+  rpc GetContactsList(go.api.Request) returns (go.api.Response) {}
+  rpc GetUserCardDetails(go.api.Request) returns (go.api.Response) {}
+  rpc GetDepartmentGroupByUserID(go.api.Request) returns (go.api.Response) {}
+  rpc GetUsersByDepartmentID(go.api.Request) returns (go.api.Response) {}
+  rpc GetDepartmentsByOrganizationID(go.api.Request) returns (go.api.Response) {}
+  rpc SearchUser(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllGroup(go.api.Request) returns (go.api.Response) {}
+  rpc GetFriendList(go.api.Request) returns (go.api.Response) {}
+  rpc AddFriend(go.api.Request) returns (go.api.Response) {}
+  rpc GetFriendAcceptList(go.api.Request) returns (go.api.Response) {}
+  rpc AgreeFriendAccept(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveFriends(go.api.Request) returns (go.api.Response) {}
+}
+
+service ActivityHandler {
+  rpc Create(go.api.Request) returns (go.api.Response) {}
+  rpc List(go.api.Request) returns (go.api.Response) {}
+  rpc BatchDelete(go.api.Request) returns (go.api.Response) {}
+  rpc DeleteOne(go.api.Request) returns (go.api.Response) {}
+  rpc Details(go.api.Request) returns (go.api.Response) {}
+  rpc UndoOne(go.api.Request) returns (go.api.Response) {}
+  rpc GetActivities(go.api.Request) returns (go.api.Response) {}
+  rpc DismissActivity(go.api.Request) returns (go.api.Response) {}
+  rpc PublishActivity(go.api.Request) returns (go.api.Response) {}
+}
+
+service FundingHandler {
+  rpc Create(go.api.Request) returns (go.api.Response) {}
+  rpc List(go.api.Request) returns (go.api.Response) {}
+  rpc Details(go.api.Request) returns (go.api.Response) {}
+  rpc BatchDelete(go.api.Request) returns (go.api.Response) {}
+  rpc DeleteOne(go.api.Request) returns (go.api.Response) {}
+  rpc UndoOne(go.api.Request) returns (go.api.Response) {}
+}
+
+service GoodsBorrowHandler {
+  rpc List(go.api.Request) returns (go.api.Response) {}
+  rpc Create(go.api.Request) returns (go.api.Response) {}
+  rpc Details(go.api.Request) returns (go.api.Response) {}
+  rpc BatchDelete(go.api.Request) returns (go.api.Response) {}
+  rpc DeleteOne(go.api.Request) returns (go.api.Response) {}
+  rpc UndoOne(go.api.Request) returns (go.api.Response) {}
+}
+
+service ApprovedHandler {
+  rpc List(go.api.Request) returns (go.api.Response) {}
+  rpc Details(go.api.Request) returns (go.api.Response) {}
+  rpc ExecuteOne(go.api.Request) returns (go.api.Response) {}
+  rpc Archive(go.api.Request) returns (go.api.Response) {}
+  rpc BatchArchive(go.api.Request) returns (go.api.Response) {}
+  rpc WaitingTaskList(go.api.Request) returns (go.api.Response) {}
+  rpc ListV2(go.api.Request) returns (go.api.Response) {}
+  rpc ListByPusher(go.api.Request) returns (go.api.Response) {}
+}
+
+service StatisticHandler {
+  rpc FundingAmount(go.api.Request) returns (go.api.Response) {}
+  rpc FundingAmount2DMapdata(go.api.Request) returns (go.api.Response) {}
+  rpc FundingDepartmentList(go.api.Request) returns (go.api.Response) {}
+  rpc ActivityDepartmentList(go.api.Request) returns (go.api.Response) {}
+  rpc ActivityAmountStatistics(go.api.Request) returns (go.api.Response) {}
+  rpc ActivityAmount2DMapData(go.api.Request) returns (go.api.Response) {}
+  rpc UserPersonCount(go.api.Request) returns (go.api.Response) {}
+  rpc UserCountList(go.api.Request) returns (go.api.Response) {}
+  rpc GetPeopleOverview2DMapData(go.api.Request) returns (go.api.Response) {}
+  rpc GetActivityStatisticsDetailsList(go.api.Request) returns (go.api.Response) {}
+  rpc GetPeopleStatisticsDetails(go.api.Request) returns (go.api.Response) {}
+}
+
+service CloudHandler {
+  rpc List(go.api.Request) returns (go.api.Response) {}
+  rpc CreateDIR(go.api.Request) returns (go.api.Response) {}
+  rpc UploadFile(go.api.Request) returns (go.api.Response) {}
+  rpc DeleteOne(go.api.Request) returns (go.api.Response) {}
+  rpc DownloadFile(go.api.Request) returns (go.api.Response) {}
+  rpc Details(go.api.Request) returns (go.api.Response) {}
+  rpc UpdatePermission(go.api.Request) returns (go.api.Response) {}
+  rpc ShowFile(go.api.Request) returns (go.api.Response) {}
+}
+
+service NotifyHanler {
+  rpc UnreadCount(go.api.Request) returns (go.api.Response) {}
+  rpc GetNotifications(go.api.Request) returns (go.api.Response) {}
+  rpc MarkToRead(go.api.Request) returns (go.api.Response) {}
+  rpc ClearCurrentNotification(go.api.Request) returns (go.api.Response) {}
+}
+
+service RecruitmentHandler {
+  rpc LatestRecruitmentRecord(go.api.Request) returns (go.api.Response) {}
+  rpc AddRecruitmentRecord(go.api.Request) returns (go.api.Response) {}
+  rpc AddRecruitmentForm(go.api.Request) returns (go.api.Response) {}
+  rpc GetRecruitmentFormDetails(go.api.Request) returns (go.api.Response) {}
+  rpc GetRecruitmentRecordDetails(go.api.Request) returns (go.api.Response) {}
+  rpc AddRecruitmentFormRecord(go.api.Request) returns (go.api.Response) {}
+  rpc GetRecruitmentFormRecordList(go.api.Request) returns (go.api.Response) {}
+  rpc DownloadQRCode(go.api.Request) returns (go.api.Response) {}
+  rpc EndRecruitment(go.api.Request) returns (go.api.Response) {}
+  rpc RefusedOnePost(go.api.Request) returns (go.api.Response) {}
+  rpc PassedOnePost(go.api.Request) returns (go.api.Response) {}
+  rpc AdjustOnePost(go.api.Request) returns (go.api.Response) {}
+}
+
+service ConversationHandler {
+  rpc GetConversationsByMemberID(go.api.Request) returns (go.api.Response) {}
+  rpc CreateConversation(go.api.Request) returns (go.api.Response) {}
+  rpc GetConversationDetails(go.api.Request) returns (go.api.Response) {}
+  rpc ExitGroup(go.api.Request) returns (go.api.Response) {}
+  rpc DismissGroup(go.api.Request) returns (go.api.Response) {}
+  rpc UpdateGroupConversation(go.api.Request) returns (go.api.Response) {}
+  rpc CreateGroupNotice(go.api.Request) returns (go.api.Response) {}
+  rpc MarkNoticeToHasRead(go.api.Request) returns (go.api.Response) {}
+  rpc GetNoticeList(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveConversationNotice(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveGroupMember(go.api.Request) returns (go.api.Response) {}
+  rpc AddGroupMember(go.api.Request) returns (go.api.Response) {}
+  rpc GetAllMembersOfConversation(go.api.Request) returns (go.api.Response) {}
+  rpc JoinGroup(go.api.Request) returns (go.api.Response) {}
+}
+
+service AnnounceHandler {
+  rpc CreateInstructions(go.api.Request) returns (go.api.Response) {}
+  rpc CreateReminderAnnounce(go.api.Request) returns (go.api.Response) {}
+  rpc CreateTaskAnnounce(go.api.Request) returns (go.api.Response) {}
+  rpc GetAnnounces(go.api.Request) returns (go.api.Response) {}
+  rpc MarkedToRead(go.api.Request) returns (go.api.Response) {}
+}
+
+service ManagerHandler {
+  rpc AgreeOrganizationAccept(go.api.Request) returns (go.api.Response) {}
+  rpc Orgs(go.api.Request) returns (go.api.Response) {}
+  rpc GetOrganizations(go.api.Request) returns (go.api.Response) {}
+  rpc GetOrgDetails(go.api.Request) returns (go.api.Response) {}
+  rpc DelOrg(go.api.Request) returns (go.api.Response) {}
+}

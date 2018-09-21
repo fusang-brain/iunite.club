@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package kit.iron.srv.organization.school;
+
+service SchoolSrv {
+  rpc CreateSchool(CreateSchoolRequest) returns(CreateSchoolResponse) {}
+  rpc GetSchoolList(ListRequest) returns(ListResponse) {}
+}
+
+message CreateSchoolRequest{
+  string Name = 1;
+  string Description = 2;
+}
+
+message CreateSchoolResponse {
+  bool OK = 1;
+}
+
+message ListRequest{
+  int32 Page = 1;
+  int32 Limit = 2;
+}
+
+message ListResponse {
+  bool OK = 1;
+  repeated School Schools = 2;
+  int64 total = 3;
+}
+
+message School {
+  string Name = 1;
+  string SlugName = 2;
+  string SchoolCode = 3;
+  string Description = 4;
+  string ID = 5;
+}

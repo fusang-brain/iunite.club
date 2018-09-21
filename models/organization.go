@@ -3,7 +3,7 @@ package models
 import (
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
-	orgPB "iunite.club/srv/organization-srv/proto"
+	orgPB "iunite.club/services/organization/proto"
 	"time"
 )
 

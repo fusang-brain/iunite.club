@@ -1,28 +1,130 @@
 version: '3.1'
 
 services:
-  api-gateway:
-    build: ./api-gateway
-    network_mode: host
+  consul:
+    command: -server -bootstrap -rejoin
+    image: progrium/consul:latest
     ports:
-      - 50052:50051
-    environment:
-      MICRO_ADDRESS: ":50051"
-      MICRO_REGISTRY: "mdns"
-  user-srv:
-    build: ./user-srv
-    network_mode: host
+      - "8300:8300"
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:53/udp"
+  srv-api:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10 api --namespace=iunite.club.srv --address=:8081
+    image: microhq/micro
+    links:
+      - consul
+    ports:
+      - "8081:8081"
+    depends_on:
+      - consul
+  api:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10 api --namespace=iunite.club.api --address=:8080
+    image: microhq/micro
+    links:
+      - consul
+    ports:
+      - "8080:8080"
+    depends_on:
+      - consul
+  web:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10 web
+    image: microhq/micro
+    links:
+      - consul
+    ports:
+      - "8082:8082"
+  message-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/message
+    links:
+      - consul
+      - mongodb
     ports:
       - 50051:50051
     environment:
       MICRO_ADDRESS: ":50051"
-      MICRO_REGISTRY: "mdns"
-      DB_HOST: "localhost:27017"
+      DB_HOST: "mongodb:27017"
       DB_NAME: "unite"
     depends_on:
+       - mongodb
+       - consul
+
+  user-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/user
+    links:
+      - consul
       - mongodb
+    ports:
+      - 50052:50051
+    environment:
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+       - mongodb
+       - consul
+  organization-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/organization
+    links:
+      - consul
+      - mongodb
+    ports:
+      - 50053:50051
+    environment:
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+       - mongodb
+       - consul
+  navo-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/navo
+    links:
+      - consul
+    ports:
+      - 50054:50051
+    environment:
+      MICRO_ADDRESS: ":50051"
+    depends_on:
+      - consul
   mongodb:
     image: mongo
     ports:
-      - 27018:27017
+      - 27017:27017
+    volumes:
+      - /data/db:/data/db
+
+
+
+
+  # api-gateway:
+  #   build: ./api-gateway
+  #   network_mode: host
+  #   ports:
+  #     - 50052:50051
+  #   environment:
+  #     MICRO_ADDRESS: ":50051"
+  #     MICRO_REGISTRY: "mdns"
+  # user-srv:
+  #   build: ./user-srv
+  #   network_mode: host
+  #   ports:
+  #     - 50051:50051
+  #   environment:
+  #     MICRO_ADDRESS: ":50051"
+  #     MICRO_REGISTRY: "mdns"
+  #     DB_HOST: "localhost:27017"
+  #     DB_NAME: "unite"
+  #   depends_on:
+  #     - mongodb
+  # user-srv:
+  #   build: ./services/user
+
+  
   

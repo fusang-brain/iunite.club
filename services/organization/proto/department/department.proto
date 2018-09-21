@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package iunite.club.srv.organization.department;
+
+import "iunite.club/services/organization/proto/organization.proto";
+
+service Department {
+  rpc CreateDepartment(CreateDepartmentRequest) returns(CreateDepartmentResponse) {}
+  rpc UpdateDepartment(UpdateDepartmentRequest) returns(UpdateDepartmentResponse) {}
+  rpc RemoveDepartment(RemoveDepartmentRequest) returns(RemoveDepartmentResponse) {}
+  rpc GetDepartmentListByParentID(DepartmentListByParentIDRequest) returns(DepartmentListResponse) {}
+}
+
+message CreateDepartmentRequest {
+  string Name = 1;
+  string ParentID = 2;
+  string Description = 3;
+}
+
+message CreateDepartmentResponse {
+  iunite.club.srv.organization.Organization Department = 1;
+  bool OK = 2;
+}
+
+message UpdateDepartmentRequest {
+  string ID = 1;
+  string Name = 2;
+  string ParentID = 3;
+  string Description = 4;
+}
+
+message UpdateDepartmentResponse {
+  bool OK = 1;
+  // repeated kit.iron.srv.organization.Organization Departments = 1;
+}
+
+message RemoveDepartmentRequest {
+  string ID = 1;
+}
+
+message RemoveDepartmentResponse {
+  bool OK = 1;
+}
+
+message DepartmentListByParentIDRequest {
+  int32 Page = 1;
+  int32 Limit = 2;
+  string MaxFlag = 3;
+  string MinFlag = 4;
+  string ParentID = 5;
+  string Search = 6;
+  bool Spread = 7;
+}
+
+message DepartmentListResponse {
+  repeated iunite.club.srv.organization.Organization Departments = 1;
+  int64 Total = 2;
+}

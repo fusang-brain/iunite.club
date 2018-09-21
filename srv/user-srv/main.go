@@ -58,7 +58,7 @@ func main() {
 		&models.Profile{},
 	)
 
-	assistant := assistant.NewAssistant(
+	ass := assistant.NewAssistant(
 		assistant.Name("kit.iron.srv.user"),
 		assistant.Connection(connection),
 		assistant.RegisterHandler(&handler.User{}),
@@ -69,7 +69,7 @@ func main() {
 	service.Init()
 
 	// Register Handler
-	uh := assistant.Handler("handler.User").(*handler.User)
+	uh := ass.Handler("handler.User").(*handler.User)
 	user.RegisterUserSrvHandler(service.Server(), uh)
 	// example.RegisterExampleHandler(service.Server(), new(handler.Example))
 

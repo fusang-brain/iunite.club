@@ -1,10 +1,10 @@
 package models
 
 import (
-	"github.com/iron-kit/go-ironic/micro-assistant"
+	assistant "github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
-	"iunite.club/srv/user-srv/proto/user"
+	kit_iron_srv_user "iunite.club/services/user/proto"
 	"time"
 )
 

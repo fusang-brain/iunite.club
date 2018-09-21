@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	// "fmt"
 	"github.com/iron-kit/go-ironic/micro-assistant"
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro/errors"
@@ -13,6 +14,7 @@ import (
 
 // Auth 认证
 type Auth struct {
+	assistant.BaseHandler
 	Error        *assistant.ErrorManager
 	TokenService *services.TokenService
 }
@@ -41,10 +43,11 @@ func (a *Auth) SignupWithMobile(ctx context.Context, req *auth.SignupWithMobileR
 		return err
 	}
 
-	token, err := a.TokenService.Encode(user.User, 7)
+	token, expiredAt, err := a.TokenService.Encode(user.User, 7)
 	log.Log("token: ", token)
-	rsp.Ok = true
-
+	rsp.OK = true
+	rsp.Token = token
+	rsp.TokenExpiredAt = expiredAt
 	return nil
 }
 
@@ -57,16 +60,23 @@ func (a *Auth) Signin(ctx context.Context, req *auth.AuthRequest, rsp *auth.Auth
 	if !ok {
 		return errors.InternalServerError("iron.kit.srv.secruity", "user client not found")
 	}
-	var err error
-	// userInfo := user.UserResponse{}
+
 	userInfo, err := userService.SigninByMobile(ctx, &user.SigninByMobileRequest{
 		Mobile:   req.Identify,
 		Password: req.Password,
 	})
 
-	rsp.Token, err = a.TokenService.Encode(userInfo.User, 7)
 	if err != nil {
 		return err
 	}
+
+	token, expiredAt, err := a.TokenService.Encode(userInfo.User, 7)
+	// fmt.Println(userInfo.User.ID, "TON")
+	if err != nil {
+		return a.Error.InternalServerError(err.Error())
+	}
+
+	rsp.Token = token
+	rsp.ExpiredAt = expiredAt
 	return nil
 }

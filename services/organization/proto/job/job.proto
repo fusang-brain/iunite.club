@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package iunite.club.srv.organization.job;
+
+import "iunite.club/services/organization/proto/organization.proto";
+
+service Job {
+  rpc CreateJob(CreateJobRequest) returns(CreateJobResponse) {}
+  rpc UpdateJob(UpdateJobRequest) returns(UpdateJobResponse) {}
+  rpc RemoveJob(RemoveJobRequest) returns(RemoveJobResponse) {}
+  rpc GetJobListByParentID(JobListRequest) returns(JobListResponse) {}
+}
+
+message CreateJobRequest {
+  string Name = 1;
+  string ClubID = 2;
+}
+
+message CreateJobResponse {
+  bool OK = 1;
+  iunite.club.srv.organization.Job Job =2;
+}
+
+message UpdateJobRequest {
+  string ID = 1;
+  string Name = 2;
+  string ClubID = 3;
+}
+
+message UpdateJobResponse {
+  bool OK = 1;
+}
+
+message RemoveJobRequest {
+  string ID = 1;
+}
+
+message RemoveJobResponse {
+  bool OK = 1;
+}
+
+message JobListRequest {
+  int32 Page = 1;
+  int32 Limit = 2;
+  string MaxFlag = 3;
+  string MinFlag = 4;
+  string OrganizationID = 5;
+}
+
+message JobListResponse {
+  repeated iunite.club.srv.organization.Job jobs = 1;
+  int64 Total = 2;
+}

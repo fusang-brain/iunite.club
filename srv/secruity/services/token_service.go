@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/iron-kit/go-ironic/micro-assistant"
 	pb "iunite.club/srv/user-srv/proto/user"
@@ -28,10 +29,14 @@ Decode is parse string to CustomClaims struct
 */
 func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
 	t, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+
 		return privateSalt, nil
 	})
 
 	if claims, ok := t.Claims.(*CustomClaims); ok && t.Valid {
+		if claims.Issuer != "kit.iron.srv.secruity" {
+			return nil, fmt.Errorf("Unknown issuer")
+		}
 		return claims, nil
 	}
 
@@ -41,12 +46,13 @@ func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
 /*
 Encode is a function to generate a token
 */
-func (srv *TokenService) Encode(user *pb.User, expireDay int64) (string, error) {
+func (srv *TokenService) Encode(user *pb.User, expireDay int64) (string, int64, error) {
 	if expireDay == 0 {
 		expireDay = 7
 	}
 	now := time.Now()
-	expireTime := now.Add(time.Hour * 24 * 7).Unix()
+
+	expireTime := now.Add(time.Hour * 24 * time.Duration(expireDay)).Unix()
 
 	claims := CustomClaims{
 		UserID: user.ID,
@@ -57,6 +63,10 @@ func (srv *TokenService) Encode(user *pb.User, expireDay int64) (string, error) 
 		},
 	}
 
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-	return jwtToken.SignedString(privateSalt)
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	t, err := jwtToken.SignedString(privateSalt)
+
+	return t, expireTime, err
+
+	// return token, int64(expireTime), err
 }

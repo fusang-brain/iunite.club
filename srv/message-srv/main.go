@@ -1,12 +1,13 @@
 package main
 
 import (
+	"iunite.club/srv/message-srv/handler"
+	"github.com/iron-kit/go-ironic/micro-assistant"
+	"github.com/iron-kit/monger"
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
-	"github.com/iron-kit/unite-services/message-srv/handler"
-	"github.com/iron-kit/unite-services/message-srv/subscriber"
-
-	example "github.com/iron-kit/unite-services/message-srv/proto/example"
+	"iunite.club/models"
+	"os"
 )
 
 func main() {
@@ -16,17 +17,49 @@ func main() {
 		micro.Version("latest"),
 	)
 
+	dbName := os.Getenv("DB_NAME")
+	host := os.Getenv("DB_HOST")
+	if dbName == "" {
+		dbName = "unite"
+	}
+
+	if host == "" {
+		host = "localhost:27017"
+	}
+
+	connection, err := monger.Connect(
+		monger.DBName(dbName),
+		monger.Hosts([]string{
+			host,
+		}),
+
+		// monger.PoolLimit(500)
+	)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	connection.BatchRegister(
+		&models.ValidateCode{},
+	)
+
+	ass := assistant.NewAssistant(
+		assistant.Name("kit.iron.srv.srv.message-srv"),
+		assistant.Connection(connection),
+		assistant.RegisterHandler(
+			handler.SMSHandler{}
+		)
+	)
+
 	// Initialise service
 	service.Init()
 
 	// Register Handler
-	example.RegisterExampleHandler(service.Server(), new(handler.Example))
 
 	// Register Struct as Subscriber
-	micro.RegisterSubscriber("kit.iron.srv.srv.message-srv", service.Server(), new(subscriber.Example))
 
 	// Register Function as Subscriber
-	micro.RegisterSubscriber("kit.iron.srv.srv.message-srv", service.Server(), subscriber.Handler)
 
 	// Run service
 	if err := service.Run(); err != nil {

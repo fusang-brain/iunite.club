@@ -8,25 +8,28 @@ service Auth {
 }
 
 message SignupWithMobileRequest {
-  string password = 1;
-  string school = 2;
-  string mobile = 3;
-  int32 mobileAreaCode = 4;
-  string validateCode = 5;
-  string firstName = 6;
-  string lastName = 7;
-  string confirmPassword = 8;
+  string Password = 1;
+  string School = 2;
+  string Mobile = 3;
+  int32 MobileAreaCode = 4;
+  string ValidateCode = 5;
+  string FirstName = 6;
+  string LastName = 7;
+  string ConfirmPassword = 8;
 }
 
 message SignupResponse {
-  bool ok = 1;
+  bool OK = 1;
+  string Token = 2;
+  int64 TokenExpiredAt = 3;
 }
 
 message AuthRequest {
-  string identify = 1;
-  string password = 2;
+  string Identify = 1;
+  string Password = 2;
 }
 
 message AuthResponse {
-  string token = 1;
+  string Token = 1;
+  int64 ExpiredAt = 2;
 }

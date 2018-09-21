@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package iunite.club.api.navo.auth;
+
+import "github.com/micro/go-api/proto/api.proto";
+
+service AuthHandler {
+  rpc Login(go.api.Request) returns (go.api.Response) {}
+  rpc Register(go.api.Request) returns (go.api.Response) {}
+}
