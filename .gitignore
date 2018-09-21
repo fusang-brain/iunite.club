@@ -2,4 +2,7 @@
 *-srv
 *-srv-local
 
+*-api
+*-api-local
+
 SIGN*.html

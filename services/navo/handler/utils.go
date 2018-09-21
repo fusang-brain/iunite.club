@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"iunite.club/api/navo/dto"
+	"iunite.club/services/navo/dto"
 )
 
 func APISuccess(data interface{}) *dto.APIResponse {
