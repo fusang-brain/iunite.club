@@ -4,6 +4,7 @@ import (
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/go-ironic/utils"
 	"github.com/iron-kit/monger"
+	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
 	pb "iunite.club/services/organization/proto/school"
 )
@@ -20,6 +21,23 @@ func (d *SchoolService) Model(name string) monger.Model {
 	}
 
 	return conn.M(name)
+}
+
+func (s *SchoolService) GetSchoolByID(id string) (*models.School, error) {
+	SchoolModel := s.Model("School")
+	foundSchool := models.School{}
+
+	if !bson.IsObjectIdHex(id) {
+		return &foundSchool, s.Error().NotFound("Not found school")
+	}
+
+	err := SchoolModel.FindByID(bson.ObjectIdHex(id)).Exec(&foundSchool)
+	if err != nil {
+		return &foundSchool, s.Error().InternalServerError(err.Error())
+	}
+
+	return &foundSchool, nil
+
 }
 
 func (s *SchoolService) CreateSchool(req *pb.CreateSchoolRequest) (*models.School, error) {

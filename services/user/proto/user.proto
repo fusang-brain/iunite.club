@@ -11,12 +11,12 @@ service UserSrv {
   rpc IsUserEnabled(QueryUserRequest) returns (Response) {}
 
   // RegisterUserByMobile 注册一个新的用户
-  // rpc RegisterUserByMobile(RegisterUserRequest) returns (RegisterUserResponse) {}
+  rpc RegisterUserByMobile(RegisterUserRequest) returns (RegisterUserResponse) {}
 
   // ResetPasswordByMobile 重置密码
   rpc ResetPasswordByMobile(ResetPasswordRequest) returns (Response) {}
 
-  // rpc SigninByMobile(SigninByMobileRequest) returns (UserResponse) {}
+  rpc SigninByMobile(SigninByMobileRequest) returns (UserResponse) {}
 }
 
 message User {

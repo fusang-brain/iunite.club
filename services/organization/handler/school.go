@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"github.com/iron-kit/go-ironic"
 
 	pb "iunite.club/services/organization/proto/school"
@@ -10,6 +11,27 @@ import (
 
 type SchoolHandler struct {
 	ironic.BaseHandler
+}
+
+func (s *SchoolHandler) GetSchoolByID(ctx context.Context, req *pb.GetSchoolRequest, rsp *pb.SchoolResponse) error {
+	fmt.Println("get school by id")
+	schoolService := srv.NewSchoolService(ctx)
+
+	foundSchool, err := schoolService.GetSchoolByID(req.ID)
+
+	if err != nil {
+		return err
+	}
+
+	rsp.School = &pb.School{
+		SchoolCode:  foundSchool.SchoolCode,
+		Name:        foundSchool.Name,
+		SlugName:    foundSchool.SlugName,
+		Description: foundSchool.Description,
+		ID:          foundSchool.ID.Hex(),
+	}
+
+	return nil
 }
 
 func (s *SchoolHandler) CreateSchool(ctx context.Context, req *pb.CreateSchoolRequest, resp *pb.CreateSchoolResponse) error {

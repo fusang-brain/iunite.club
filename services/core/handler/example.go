@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"github.com/micro/go-micro/errors"
 
 	"github.com/micro/go-log"
 
@@ -13,6 +15,10 @@ type Example struct{}
 // Call is a single request handler called via client.Call or the generated client code
 func (e *Example) Call(ctx context.Context, req *example.Request, rsp *example.Response) error {
 	log.Log("Received Example.Call request")
+	fmt.Println("Received Example.Call request")
+	if req.Name == "ERR" {
+		return errors.BadRequest("e.d", "err")
+	}
 	rsp.Msg = "Hello " + req.Name
 	return nil
 }

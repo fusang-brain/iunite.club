@@ -1,13 +1,22 @@
 syntax = "proto3";
 
-package kit.iron.srv.organization.school;
+package iunite.club.srv.organization.school;
 
 service SchoolSrv {
   rpc CreateSchool(CreateSchoolRequest) returns(CreateSchoolResponse) {}
   rpc GetSchoolList(ListRequest) returns(ListResponse) {}
+  rpc GetSchoolByID(GetSchoolRequest) returns(SchoolResponse) {}
 }
 
-message CreateSchoolRequest{
+message GetSchoolRequest {
+  string ID = 1;
+}
+
+message SchoolResponse {
+  School School = 1;
+}
+
+message CreateSchoolRequest {
   string Name = 1;
   string Description = 2;
 }

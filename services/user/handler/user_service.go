@@ -95,6 +95,8 @@ func (u *UserService) SigninUser(authType string, key string, password string) (
 func (u *UserService) RegisterUserByMobile(user *kit_iron_srv_user.RegisterUserRequest) (*models.User, error) {
 	// fmt.Println("errmanager: ", u.Error)
 	// TODO generate username
+
+	SchoolModel := u.Model("School")
 	password, err := utils.GeneratePassword(user.Password)
 
 	if err != nil {
@@ -103,6 +105,26 @@ func (u *UserService) RegisterUserByMobile(user *kit_iron_srv_user.RegisterUserR
 
 	if user.ConfirmPassword != user.Password {
 		return nil, u.Error().ActionError("ConfirmPassword")
+	}
+
+	if !bson.IsObjectIdHex(user.SchoolID) {
+		return nil, u.Error().BadRequest("SchoolID must be a objectid")
+	}
+
+	foundSchoolCount := SchoolModel.Count(bson.M{"_id": bson.ObjectIdHex(user.SchoolID)})
+
+	if foundSchoolCount <= 0 {
+		return nil, u.Error().BadRequest("School is not exists")
+	}
+
+	if profile, err := u.FindProfileByMobile(user.Mobile); err != nil {
+		fmt.Println(err.Error())
+		return nil, u.Error().InternalServerError(err.Error())
+		// return nil, u.Error().BadRequest("Account %s has be registered", user.Mobile)
+	} else if !profile.IsEmpty() {
+		fmt.Println(profile)
+
+		return nil, u.Error().BadRequest("Account has be registered")
 	}
 
 	newUser := &models.User{
@@ -120,6 +142,7 @@ func (u *UserService) RegisterUserByMobile(user *kit_iron_srv_user.RegisterUserR
 			Firstname: user.Firstname,
 			Lastname:  user.Lastname,
 		},
+		SchoolID: bson.ObjectIdHex(user.SchoolID),
 	}
 
 	return newUser, u.CreateUser(newUser)

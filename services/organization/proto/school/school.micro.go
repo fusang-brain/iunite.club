@@ -2,19 +2,21 @@
 // source: proto/school/school.proto
 
 /*
-Package kit_iron_srv_organization_school is a generated protocol buffer package.
+Package iunite_club_srv_organization_school is a generated protocol buffer package.
 
 It is generated from these files:
 	proto/school/school.proto
 
 It has these top-level messages:
+	GetSchoolRequest
+	SchoolResponse
 	CreateSchoolRequest
 	CreateSchoolResponse
 	ListRequest
 	ListResponse
 	School
 */
-package kit_iron_srv_organization_school
+package iunite_club_srv_organization_school
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
@@ -47,6 +49,7 @@ var _ server.Option
 type SchoolSrvService interface {
 	CreateSchool(ctx context.Context, in *CreateSchoolRequest, opts ...client.CallOption) (*CreateSchoolResponse, error)
 	GetSchoolList(ctx context.Context, in *ListRequest, opts ...client.CallOption) (*ListResponse, error)
+	GetSchoolByID(ctx context.Context, in *GetSchoolRequest, opts ...client.CallOption) (*SchoolResponse, error)
 }
 
 type schoolSrvService struct {
@@ -59,7 +62,7 @@ func NewSchoolSrvService(name string, c client.Client) SchoolSrvService {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
-		name = "kit.iron.srv.organization.school"
+		name = "iunite.club.srv.organization.school"
 	}
 	return &schoolSrvService{
 		c:    c,
@@ -87,17 +90,29 @@ func (c *schoolSrvService) GetSchoolList(ctx context.Context, in *ListRequest, o
 	return out, nil
 }
 
+func (c *schoolSrvService) GetSchoolByID(ctx context.Context, in *GetSchoolRequest, opts ...client.CallOption) (*SchoolResponse, error) {
+	req := c.c.NewRequest(c.name, "SchoolSrv.GetSchoolByID", in)
+	out := new(SchoolResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for SchoolSrv service
 
 type SchoolSrvHandler interface {
 	CreateSchool(context.Context, *CreateSchoolRequest, *CreateSchoolResponse) error
 	GetSchoolList(context.Context, *ListRequest, *ListResponse) error
+	GetSchoolByID(context.Context, *GetSchoolRequest, *SchoolResponse) error
 }
 
 func RegisterSchoolSrvHandler(s server.Server, hdlr SchoolSrvHandler, opts ...server.HandlerOption) error {
 	type schoolSrv interface {
 		CreateSchool(ctx context.Context, in *CreateSchoolRequest, out *CreateSchoolResponse) error
 		GetSchoolList(ctx context.Context, in *ListRequest, out *ListResponse) error
+		GetSchoolByID(ctx context.Context, in *GetSchoolRequest, out *SchoolResponse) error
 	}
 	type SchoolSrv struct {
 		schoolSrv
@@ -116,4 +131,8 @@ func (h *schoolSrvHandler) CreateSchool(ctx context.Context, in *CreateSchoolReq
 
 func (h *schoolSrvHandler) GetSchoolList(ctx context.Context, in *ListRequest, out *ListResponse) error {
 	return h.SchoolSrvHandler.GetSchoolList(ctx, in, out)
+}
+
+func (h *schoolSrvHandler) GetSchoolByID(ctx context.Context, in *GetSchoolRequest, out *SchoolResponse) error {
+	return h.SchoolSrvHandler.GetSchoolByID(ctx, in, out)
 }

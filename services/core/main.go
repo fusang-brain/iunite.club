@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/iron-kit/go-ironic"
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
 	"iunite.club/services/core/handler"
@@ -11,7 +12,7 @@ import (
 
 func main() {
 	// New Service
-	service := micro.NewService(
+	service := ironic.NewService(
 		micro.Name("iunite.club.srv.core"),
 		micro.Version("latest"),
 	)

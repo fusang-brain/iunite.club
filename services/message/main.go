@@ -6,6 +6,7 @@ import (
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
 	"iunite.club/models"
+	"iunite.club/services/message/client"
 	"iunite.club/services/message/handler"
 	"iunite.club/services/message/subscriber"
 	"os"
@@ -47,7 +48,11 @@ func main() {
 	)
 
 	// Initialise service
-	service.Init()
+	service.Init(
+		micro.WrapHandler(
+			client.TestServiceWrapper(service),
+		),
+	)
 
 	// Register Handler
 	example.RegisterExampleHandler(service.Server(), new(handler.Example))

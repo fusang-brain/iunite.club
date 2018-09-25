@@ -23,4 +23,6 @@ message SendVerifyCodeRequest {
 
 message SendResponse {
   bool OK = 1;
+  string Code = 2;
+  string Message = 3;
 }

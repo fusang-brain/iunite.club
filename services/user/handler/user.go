@@ -6,6 +6,8 @@ import (
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
 	"iunite.club/models"
+	smsPB "iunite.club/services/message/proto/sms"
+	"iunite.club/services/user/client"
 	user "iunite.club/services/user/proto"
 )
 
@@ -101,8 +103,24 @@ func (u *UserSrv) IsUserEnabled(ctx context.Context, req *user.QueryUserRequest,
 
 func (u *UserSrv) RegisterUserByMobile(ctx context.Context, req *user.RegisterUserRequest, resp *user.RegisterUserResponse) error {
 	log.Log("receive register user request")
-	fmt.Println(req)
 	userService := newUserService(ctx)
+	if smsService, ok := client.SMSServerFromContext(ctx); ok {
+		resp, err := smsService.ValidateMobileCode(ctx, &smsPB.ValidateMobileCodeRequest{
+			Mobile: req.Mobile,
+			Code:   req.Code,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if !resp.OK {
+			return u.Error(ctx).BadRequest("Code is error")
+		}
+	} else {
+		return u.Error(ctx).BadRequest("SMS Service is not enable")
+	}
+
 	newUser, err := userService.RegisterUserByMobile(req)
 	if err != nil {
 		return err
@@ -129,6 +147,7 @@ func (u *UserSrv) ResetPasswordByMobile(ctx context.Context, req *user.ResetPass
 
 func (u *UserSrv) SigninByMobile(ctx context.Context, req *user.SigninByMobileRequest, resp *user.UserResponse) error {
 	log.Log("receive signin user request")
+	fmt.Println("receive signin user request")
 	userService := newUserService(ctx)
 
 	user, err := userService.SigninUser(MobileAuthType, req.Mobile, req.Password)

@@ -43,6 +43,7 @@ func (s *SMSHandler) SendVerifyCode(ctx context.Context, in *smsPB.SendVerifyCod
 	}
 
 	resp.OK = true
+	resp.Message = body
 
 	return nil
 }
@@ -75,6 +76,7 @@ func (s *SMSHandler) ValidateMobileCode(ctx context.Context, in *smsPB.ValidateM
 			// "usaged": false,
 		}).Exec(&verifyCode)
 
+	fmt.Println(verifyCode)
 	now := time.Now()
 
 	if verifyCode.IsEmpty() {
@@ -93,7 +95,7 @@ func (s *SMSHandler) ValidateMobileCode(ctx context.Context, in *smsPB.ValidateM
 
 func (s *SMSHandler) sendVerifyCode(ctx context.Context, mobile, sign string) (string, error) {
 	defaultSign := "【Unite】"
-	smsTemplate := "%s您的验证码是:%s"
+	smsTemplate := "%s您的验证码是: %d"
 	enableSMSSend := false
 
 	if sign == "" {

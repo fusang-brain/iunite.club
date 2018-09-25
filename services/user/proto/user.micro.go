@@ -62,8 +62,11 @@ type UserSrvService interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...client.CallOption) (*Response, error)
 	FindUsers(ctx context.Context, in *PagerRequest, opts ...client.CallOption) (*UserListResponse, error)
 	IsUserEnabled(ctx context.Context, in *QueryUserRequest, opts ...client.CallOption) (*Response, error)
+	// RegisterUserByMobile 注册一个新的用户
+	RegisterUserByMobile(ctx context.Context, in *RegisterUserRequest, opts ...client.CallOption) (*RegisterUserResponse, error)
 	// ResetPasswordByMobile 重置密码
 	ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, opts ...client.CallOption) (*Response, error)
+	SigninByMobile(ctx context.Context, in *SigninByMobileRequest, opts ...client.CallOption) (*UserResponse, error)
 }
 
 type userSrvService struct {
@@ -144,9 +147,29 @@ func (c *userSrvService) IsUserEnabled(ctx context.Context, in *QueryUserRequest
 	return out, nil
 }
 
+func (c *userSrvService) RegisterUserByMobile(ctx context.Context, in *RegisterUserRequest, opts ...client.CallOption) (*RegisterUserResponse, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.RegisterUserByMobile", in)
+	out := new(RegisterUserResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userSrvService) ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, opts ...client.CallOption) (*Response, error) {
 	req := c.c.NewRequest(c.name, "UserSrv.ResetPasswordByMobile", in)
 	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userSrvService) SigninByMobile(ctx context.Context, in *SigninByMobileRequest, opts ...client.CallOption) (*UserResponse, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.SigninByMobile", in)
+	out := new(UserResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -163,8 +186,11 @@ type UserSrvHandler interface {
 	UpdateUser(context.Context, *UpdateUserRequest, *Response) error
 	FindUsers(context.Context, *PagerRequest, *UserListResponse) error
 	IsUserEnabled(context.Context, *QueryUserRequest, *Response) error
+	// RegisterUserByMobile 注册一个新的用户
+	RegisterUserByMobile(context.Context, *RegisterUserRequest, *RegisterUserResponse) error
 	// ResetPasswordByMobile 重置密码
 	ResetPasswordByMobile(context.Context, *ResetPasswordRequest, *Response) error
+	SigninByMobile(context.Context, *SigninByMobileRequest, *UserResponse) error
 }
 
 func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server.HandlerOption) error {
@@ -175,7 +201,9 @@ func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server
 		UpdateUser(ctx context.Context, in *UpdateUserRequest, out *Response) error
 		FindUsers(ctx context.Context, in *PagerRequest, out *UserListResponse) error
 		IsUserEnabled(ctx context.Context, in *QueryUserRequest, out *Response) error
+		RegisterUserByMobile(ctx context.Context, in *RegisterUserRequest, out *RegisterUserResponse) error
 		ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *Response) error
+		SigninByMobile(ctx context.Context, in *SigninByMobileRequest, out *UserResponse) error
 	}
 	type UserSrv struct {
 		userSrv
@@ -212,6 +240,14 @@ func (h *userSrvHandler) IsUserEnabled(ctx context.Context, in *QueryUserRequest
 	return h.UserSrvHandler.IsUserEnabled(ctx, in, out)
 }
 
+func (h *userSrvHandler) RegisterUserByMobile(ctx context.Context, in *RegisterUserRequest, out *RegisterUserResponse) error {
+	return h.UserSrvHandler.RegisterUserByMobile(ctx, in, out)
+}
+
 func (h *userSrvHandler) ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *Response) error {
 	return h.UserSrvHandler.ResetPasswordByMobile(ctx, in, out)
+}
+
+func (h *userSrvHandler) SigninByMobile(ctx context.Context, in *SigninByMobileRequest, out *UserResponse) error {
+	return h.UserSrvHandler.SigninByMobile(ctx, in, out)
 }

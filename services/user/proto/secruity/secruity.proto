@@ -5,6 +5,15 @@ package iunite.club.srv.user.secruity;
 service Secruity {
   rpc Signin(AuthRequest) returns(AuthResponse) {}
   rpc SignupWithMobile(SignupWithMobileRequest) returns(SignupResponse) {}
+  rpc GetUserIDFromToken(TokenRequest) returns(UserIDResponse) {}
+}
+
+message TokenRequest {
+  string Token = 1;
+}
+
+message UserIDResponse {
+  string UserID = 1;
 }
 
 message SignupWithMobileRequest {

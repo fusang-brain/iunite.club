@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	core "iunite.club/services/core/proto/example"
+	"iunite.club/services/message/client"
 
 	"github.com/micro/go-log"
 
@@ -12,8 +14,24 @@ type Example struct{}
 
 // Call is a single request handler called via client.Call or the generated client code
 func (e *Example) Call(ctx context.Context, req *example.Request, rsp *example.Response) error {
+
 	log.Log("Received Example.Call request")
+	if req.Name == "ERR" {
+		log.Log("Received ERR Request")
+		if examSrv, ok := client.TestServerFromContext(ctx); ok {
+			resp, err := examSrv.Call(ctx, &core.Request{Name: req.Name})
+			if err != nil {
+				// rsp.Msg = err.Error()
+				log.Log(resp)
+				// return nil
+
+				return err
+			}
+		}
+
+	}
 	rsp.Msg = "Hello " + req.Name
+
 	return nil
 }
 

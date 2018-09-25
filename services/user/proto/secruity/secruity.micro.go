@@ -8,6 +8,8 @@ It is generated from these files:
 	proto/secruity/secruity.proto
 
 It has these top-level messages:
+	TokenRequest
+	UserIDResponse
 	SignupWithMobileRequest
 	SignupResponse
 	AuthRequest
@@ -46,6 +48,7 @@ var _ server.Option
 type SecruityService interface {
 	Signin(ctx context.Context, in *AuthRequest, opts ...client.CallOption) (*AuthResponse, error)
 	SignupWithMobile(ctx context.Context, in *SignupWithMobileRequest, opts ...client.CallOption) (*SignupResponse, error)
+	GetUserIDFromToken(ctx context.Context, in *TokenRequest, opts ...client.CallOption) (*UserIDResponse, error)
 }
 
 type secruityService struct {
@@ -86,17 +89,29 @@ func (c *secruityService) SignupWithMobile(ctx context.Context, in *SignupWithMo
 	return out, nil
 }
 
+func (c *secruityService) GetUserIDFromToken(ctx context.Context, in *TokenRequest, opts ...client.CallOption) (*UserIDResponse, error) {
+	req := c.c.NewRequest(c.name, "Secruity.GetUserIDFromToken", in)
+	out := new(UserIDResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Secruity service
 
 type SecruityHandler interface {
 	Signin(context.Context, *AuthRequest, *AuthResponse) error
 	SignupWithMobile(context.Context, *SignupWithMobileRequest, *SignupResponse) error
+	GetUserIDFromToken(context.Context, *TokenRequest, *UserIDResponse) error
 }
 
 func RegisterSecruityHandler(s server.Server, hdlr SecruityHandler, opts ...server.HandlerOption) error {
 	type secruity interface {
 		Signin(ctx context.Context, in *AuthRequest, out *AuthResponse) error
 		SignupWithMobile(ctx context.Context, in *SignupWithMobileRequest, out *SignupResponse) error
+		GetUserIDFromToken(ctx context.Context, in *TokenRequest, out *UserIDResponse) error
 	}
 	type Secruity struct {
 		secruity
@@ -115,4 +130,8 @@ func (h *secruityHandler) Signin(ctx context.Context, in *AuthRequest, out *Auth
 
 func (h *secruityHandler) SignupWithMobile(ctx context.Context, in *SignupWithMobileRequest, out *SignupResponse) error {
 	return h.SecruityHandler.SignupWithMobile(ctx, in, out)
+}
+
+func (h *secruityHandler) GetUserIDFromToken(ctx context.Context, in *TokenRequest, out *UserIDResponse) error {
+	return h.SecruityHandler.GetUserIDFromToken(ctx, in, out)
 }

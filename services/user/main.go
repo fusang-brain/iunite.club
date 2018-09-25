@@ -2,11 +2,12 @@ package main
 
 import (
 	"github.com/iron-kit/go-ironic"
-	"github.com/iron-kit/go-ironic/wrappers"
+	// "github.com/iron-kit/go-ironic/wrappers"
 	"github.com/iron-kit/monger"
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
 	"iunite.club/models"
+	// "iunite.club/services/user/client"
 	"iunite.club/services/user/handler"
 	"os"
 
@@ -35,6 +36,7 @@ func main() {
 					conn.BatchRegister(
 						&models.User{},
 						&models.Profile{},
+						&models.School{},
 					)
 					return nil
 				},
@@ -47,21 +49,23 @@ func main() {
 		),
 	)
 
-	// Initialise service
-	service.Init(
-		micro.WrapHandler(
-			wrappers.AuthWrapper(
-				service,
-				wrappers.NewWhiteItem("UserSrv.SigninByMobile"),
-				wrappers.NewWhiteItem("UserSrv.ResetPasswordByMobile"),
-				wrappers.NewWhiteItem("UserSrv.RegisterUserByMobile"),
-			),
-		),
-	)
-
 	// Register Handler
 	user.RegisterUserSrvHandler(service.Server(), new(handler.UserSrv))
 	secruity.RegisterSecruityHandler(service.Server(), new(handler.Secruity))
+
+	// Initialise service
+	service.Init()
+	// service.Init(
+	// 	micro.WrapHandler(
+	// 		client.MessageServiceWrapper(service),
+	// 		wrappers.AuthWrapper(
+	// 			service,
+	// 			wrappers.NewWhiteItem("UserSrv.SigninByMobile"),
+	// 			wrappers.NewWhiteItem("UserSrv.ResetPasswordByMobile"),
+	// 			wrappers.NewWhiteItem("UserSrv.RegisterUserByMobile"),
+	// 		),
+	// 	),
+	// )
 
 	// Register Struct as Subscriber
 	// micro.RegisterSubscriber("iunite.club.srv.user", service.Server(), new(subscriber.Example))
