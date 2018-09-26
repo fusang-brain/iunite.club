@@ -15,6 +15,15 @@ message Organization {
   repeated Job Jobs = 8;
 }
 
+message ClubAccept {
+  string ID = 1;
+  string UserID = 2;
+  string OrganizationID = 3;
+  Organization Organization = 4;
+  int64 State = 5; 
+  int64 Kind = 6; // 1: 创建社团申请 2: 加入社团申请
+}
+
 message Job {
   string ID = 1;
   string Name  = 2;

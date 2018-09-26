@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	"github.com/micro/go-log"
@@ -8,7 +10,6 @@ import (
 	"iunite.club/models"
 	"iunite.club/services/organization/handler"
 	"iunite.club/services/organization/subscriber"
-	"os"
 
 	club "iunite.club/services/organization/proto/club"
 	department "iunite.club/services/organization/proto/department"
@@ -42,7 +43,7 @@ func main() {
 						&models.UserClubProfile{},
 						&models.School{},
 						&models.OrganizationJob{},
-						&models.JoinOrganizationAccept{},
+						&models.OrganizationAccept{},
 					)
 
 					return nil

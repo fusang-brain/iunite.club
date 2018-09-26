@@ -1,10 +1,11 @@
 package models
 
 import (
+	"time"
+
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
 	orgPB "iunite.club/services/organization/proto"
-	"time"
 )
 
 // OrganizationJob 组织内职位
@@ -40,6 +41,7 @@ type ClubProfile struct {
 // Organization 社团
 type Organization struct {
 	monger.Document `json:",inline" bson:",inline"`
+	Enabled         bool              `json:"enabled" bson:"enabled"`
 	Kind            string            `json:"kind,omitempty" bson:"kind,omitempty"`                                             // 组织类型 'club': 社团, 'department': 部门
 	Name            string            `json:"name,omitempty" bson:"name,omitempty"`                                             // 组织架构名称
 	Slug            string            `json:"slug,omitempty" bson:"slug,omitempty"`                                             // slug
@@ -52,13 +54,14 @@ type Organization struct {
 }
 
 // JoinOrganizationAccept 申请加入社团
-type JoinOrganizationAccept struct {
+type OrganizationAccept struct {
 	monger.Document `json:",inline" bson:",inline"`
-	UserID          bson.ObjectId `json:"user_id,omitempty" bson:"user_id,omitempty"`                 // 用户ID
-	User            *User         `json:"user,omitempty" bson:"user,omitempty"`                       // 用户
-	OrganizationID  bson.ObjectId `json:"organization_id,omitempty" bson:"organization_id,omitempty"` // 组织ID
-	Organization    *Organization `json:"organization,omitempty" bson:"organization,omitempty"`       // 组织
-	State           int           `json:"state,omitempty" bson:"state,omitempty"`                     // 0: 待审批 1: 已拒绝 2: 已通过
+	UserID          bson.ObjectId `json:"user_id,omitempty" bson:"user_id,omitempty"`                                                         // 用户ID
+	User            *User         `json:"user,omitempty" bson:"user,omitempty" monger:"belongTo,foreignKey=user_id"`                          // 用户
+	OrganizationID  bson.ObjectId `json:"organization_id,omitempty" bson:"organization_id,omitempty"`                                         // 组织ID
+	Organization    *Organization `json:"organization,omitempty" bson:"organization,omitempty" monger:"belongTo,foreignKey=organization_id" ` // 组织
+	State           int           `json:"state,omitempty" bson:"state"`                                                                       // 0: 待审批 1: 已拒绝 2: 已通过
+	Kind            int           `json:"kind,omitempty" bson:"kind"`                                                                         // 1: 创建社团申请 2: 加入社团申请
 }
 
 func (paperWork *Paperwork) ToPB() *orgPB.Paperwork {

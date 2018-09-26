@@ -1,13 +1,14 @@
 package srv
 
 import (
+	"time"
+
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
 	orgPB "iunite.club/services/organization/proto"
 	clubPB "iunite.club/services/organization/proto/club"
-	"time"
 )
 
 type ClubService struct {
@@ -53,6 +54,7 @@ func (c *ClubService) CreateClub(req *clubPB.CreateClubRequest) (*models.Organiz
 	newClub := models.Organization{
 		Name:     req.Name,
 		SchoolID: bson.ObjectIdHex(req.SchoolID),
+		Enabled:  false,
 		ClubProfile: models.ClubProfile{
 			Scale: req.Scale,
 			// Paperworks
@@ -162,7 +164,7 @@ func (c *ClubService) GetClubsByUserID(id string, pg *PagerBundle) (*ClubsResult
 // AcceptJoinOneClub 申请加入某个社团
 func (c *ClubService) AcceptJoinOneClub(in *AcceptJoinClubBundle) error {
 	UserClubProfileModel := c.Model("UserClubProfile")
-	JoinOrganizationAccept := c.Model("JoinOrganizationAccept")
+	OrganizationAccept := c.Model("OrganizationAccept")
 	condition := bson.M{
 		"user_id":         bson.ObjectIdHex(in.UserID),
 		"organization_id": bson.ObjectIdHex(in.ClubID),
@@ -206,10 +208,11 @@ func (c *ClubService) AcceptJoinOneClub(in *AcceptJoinClubBundle) error {
 		}
 	}
 
-	JoinOrganizationAccept.Create(&models.JoinOrganizationAccept{
+	OrganizationAccept.Create(&models.OrganizationAccept{
 		UserID:         bson.ObjectIdHex(in.UserID),
 		OrganizationID: bson.ObjectIdHex(in.ClubID),
 		State:          0,
+		Kind:           2,
 	})
 	// TODO 检查jobID、OrganizationID、DepartmentID 的合法性
 	return nil
@@ -221,9 +224,9 @@ func (c *ClubService) ExecuteJoinClubAccept(in *ExecuteJoinClubAccept) error {
 		return c.Error().InternalServerError("acceptID is not objectID")
 	}
 
-	AcceptModel := c.Model("JoinOrganizationAccept")
+	AcceptModel := c.Model("OrganizationAccept")
 	UserClubProfileModel := c.Model("UserClubProfile")
-	accept := models.JoinOrganizationAccept{}
+	accept := models.OrganizationAccept{}
 
 	AcceptModel.FindByID(bson.ObjectIdHex(in.AcceptID)).Exec(&accept)
 
@@ -248,4 +251,69 @@ func (c *ClubService) ExecuteJoinClubAccept(in *ExecuteJoinClubAccept) error {
 	}
 
 	return nil
+}
+
+func (c *ClubService) SearchClubs(search string, page, limit int64) ([]models.Organization, int, error) {
+	OrganizationModel := c.Model("Organization")
+
+	condition := bson.M{
+		"kind": "club",
+		"name": bson.RegEx{search, "i"},
+	}
+
+	clubs := make([]models.Organization, 0)
+
+	if page <= 0 {
+		page = 1
+	}
+
+	if limit <= 0 {
+		limit = 10
+	}
+
+	if limit >= 500 {
+		limit = 500
+	}
+	total := OrganizationModel.Count(condition)
+
+	err := OrganizationModel.Find(condition).Limit(int(limit)).Skip(int((page - 1) * limit)).Exec(&clubs)
+
+	if err != nil {
+		return clubs, total, c.Error().InternalServerError(err.Error())
+	}
+
+	return clubs, total, nil
+}
+
+func (c *ClubService) FindRefusedAcceptByUserID(id string, page, limit int64) ([]models.OrganizationAccept, int, error) {
+	OrganizationAcceptModel := c.Model("OrganizationAccept")
+	cond := bson.M{
+		"state": 1,
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+
+	if limit <= 0 {
+		limit = 10
+	}
+
+	if limit >= 500 {
+		limit = 500
+	}
+
+	joinAccepts := make([]models.OrganizationAccept, 0, 1)
+
+	total := OrganizationAcceptModel.Count(cond)
+
+	if err := OrganizationAcceptModel.
+		Find(cond).Skip(int((page - 1) * limit)).
+		Limit(int(limit)).
+		Populate("Organization").
+		Exec(&joinAccepts); err != nil {
+		return joinAccepts, total, c.Error().InternalServerError(err.Error())
+	}
+
+	return joinAccepts, total, nil
 }

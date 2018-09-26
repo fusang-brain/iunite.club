@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	"github.com/iron-kit/go-ironic"
 	orgPB "iunite.club/services/organization/proto"
 	pb "iunite.club/services/organization/proto/club"
@@ -92,6 +93,65 @@ func (o ClubHandler) ExecuteJoinClubAccept(ctx context.Context, req *pb.ExecuteJ
 	}
 
 	resp.OK = true
+
+	return nil
+}
+
+func (o ClubHandler) SearchClubs(ctx context.Context, req *pb.SearchClubRequest, resp *pb.ClubListResponse) error {
+	clubService := srv.NewClubService(ctx)
+
+	clubs, total, err := clubService.SearchClubs(req.Search, req.Page, req.Limit)
+
+	if err != nil {
+		return err
+	}
+
+	resp.Organizations = make([]*orgPB.Organization, 0, 1)
+
+	for index, raw := range clubs {
+		if index == 0 {
+			resp.FirstID = raw.ID.Hex()
+		}
+
+		if index == len(clubs)-1 {
+			resp.LastID = raw.ID.Hex()
+		}
+
+		resp.Organizations = append(resp.Organizations, raw.ToPB())
+	}
+
+	resp.Total = int64(total)
+
+	return nil
+}
+
+func (o ClubHandler) FindRefusedAcceptByUserID(ctx context.Context, req *pb.FindRefusedAcceptRequest, rsp *pb.AcceptListResponse) error {
+	clubService := srv.NewClubService(ctx)
+
+	clubAccepts, total, err := clubService.FindRefusedAcceptByUserID(req.UserID, req.Page, req.Limit)
+
+	if err != nil {
+		return err
+	}
+
+	rsp.Total = int64(total)
+	rsp.Accepts = make([]*orgPB.ClubAccept, 0, 1)
+	for index, raw := range clubAccepts {
+		if index == 0 {
+			rsp.FirstID = raw.ID.Hex()
+		}
+
+		if index == len(clubAccepts)-1 {
+			rsp.LastID = raw.ID.Hex()
+		}
+
+		rsp.Accepts = append(rsp.Accepts, &orgPB.ClubAccept{
+			ID:             raw.ID.Hex(),
+			UserID:         raw.UserID.Hex(),
+			OrganizationID: raw.OrganizationID.Hex(),
+			State:          int64(raw.State),
+		})
+	}
 
 	return nil
 }

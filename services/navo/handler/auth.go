@@ -7,7 +7,6 @@ import (
 	"iunite.club/services/navo/dto"
 	schoolPB "iunite.club/services/organization/proto/school"
 
-	"github.com/iron-kit/go-ironic"
 	go_api "github.com/micro/go-api/proto"
 	"iunite.club/services/navo/client"
 	userPB "iunite.club/services/user/proto"
@@ -16,7 +15,7 @@ import (
 )
 
 type AuthHandler struct {
-	ironic.BaseHandler
+	BaseHandler
 }
 
 func (a *AuthHandler) Login(ctx context.Context, req *go_api.Request, resp *go_api.Response) error {

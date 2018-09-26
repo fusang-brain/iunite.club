@@ -22,6 +22,10 @@ func (u *UserSrv) FindUserByID(ctx context.Context, req *user.QueryUserRequest, 
 	userService := newUserService(ctx)
 
 	userInfo := userService.GetUserInfoByID(req.Id)
+
+	if userInfo.IsEmpty() {
+		return u.Error(ctx).NotFound("NotFoundUser")
+	}
 	// ptypes.
 	resp.User = userInfo.ToPB()
 	return nil

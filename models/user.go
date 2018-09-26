@@ -1,11 +1,12 @@
 package models
 
 import (
+	"time"
+
 	assistant "github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
 	kit_iron_srv_user "iunite.club/services/user/proto"
-	"time"
 )
 
 type SecruityInfo struct {
@@ -19,7 +20,7 @@ type User struct {
 	monger.Document `json:",inline" bson:",inline"`
 
 	Username      string         `json:"username,omitempty" bson:"username,omitempty"`
-	Enabled       bool           `json:"enabled,omitempty" bson:"enabled,omitempty"`
+	Enabled       bool           `json:"enabled" bson:"enabled"`
 	SchoolID      bson.ObjectId  `json:"schoolID,omitempty" bson:"school_id,omitempty"`
 	Profile       *Profile       `json:"profile,omitempty" bson:"profile" monger:"hasOne,foreignKey=user_id"`
 	SecruityInfos []SecruityInfo `json:"-" bson:"secruity_infos,omitempty"`
@@ -46,8 +47,8 @@ type UserClubProfile struct {
 	UserID         bson.ObjectId    `json:"user_id,omitempty" bson:"user_id,omitempty"`
 	OrganizationID bson.ObjectId    `json:"organization_id,omitempty" bson:"organization_id,omitempty"`
 	Organization   *Organization    `json:"organization,omitempty" bson:"organization,omitempty" monger:"belongTo,foreignKey=organization_id"`
-	IsCreator      bool             `json:"is_creator,omitempty" bson:"is_creator,omitempty"`
-	IsMaster       bool             `json:"is_master,omitempty" bson:"is_master,omitempty"`
+	IsCreator      bool             `json:"is_creator,omitempty" bson:"is_creator"`
+	IsMaster       bool             `json:"is_master,omitempty" bson:"is_master"`
 	JoinTime       time.Time        `json:"join_time,omitempty" bson:"join_time,omitempty"`
 	LeaveTime      time.Time        `json:"leave_time,omitempty" bson:"leave_time,omitempty"`
 	JobID          bson.ObjectId    `json:"job_id,omitempty" bson:"job_id,omitempty"`

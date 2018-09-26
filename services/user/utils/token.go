@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	pb "iunite.club/services/user/proto"
-	"time"
 )
 
 type CustomClaims struct {
@@ -25,6 +27,10 @@ type TokenService struct{}
 Decode is parse string to CustomClaims struct
 */
 func (srv *TokenService) Decode(tokenString string) (*CustomClaims, error) {
+
+	if tokenString == "" {
+		return &CustomClaims{}, errors.New("token string can't be empty")
+	}
 	t, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 
 		return privateSalt, nil

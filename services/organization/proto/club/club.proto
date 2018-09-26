@@ -11,6 +11,21 @@ service Club {
   rpc GetClubsByUserID(GetClubsByUserIDRequest) returns(ClubListResponse) {}
   rpc AcceptJoinOneClub(AcceptJoinOneClubRequest) returns(Response) {}
   rpc ExecuteJoinClubAccept(ExecuteJoinClubAcceptRequest) returns(Response) {}
+  rpc SearchClubs(SearchClubRequest) returns(ClubListResponse) {}
+  rpc FindRefusedAcceptByUserID(FindRefusedAcceptRequest) returns(AcceptListResponse) {}
+}
+
+message FindRefusedAcceptRequest {
+  string UserID = 1;
+  int64 Page = 2;
+  int64 Limit = 3;
+}
+
+
+message SearchClubRequest {
+  string Search = 1;
+  int64 Page = 2;
+  int64 Limit = 3;
 }
 
 message ExecuteJoinClubAcceptRequest {
@@ -57,6 +72,13 @@ message GetClubListRequest {
 message ClubListResponse {
   int64 Total = 1;
   repeated iunite.club.srv.organization.Organization Organizations = 2;
+  string FirstID = 3;
+  string LastID = 4;
+}
+
+message AcceptListResponse {
+  int64 Total = 1;
+  repeated iunite.club.srv.organization.ClubAccept Accepts = 2;
   string FirstID = 3;
   string LastID = 4;
 }
