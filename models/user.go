@@ -45,6 +45,7 @@ type UserClubProfile struct {
 
 	State          int              `json:"state,omitempty" bson:"state,omitempty"` // 0: 申请中 1: 在职 2: 离职 3: 重新申请 4: 拒绝加入
 	UserID         bson.ObjectId    `json:"user_id,omitempty" bson:"user_id,omitempty"`
+	User           *User            `json:"user,omitempty" bson:"user,omitempty" monger:"belongTo,foreignKey=user_id"`
 	OrganizationID bson.ObjectId    `json:"organization_id,omitempty" bson:"organization_id,omitempty"`
 	Organization   *Organization    `json:"organization,omitempty" bson:"organization,omitempty" monger:"belongTo,foreignKey=organization_id"`
 	IsCreator      bool             `json:"is_creator,omitempty" bson:"is_creator"`

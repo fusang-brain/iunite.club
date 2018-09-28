@@ -1,6 +1,7 @@
 package srv
 
 import (
+	"errors"
 	"time"
 
 	"github.com/iron-kit/go-ironic"
@@ -35,6 +36,8 @@ type PagerBundle struct {
 type ClubsResult struct {
 	Organizations []models.Organization
 	Total         int
+	FirstID       string
+	LastID        string
 }
 
 func (c *ClubService) Model(name string) monger.Model {
@@ -239,7 +242,7 @@ func (c *ClubService) ExecuteJoinClubAccept(in *ExecuteJoinClubAccept) error {
 	if in.IsPassed {
 		updateFields["state"] = 2
 		// 通过，将用户设置为在职
-		if err := UserClubProfileModel.Update(bson.M{"_id": accept.UserID}, bson.M{"$set": bson.M{"state": 1}}); err != nil {
+		if err := UserClubProfileModel.Update(bson.M{"user_id": accept.UserID, "organization_id": accept.OrganizationID}, bson.M{"$set": bson.M{"state": 1}}); err != nil {
 			return c.Error().InternalServerError(err.Error())
 		}
 	} else {
@@ -253,6 +256,7 @@ func (c *ClubService) ExecuteJoinClubAccept(in *ExecuteJoinClubAccept) error {
 	return nil
 }
 
+// SearchClubs is function to search clubs by name
 func (c *ClubService) SearchClubs(search string, page, limit int64) ([]models.Organization, int, error) {
 	OrganizationModel := c.Model("Organization")
 
@@ -285,6 +289,7 @@ func (c *ClubService) SearchClubs(search string, page, limit int64) ([]models.Or
 	return clubs, total, nil
 }
 
+// FindRefusedAcceptByUserID is function to find refused accept that joinin or create clubs
 func (c *ClubService) FindRefusedAcceptByUserID(id string, page, limit int64) ([]models.OrganizationAccept, int, error) {
 	OrganizationAcceptModel := c.Model("OrganizationAccept")
 	cond := bson.M{
@@ -316,4 +321,74 @@ func (c *ClubService) FindRefusedAcceptByUserID(id string, page, limit int64) ([
 	}
 
 	return joinAccepts, total, nil
+}
+
+func (c *ClubService) FindClubByID(id string) (*models.Organization, error) {
+	ClubModel := c.Model("Organization")
+	club := new(models.Organization)
+	if !bson.IsObjectIdHex(id) {
+		return club, c.Error().InternalServerError("id must be a objectid hex")
+	}
+	err := ClubModel.FindByID(bson.ObjectIdHex(id)).Exec(club)
+
+	if err != nil {
+		return club, c.Error().InternalServerError(err.Error())
+	}
+
+	return club, nil
+}
+
+func (c *ClubService) UpdateClub(id bson.ObjectId, set map[string]interface{}) (time.Time, error) {
+	ClubModel := c.Model("Organization")
+	now := time.Now()
+
+	set["updatedAt"] = now
+	changeInfo, err := ClubModel.UpsertID(id, bson.M{
+		"$set": set,
+	})
+
+	if err != nil {
+		return now, err
+	}
+
+	if changeInfo.Updated > 0 {
+		return now, nil
+	}
+
+	return now, errors.New("Not found this club")
+}
+
+func (c *ClubService) GetClubsBySchoolID(id bson.ObjectId) (*ClubsResult, error) {
+	// OrganizationModel := c.Model("Oragnization")
+	ClubModel := c.Model("Organization")
+	organizations := []models.Organization{}
+	resp := new(ClubsResult)
+
+	condition := bson.M{
+		"kind":      "club",
+		"school_id": id,
+	}
+
+	total, err := ClubModel.Find(condition).Count()
+	if err != nil {
+		return nil, c.Error().InternalServerError(err.Error())
+	}
+	// list := []map
+	// ClubModel.Find().Exec()
+	if err := ClubModel.Find().Exec(&organizations); err != nil {
+		return nil, c.Error().InternalServerError(err.Error())
+	}
+	resp.Total = total
+	resp.Organizations = organizations
+	for index, org := range organizations {
+		if index == 0 {
+			resp.FirstID = org.ID.Hex()
+		}
+
+		if index == len(organizations)-1 {
+			resp.LastID = org.ID.Hex()
+		}
+	}
+
+	return resp, nil
 }

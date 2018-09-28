@@ -115,7 +115,7 @@ func main() {
 				Handler: apiHandler.Handler,
 			},
 		),
-		apiEndpoint("OrganizationHandler.SearchHostOrganization", "GET", "/v1/organization/searchHotOrganization"),
+		apiEndpoint("OrganizationHandler.SearchHotOrganization", "GET", "/v1/organization/searchHotOrganization"),
 		apiEndpoint("OrganizationHandler.AcceptJoin", "POST", "/v1/organization/acceptJoin"),
 		apiEndpoint("OrganizationHandler.AgreeJoin", "POST", "/v1/organization/agreeJoin"),
 		apiEndpoint("OrganizationHandler.RefuseJoin", "POST", "/v1/organization/refuseJoin"),

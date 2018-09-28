@@ -8,6 +8,8 @@ It is generated from these files:
 	proto/department/department.proto
 
 It has these top-level messages:
+	GetDepartmentWithIDRequest
+	DepartmentResponse
 	CreateDepartmentRequest
 	CreateDepartmentResponse
 	UpdateDepartmentRequest
@@ -53,6 +55,7 @@ type DepartmentService interface {
 	UpdateDepartment(ctx context.Context, in *UpdateDepartmentRequest, opts ...client.CallOption) (*UpdateDepartmentResponse, error)
 	RemoveDepartment(ctx context.Context, in *RemoveDepartmentRequest, opts ...client.CallOption) (*RemoveDepartmentResponse, error)
 	GetDepartmentListByParentID(ctx context.Context, in *DepartmentListByParentIDRequest, opts ...client.CallOption) (*DepartmentListResponse, error)
+	GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, opts ...client.CallOption) (*DepartmentResponse, error)
 }
 
 type departmentService struct {
@@ -113,6 +116,16 @@ func (c *departmentService) GetDepartmentListByParentID(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *departmentService) GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, opts ...client.CallOption) (*DepartmentResponse, error) {
+	req := c.c.NewRequest(c.name, "Department.GetDepartmentDetails", in)
+	out := new(DepartmentResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Department service
 
 type DepartmentHandler interface {
@@ -120,6 +133,7 @@ type DepartmentHandler interface {
 	UpdateDepartment(context.Context, *UpdateDepartmentRequest, *UpdateDepartmentResponse) error
 	RemoveDepartment(context.Context, *RemoveDepartmentRequest, *RemoveDepartmentResponse) error
 	GetDepartmentListByParentID(context.Context, *DepartmentListByParentIDRequest, *DepartmentListResponse) error
+	GetDepartmentDetails(context.Context, *GetDepartmentWithIDRequest, *DepartmentResponse) error
 }
 
 func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...server.HandlerOption) error {
@@ -128,6 +142,7 @@ func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...
 		UpdateDepartment(ctx context.Context, in *UpdateDepartmentRequest, out *UpdateDepartmentResponse) error
 		RemoveDepartment(ctx context.Context, in *RemoveDepartmentRequest, out *RemoveDepartmentResponse) error
 		GetDepartmentListByParentID(ctx context.Context, in *DepartmentListByParentIDRequest, out *DepartmentListResponse) error
+		GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, out *DepartmentResponse) error
 	}
 	type Department struct {
 		department
@@ -154,4 +169,8 @@ func (h *departmentHandler) RemoveDepartment(ctx context.Context, in *RemoveDepa
 
 func (h *departmentHandler) GetDepartmentListByParentID(ctx context.Context, in *DepartmentListByParentIDRequest, out *DepartmentListResponse) error {
 	return h.DepartmentHandler.GetDepartmentListByParentID(ctx, in, out)
+}
+
+func (h *departmentHandler) GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, out *DepartmentResponse) error {
+	return h.DepartmentHandler.GetDepartmentDetails(ctx, in, out)
 }

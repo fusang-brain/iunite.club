@@ -100,6 +100,12 @@ func (o *Organization) ToPB() *orgPB.Organization {
 		Description: o.Description,
 		ParentID:    o.ParentID.Hex(),
 		ClubProfile: pb,
+		// 	OrganizationID: o.PathIndexs[0].ID.Hex(),
+	}
+
+	if len(o.PathIndexs) > 0 {
+		// o.PathIndexs[0].
+		orgRaw.ClubID = o.PathIndexs[0].ID.Hex()
 	}
 
 	return &orgRaw

@@ -188,4 +188,19 @@ func (d *DepartmentService) GetDepartmentListByParentID(in *GetDepartmentListBun
 	}, err
 }
 
+func (d *DepartmentService) GetDepartmentDetailsByID(id string) (*models.Organization, error) {
+	DepartmentModel := d.Model("Organization")
+	dept := new(models.Organization)
+	if !bson.IsObjectIdHex(id) {
+		return dept, d.Error().BadRequest("ID must be a objectid hex string")
+	}
+	err := DepartmentModel.FindByID(bson.ObjectIdHex(id)).Exec(dept)
+
+	if err != nil {
+		return dept, d.Error().InternalServerError(err.Error())
+	}
+
+	return dept, nil
+}
+
 // func (d *DepartmentService) JoinPeopleToDepartment()

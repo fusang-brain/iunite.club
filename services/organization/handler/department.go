@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/go-ironic/bundles"
 	orgPB "iunite.club/services/organization/proto"
@@ -11,6 +12,20 @@ import (
 
 type DepartmentHandler struct {
 	ironic.BaseHandler
+}
+
+func (o *DepartmentHandler) GetDepartmentDetails(ctx context.Context, req *deptPB.GetDepartmentWithIDRequest, rsp *deptPB.DepartmentResponse) error {
+	departmentService := srv.NewDepartmentService(ctx)
+
+	department, err := departmentService.GetDepartmentDetailsByID(req.ID)
+
+	if err != nil {
+		return err
+	}
+
+	rsp.Department = department.ToPB()
+
+	return nil
 }
 
 func (o *DepartmentHandler) CreateDepartment(ctx context.Context, req *deptPB.CreateDepartmentRequest, resp *deptPB.CreateDepartmentResponse) error {

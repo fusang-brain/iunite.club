@@ -2,6 +2,9 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/iron-kit/go-ironic"
 	orgPB "iunite.club/services/organization/proto"
@@ -154,4 +157,73 @@ func (o ClubHandler) FindRefusedAcceptByUserID(ctx context.Context, req *pb.Find
 	}
 
 	return nil
+}
+
+func (o ClubHandler) FindClubDetailsByID(ctx context.Context, req *pb.GetClubByIDRequest, rsp *pb.ClubDetailsResponse) error {
+	clubService := srv.NewClubService(ctx)
+
+	club, err := clubService.FindClubByID(req.ID)
+	if err != nil {
+		return err
+	}
+
+	rsp.Club = club.ToPB()
+
+	return nil
+}
+
+func (o ClubHandler) UpdateClubInfo(ctx context.Context, req *pb.UpdateClubInfoRequest, rsp *pb.UpdatedResponse) error {
+	clubService := srv.NewClubService(ctx)
+	// req.String()
+	if !bson.IsObjectIdHex(req.ID) {
+		return o.Error(ctx).InternalServerError("ID must be a objectid")
+	}
+
+	toSet := make(map[string]interface{})
+
+	if err := json.Unmarshal(req.ToSet, &toSet); err != nil {
+		return o.Error(ctx).InternalServerError(err.Error())
+	}
+
+	updatedAt, err := clubService.UpdateClub(bson.ObjectIdHex(req.ID), toSet)
+
+	if err != nil {
+		return o.Error(ctx).InternalServerError(err.Error())
+	}
+
+	rsp.UpdateAt = updatedAt.String()
+	rsp.OK = true
+	return nil
+}
+
+func (o ClubHandler) FindClubsBySchoolID(ctx context.Context, req *pb.GetClubsBySchoolIDRequest, rsp *pb.ClubListResponse) error {
+	clubService := srv.NewClubService(ctx)
+	if !bson.IsObjectIdHex(req.SchoolID) {
+		return o.Error(ctx).BadRequest("SchoolID must be a objectid")
+	}
+
+	clubListResp, err := clubService.GetClubsBySchoolID(bson.ObjectIdHex(req.SchoolID))
+
+	if err != nil {
+		return err
+	}
+
+	rsp.FirstID = clubListResp.FirstID
+	rsp.LastID = clubListResp.LastID
+
+	if rsp.Organizations == nil {
+		rsp.Organizations = make([]*orgPB.Organization, 0)
+	}
+
+	for _, val := range clubListResp.Organizations {
+		rsp.Organizations = append(rsp.Organizations, val.ToPB())
+	}
+
+	rsp.Total = int64(clubListResp.Total)
+
+	return nil
+}
+
+func (o ClubHandler) GetUserClubProfilesByUserID(ctx context.Context, req *pb.GetUserClubProfilesByUserIDRequest, rsp *pb.ClubProfilesListResponse) {
+	panic("not impl")
 }

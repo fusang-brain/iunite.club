@@ -9,6 +9,15 @@ service Department {
   rpc UpdateDepartment(UpdateDepartmentRequest) returns(UpdateDepartmentResponse) {}
   rpc RemoveDepartment(RemoveDepartmentRequest) returns(RemoveDepartmentResponse) {}
   rpc GetDepartmentListByParentID(DepartmentListByParentIDRequest) returns(DepartmentListResponse) {}
+  rpc GetDepartmentDetails(GetDepartmentWithIDRequest) returns(DepartmentResponse) {}
+}
+
+message GetDepartmentWithIDRequest {
+  string ID = 1;
+}
+
+message DepartmentResponse {
+  iunite.club.srv.organization.Organization Department = 1;
 }
 
 message CreateDepartmentRequest {

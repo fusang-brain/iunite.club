@@ -42,4 +42,6 @@ message School {
   string SchoolCode = 3;
   string Description = 4;
   string ID = 5;
+  string CreatedAt = 6;
+  string UpdatedAt = 7;
 }

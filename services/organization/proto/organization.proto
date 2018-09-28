@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package iunite.club.srv.organization;
 
+import "iunite.club/services/user/proto/user.proto";
+
 
 message Organization {
   string ID = 9;
@@ -13,6 +15,9 @@ message Organization {
   string ParentID = 6;
   ClubProfile ClubProfile = 7;
   repeated Job Jobs = 8;
+  string CreatedAt = 10;
+  string UpdatedAt = 11;
+  string ClubID = 12;
 }
 
 message ClubAccept {
@@ -39,4 +44,23 @@ message ClubProfile {
   string Logo = 1;
   int32 Scale = 2;
   repeated Paperwork Paperworks = 3;
+}
+
+message UserClubProfile {
+  string ID = 1;
+  int64 State = 2;
+  string UserID = 3;
+  iunite.club.srv.user.User User = 4;
+  bool IsCreator = 5;
+  bool IsMaster = 6;
+  string JoinTime = 7;
+  string LeaveTime = 8;
+  string JobID = 9;
+  string Job = 10;
+  string DepartmentID = 11;
+  Organization Department = 12;
+  string CreatedAt = 13;
+  string UpdatedAt = 14;
+  string OrganizationID = 15;
+  Organization Organization = 16;
 }

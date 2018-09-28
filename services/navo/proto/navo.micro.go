@@ -672,7 +672,7 @@ type OrganizationHandlerService interface {
 	CreateOrganization(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	GetAllOrgByUserID(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	GetAllOrgUsersByUserID(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
-	SearchHostOrganization(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
+	SearchHotOrganization(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	AcceptJoin(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	AgreeJoin(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	RefuseJoin(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
@@ -735,8 +735,8 @@ func (c *organizationHandlerService) GetAllOrgUsersByUserID(ctx context.Context,
 	return out, nil
 }
 
-func (c *organizationHandlerService) SearchHostOrganization(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error) {
-	req := c.c.NewRequest(c.name, "OrganizationHandler.SearchHostOrganization", in)
+func (c *organizationHandlerService) SearchHotOrganization(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error) {
+	req := c.c.NewRequest(c.name, "OrganizationHandler.SearchHotOrganization", in)
 	out := new(go_api.Response)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -871,7 +871,7 @@ type OrganizationHandlerHandler interface {
 	CreateOrganization(context.Context, *go_api.Request, *go_api.Response) error
 	GetAllOrgByUserID(context.Context, *go_api.Request, *go_api.Response) error
 	GetAllOrgUsersByUserID(context.Context, *go_api.Request, *go_api.Response) error
-	SearchHostOrganization(context.Context, *go_api.Request, *go_api.Response) error
+	SearchHotOrganization(context.Context, *go_api.Request, *go_api.Response) error
 	AcceptJoin(context.Context, *go_api.Request, *go_api.Response) error
 	AgreeJoin(context.Context, *go_api.Request, *go_api.Response) error
 	RefuseJoin(context.Context, *go_api.Request, *go_api.Response) error
@@ -891,7 +891,7 @@ func RegisterOrganizationHandlerHandler(s server.Server, hdlr OrganizationHandle
 		CreateOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetAllOrgByUserID(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetAllOrgUsersByUserID(ctx context.Context, in *go_api.Request, out *go_api.Response) error
-		SearchHostOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error
+		SearchHotOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		AcceptJoin(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		AgreeJoin(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		RefuseJoin(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -928,8 +928,8 @@ func (h *organizationHandlerHandler) GetAllOrgUsersByUserID(ctx context.Context,
 	return h.OrganizationHandlerHandler.GetAllOrgUsersByUserID(ctx, in, out)
 }
 
-func (h *organizationHandlerHandler) SearchHostOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error {
-	return h.OrganizationHandlerHandler.SearchHostOrganization(ctx, in, out)
+func (h *organizationHandlerHandler) SearchHotOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error {
+	return h.OrganizationHandlerHandler.SearchHotOrganization(ctx, in, out)
 }
 
 func (h *organizationHandlerHandler) AcceptJoin(ctx context.Context, in *go_api.Request, out *go_api.Response) error {

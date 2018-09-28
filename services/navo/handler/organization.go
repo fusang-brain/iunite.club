@@ -11,6 +11,7 @@ import (
 	go_api "github.com/micro/go-api/proto"
 	"iunite.club/services/navo/client"
 	clubPB "iunite.club/services/organization/proto/club"
+	deptPB "iunite.club/services/organization/proto/department"
 	userPB "iunite.club/services/user/proto"
 )
 
@@ -129,10 +130,11 @@ func (o *OrganizationHandler) GetAllOrgByUserID(ctx context.Context, req *go_api
 }
 
 func (o *OrganizationHandler) GetAllOrgUsersByUserID(context.Context, *go_api.Request, *go_api.Response) error {
+	
 	panic("not implemented")
 }
 
-func (o *OrganizationHandler) SearchHostOrganization(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+func (o *OrganizationHandler) SearchHotOrganization(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
 	params := struct {
 		Search  string `json:"search,omitempty" query:"search"`
 		MaxSize int    `json:"maxSize,omitempty" query:"maxSize"`
@@ -252,7 +254,7 @@ func (o *OrganizationHandler) AgreeJoin(ctx context.Context, req *go_api.Request
 	})
 
 	if err != nil {
-		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+		return ErrorResponse(rsp, err)
 	}
 
 	if !resp.OK {
@@ -349,28 +351,157 @@ func (o *OrganizationHandler) FindRefusedAccept(ctx context.Context, req *go_api
 	})
 }
 
-func (o *OrganizationHandler) GetDepartmentDetails(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (o *OrganizationHandler) GetDepartmentDetails(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	// panic("not implemented")
+	departmentSrv, ok := client.DepartmentServiceFromContext(ctx)
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).InternalServerError("Not found department service"))
+	}
+
+	params := struct {
+		ID string `json:"departmentID,omitempty" query:"departmentID" validate:"nonzero,objectid"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	fmt.Println(params.ID)
+
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	deptResp, err := departmentSrv.GetDepartmentDetails(ctx, &deptPB.GetDepartmentWithIDRequest{ID: params.ID})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	return SuccessResponse(rsp, D{
+		"Details": dto.PBToDepartment(deptResp.Department),
+	})
+
 }
 
-func (o *OrganizationHandler) Info(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (o *OrganizationHandler) Info(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	// panic("not implemented")
+	params := struct {
+		ID string `query:"id" validate:"nonzero,objectid"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	clubSrv, ok := client.ClubServiceFromContext(ctx)
+
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).InternalServerError("Not found club service"))
+	}
+
+	clubResp, err := clubSrv.FindClubDetailsByID(ctx, &clubPB.GetClubByIDRequest{ID: params.ID})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	return SuccessResponse(rsp, dto.PBToOrganization(clubResp.Club))
 }
 
 func (o *OrganizationHandler) UploadLogo(context.Context, *go_api.Request, *go_api.Response) error {
 	panic("not implemented")
 }
 
-func (o *OrganizationHandler) UpdateOrganizationDescription(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (o *OrganizationHandler) UpdateOrganizationDescription(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	// panic("not implemented")
+	params := struct {
+		ID          string `json:"id,omitempty" validate:"nonzero,objectid"`
+		Description string `json:"description,omitempty"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	clubSrv, ok := client.ClubServiceFromContext(ctx)
+
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).InternalServerError("Not found club service"))
+	}
+
+	updateResp, err := clubSrv.UpdateClubInfo(ctx, &clubPB.UpdateClubInfoRequest{ID: params.ID, ToSet: []byte(`{"description": "` + params.Description + `"}`)})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	return SuccessResponse(rsp, updateResp)
 }
 
-func (o *OrganizationHandler) GetAllOrganizationBySchool(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (o *OrganizationHandler) GetAllOrganizationBySchool(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		SchoolID string `query:"schoolID" validate:"nonzero,objectid"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	clubSrv, ok := client.ClubServiceFromContext(ctx)
+
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).InternalServerError("Not found club service"))
+	}
+
+	clubListResp, err := clubSrv.FindClubsBySchoolID(ctx, &clubPB.GetClubsBySchoolIDRequest{SchoolID: params.SchoolID})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	orgs := make([]*dto.Organization, 0)
+
+	for _, o := range clubListResp.Organizations {
+		orgs = append(orgs, dto.PBToOrganization(o))
+	}
+
+	return SuccessResponse(rsp, D{
+		"Organizations": orgs,
+	})
 }
 
-func (o *OrganizationHandler) GetOrganizationDetails(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (o *OrganizationHandler) GetOrganizationDetails(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		ID string `query:"id" validate:"nonzero,objectid"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	clubSrv, ok := client.ClubServiceFromContext(ctx)
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).InternalServerError("Not found club service"))
+	}
+
+	clubResp, err := clubSrv.FindClubDetailsByID(ctx, &clubPB.GetClubByIDRequest{ID: params.ID})
+	if err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	return SuccessResponse(rsp, dto.PBToOrganization(clubResp.Club))
 }
 
 func (o *OrganizationHandler) GetOrganizationUserInfoDetails(context.Context, *go_api.Request, *go_api.Response) error {
@@ -378,5 +509,7 @@ func (o *OrganizationHandler) GetOrganizationUserInfoDetails(context.Context, *g
 }
 
 func (o *OrganizationHandler) SelectOrganizations(context.Context, *go_api.Request, *go_api.Response) error {
+
+	// TODO 最后实现老师端的接口
 	panic("not implemented")
 }

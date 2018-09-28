@@ -3,6 +3,7 @@ syntax = "proto3";
 package iunite.club.srv.organization.club;
 
 import "iunite.club/services/organization/proto/organization.proto";
+import "google/protobuf/any.proto";
 
 service Club {
   rpc CreateClub(CreateClubRequest) returns(CreateClubResponse) {}
@@ -13,6 +14,44 @@ service Club {
   rpc ExecuteJoinClubAccept(ExecuteJoinClubAcceptRequest) returns(Response) {}
   rpc SearchClubs(SearchClubRequest) returns(ClubListResponse) {}
   rpc FindRefusedAcceptByUserID(FindRefusedAcceptRequest) returns(AcceptListResponse) {}
+  rpc FindClubDetailsByID(GetClubByIDRequest) returns(ClubDetailsResponse) {}
+  rpc UpdateClubInfo(UpdateClubInfoRequest) returns(UpdatedResponse) {}
+  rpc FindClubsBySchoolID(GetClubsBySchoolIDRequest) returns(ClubListResponse) {}
+  rpc GetUserClubProfilesByUserID(GetUserClubProfilesByUserIDRequest) returns(ClubProfilesListResponse) {}
+  // rcp GetOrganizationDetails()
+}
+
+message GetUserClubProfilesByUserIDRequest {
+  string UserID = 1;
+}
+
+message ClubProfilesListResponse {
+  int64 Total = 1;
+  repeated iunite.club.srv.organization.UserClubProfile UserClubProfiles = 2;
+  string FirstID = 3;
+  string LastID = 4;
+}
+
+message GetClubsBySchoolIDRequest {
+  string SchoolID = 1;
+}
+
+message UpdateClubInfoRequest {
+  string ID = 1;
+  bytes ToSet = 2;
+}
+
+message UpdatedResponse {
+  bool OK = 1;
+  string UpdateAt = 2;
+}
+
+message GetClubByIDRequest {
+  string ID = 1;
+}
+
+message ClubDetailsResponse {
+  iunite.club.srv.organization.Organization Club = 1;
 }
 
 message FindRefusedAcceptRequest {

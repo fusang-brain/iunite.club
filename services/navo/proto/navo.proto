@@ -47,7 +47,7 @@ service OrganizationHandler {
   rpc CreateOrganization(go.api.Request) returns (go.api.Response) {}
   rpc GetAllOrgByUserID(go.api.Request) returns (go.api.Response) {}
   rpc GetAllOrgUsersByUserID(go.api.Request) returns (go.api.Response) {}
-  rpc SearchHostOrganization(go.api.Request) returns (go.api.Response) {}
+  rpc SearchHotOrganization(go.api.Request) returns (go.api.Response) {}
   rpc AcceptJoin(go.api.Request) returns (go.api.Response) {}
   rpc AgreeJoin(go.api.Request) returns (go.api.Response) {}
   rpc RefuseJoin(go.api.Request) returns (go.api.Response) {}

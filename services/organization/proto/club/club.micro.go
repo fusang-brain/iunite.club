@@ -8,6 +8,13 @@ It is generated from these files:
 	proto/club/club.proto
 
 It has these top-level messages:
+	GetUserClubProfilesByUserIDRequest
+	ClubProfilesListResponse
+	GetClubsBySchoolIDRequest
+	UpdateClubInfoRequest
+	UpdatedResponse
+	GetClubByIDRequest
+	ClubDetailsResponse
 	FindRefusedAcceptRequest
 	SearchClubRequest
 	ExecuteJoinClubAcceptRequest
@@ -26,6 +33,7 @@ import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "iunite.club/services/organization/proto"
+import _ "github.com/golang/protobuf/ptypes/any"
 
 import (
 	client "github.com/micro/go-micro/client"
@@ -60,6 +68,10 @@ type ClubService interface {
 	ExecuteJoinClubAccept(ctx context.Context, in *ExecuteJoinClubAcceptRequest, opts ...client.CallOption) (*Response, error)
 	SearchClubs(ctx context.Context, in *SearchClubRequest, opts ...client.CallOption) (*ClubListResponse, error)
 	FindRefusedAcceptByUserID(ctx context.Context, in *FindRefusedAcceptRequest, opts ...client.CallOption) (*AcceptListResponse, error)
+	FindClubDetailsByID(ctx context.Context, in *GetClubByIDRequest, opts ...client.CallOption) (*ClubDetailsResponse, error)
+	UpdateClubInfo(ctx context.Context, in *UpdateClubInfoRequest, opts ...client.CallOption) (*UpdatedResponse, error)
+	FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, opts ...client.CallOption) (*ClubListResponse, error)
+	GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*ClubProfilesListResponse, error)
 }
 
 type clubService struct {
@@ -150,6 +162,46 @@ func (c *clubService) FindRefusedAcceptByUserID(ctx context.Context, in *FindRef
 	return out, nil
 }
 
+func (c *clubService) FindClubDetailsByID(ctx context.Context, in *GetClubByIDRequest, opts ...client.CallOption) (*ClubDetailsResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.FindClubDetailsByID", in)
+	out := new(ClubDetailsResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clubService) UpdateClubInfo(ctx context.Context, in *UpdateClubInfoRequest, opts ...client.CallOption) (*UpdatedResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.UpdateClubInfo", in)
+	out := new(UpdatedResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clubService) FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, opts ...client.CallOption) (*ClubListResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.FindClubsBySchoolID", in)
+	out := new(ClubListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clubService) GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*ClubProfilesListResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.GetUserClubProfilesByUserID", in)
+	out := new(ClubProfilesListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Club service
 
 type ClubHandler interface {
@@ -161,6 +213,10 @@ type ClubHandler interface {
 	ExecuteJoinClubAccept(context.Context, *ExecuteJoinClubAcceptRequest, *Response) error
 	SearchClubs(context.Context, *SearchClubRequest, *ClubListResponse) error
 	FindRefusedAcceptByUserID(context.Context, *FindRefusedAcceptRequest, *AcceptListResponse) error
+	FindClubDetailsByID(context.Context, *GetClubByIDRequest, *ClubDetailsResponse) error
+	UpdateClubInfo(context.Context, *UpdateClubInfoRequest, *UpdatedResponse) error
+	FindClubsBySchoolID(context.Context, *GetClubsBySchoolIDRequest, *ClubListResponse) error
+	GetUserClubProfilesByUserID(context.Context, *GetUserClubProfilesByUserIDRequest, *ClubProfilesListResponse) error
 }
 
 func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.HandlerOption) error {
@@ -172,6 +228,10 @@ func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.Handl
 		ExecuteJoinClubAccept(ctx context.Context, in *ExecuteJoinClubAcceptRequest, out *Response) error
 		SearchClubs(ctx context.Context, in *SearchClubRequest, out *ClubListResponse) error
 		FindRefusedAcceptByUserID(ctx context.Context, in *FindRefusedAcceptRequest, out *AcceptListResponse) error
+		FindClubDetailsByID(ctx context.Context, in *GetClubByIDRequest, out *ClubDetailsResponse) error
+		UpdateClubInfo(ctx context.Context, in *UpdateClubInfoRequest, out *UpdatedResponse) error
+		FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, out *ClubListResponse) error
+		GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *ClubProfilesListResponse) error
 	}
 	type Club struct {
 		club
@@ -210,4 +270,20 @@ func (h *clubHandler) SearchClubs(ctx context.Context, in *SearchClubRequest, ou
 
 func (h *clubHandler) FindRefusedAcceptByUserID(ctx context.Context, in *FindRefusedAcceptRequest, out *AcceptListResponse) error {
 	return h.ClubHandler.FindRefusedAcceptByUserID(ctx, in, out)
+}
+
+func (h *clubHandler) FindClubDetailsByID(ctx context.Context, in *GetClubByIDRequest, out *ClubDetailsResponse) error {
+	return h.ClubHandler.FindClubDetailsByID(ctx, in, out)
+}
+
+func (h *clubHandler) UpdateClubInfo(ctx context.Context, in *UpdateClubInfoRequest, out *UpdatedResponse) error {
+	return h.ClubHandler.UpdateClubInfo(ctx, in, out)
+}
+
+func (h *clubHandler) FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, out *ClubListResponse) error {
+	return h.ClubHandler.FindClubsBySchoolID(ctx, in, out)
+}
+
+func (h *clubHandler) GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *ClubProfilesListResponse) error {
+	return h.ClubHandler.GetUserClubProfilesByUserID(ctx, in, out)
 }
