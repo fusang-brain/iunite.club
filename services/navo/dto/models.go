@@ -204,17 +204,17 @@ type OrganizationUser struct {
 	ID               string        `json:"ID,omitempty"`
 	CreatedAt        int64         `json:"CreatedAt,omitempty"`
 	UpdatedAt        int64         `json:"UpdatedAt,omitempty"`
-	Kind             int           `json:"kind,omitempty"`
-	AcceptState      int           `json:"accept_state,omitempty"`
-	State            int           `json:"state,omitempty"`
-	OrganizationInfo *Organization `json:"organization_info,omitempty"`
-	UserInfo         *User         `json:"user_info,omitempty"`
-	IsCreator        bool          `json:"is_creator,omitempty"`
-	IsSuperManager   bool          `json:"is_super_manager,omitempty"`
-	JoinTime         int64         `json:"join_time,omitempty"`
-	LeaveTime        int64         `json:"leave_time,omitempty"`
-	DepartmentID     string        `json:"department_id,omitempty"`
-	JobID            string        `json:"job_id,omitempty"`
+	Kind             int           `json:"Kind,omitempty"`
+	AcceptState      int           `json:"AcceptState,omitempty"`
+	State            int           `json:"State,omitempty"` // 用户在社团的状态 (0: 未知, 1: 在职, 2: 离职)
+	OrganizationInfo *Organization `json:"OrganizationInfo,omitempty"`
+	UserInfo         *User         `json:"UserInfo,omitempty"`
+	IsCreator        bool          `json:"IsCreator,omitempty"`
+	IsSuperManager   bool          `json:"IsSuperManager,omitempty"`
+	JoinTime         int64         `json:"JoinTime,omitempty"`
+	LeaveTime        int64         `json:"LeaveTime,omitempty"`
+	DepartmentID     string        `json:"DepartmentID,omitempty"`
+	JobID            string        `json:"JobID,omitempty"`
 }
 
 type OrganizationPaperwork struct {

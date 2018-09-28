@@ -129,9 +129,44 @@ func (o *OrganizationHandler) GetAllOrgByUserID(ctx context.Context, req *go_api
 	})
 }
 
-func (o *OrganizationHandler) GetAllOrgUsersByUserID(context.Context, *go_api.Request, *go_api.Response) error {
-	
-	panic("not implemented")
+func (o *OrganizationHandler) GetAllOrgUsersByUserID(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		ID string `query:"id" validate:"objectid"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, err.Error())
+	}
+
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, err.Error())
+	}
+
+	if params.ID == "" {
+		if token, err := o.GetTokenCliamsFromRequest(req); err != nil {
+			params.ID = token.UserID
+		}
+	}
+
+	clubSrv, ok := client.ClubServiceFromContext(ctx)
+
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest("Not found club service"))
+	}
+
+	userClubProfileResp, err := clubSrv.GetUserClubProfilesByUserID(ctx, &clubPB.GetUserClubProfilesByUserIDRequest{UserID: params.ID})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	userOrgs := make([]*dto.OrganizationUser, 0)
+
+	for _, v := range userClubProfileResp.UserClubProfiles {
+		userOrgs = append(userOrgs, dto.PBToOrganizationUser(v))
+	}
+	return SuccessResponse(rsp, D{
+		"Organizations": userOrgs,
+	})
 }
 
 func (o *OrganizationHandler) SearchHotOrganization(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
@@ -412,6 +447,7 @@ func (o *OrganizationHandler) Info(ctx context.Context, req *go_api.Request, rsp
 }
 
 func (o *OrganizationHandler) UploadLogo(context.Context, *go_api.Request, *go_api.Response) error {
+	// TODO 文件服务实现之后实现该接口
 	panic("not implemented")
 }
 
@@ -504,8 +540,47 @@ func (o *OrganizationHandler) GetOrganizationDetails(ctx context.Context, req *g
 	return SuccessResponse(rsp, dto.PBToOrganization(clubResp.Club))
 }
 
-func (o *OrganizationHandler) GetOrganizationUserInfoDetails(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (o *OrganizationHandler) GetOrganizationUserInfoDetails(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		ID     string `query:"orgID" validate:"nonzero,objectid"`
+		UserID string `query:"userID" validate:"objectid"`
+	}{}
+
+	if err := o.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if err := o.Validate(&params); err != nil {
+		return ErrorResponse(rsp, o.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if params.UserID == "" {
+		if token, err := o.GetTokenCliamsFromRequest(req); err == nil {
+			params.UserID = token.UserID
+		} else {
+			return ErrorResponse(rsp, o.Error(ctx).Unauthorized("非法访问"))
+		}
+	}
+
+	clubSrv, ok := client.ClubServiceFromContext(ctx)
+
+	if !ok {
+		return ErrorResponse(rsp, o.Error(ctx).InternalServerError("Not found club service"))
+	}
+
+	resp, err := clubSrv.GetUserClubProfileDetailsByID(ctx, &clubPB.GetUserClubProfileDetailsByIDRequest{
+		OrganizationID: params.ID,
+		UserID:         params.UserID,
+	})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	details := dto.PBToOrganizationUser(resp.UserClubProfile)
+
+	return SuccessResponse(rsp, D{
+		"Details": details,
+	})
 }
 
 func (o *OrganizationHandler) SelectOrganizations(context.Context, *go_api.Request, *go_api.Response) error {

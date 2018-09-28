@@ -224,6 +224,35 @@ func (o ClubHandler) FindClubsBySchoolID(ctx context.Context, req *pb.GetClubsBy
 	return nil
 }
 
-func (o ClubHandler) GetUserClubProfilesByUserID(ctx context.Context, req *pb.GetUserClubProfilesByUserIDRequest, rsp *pb.ClubProfilesListResponse) {
-	panic("not impl")
+func (o ClubHandler) GetUserClubProfilesByUserID(ctx context.Context, req *pb.GetUserClubProfilesByUserIDRequest, rsp *pb.UserClubProfilesListResponse) error {
+	// panic("not impl")
+	clubSrv := srv.NewClubService(ctx)
+
+	if !bson.IsObjectIdHex(req.UserID) {
+		return o.Error(ctx).BadRequest("UserID must be a objectid")
+	}
+
+	if err := clubSrv.GetUserClubProfilesByUserID(bson.ObjectIdHex(req.UserID), rsp); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o ClubHandler) GetUserClubProfileDetailsByID(ctx context.Context, req *pb.GetUserClubProfileDetailsByIDRequest, rsp *pb.UserClubProfileResponse) error {
+	clubSrv := srv.NewClubService(ctx)
+
+	if !bson.IsObjectIdHex(req.OrganizationID) {
+		return o.Error(ctx).BadRequest("OrganizationID must be a objectid")
+	}
+
+	if !bson.IsObjectIdHex(req.UserID) {
+		return o.Error(ctx).BadRequest("UserID must be a objectid")
+	}
+
+	if err := clubSrv.GetUserClubProfileDetailsByID(bson.ObjectIdHex(req.OrganizationID), bson.ObjectIdHex(req.UserID), rsp); err != nil {
+		return err
+	}
+
+	return nil
 }

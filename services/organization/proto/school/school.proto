@@ -6,6 +6,11 @@ service SchoolSrv {
   rpc CreateSchool(CreateSchoolRequest) returns(CreateSchoolResponse) {}
   rpc GetSchoolList(ListRequest) returns(ListResponse) {}
   rpc GetSchoolByID(GetSchoolRequest) returns(SchoolResponse) {}
+  rpc SearchSchools(SearchSchoolsRequest) returns(ListResponse) {}
+}
+
+message SearchSchoolsRequest {
+  string Search = 1;
 }
 
 message GetSchoolRequest {

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+
 	"github.com/iron-kit/go-ironic"
 
 	pb "iunite.club/services/organization/proto/school"
@@ -53,5 +54,17 @@ func (s *SchoolHandler) GetSchoolList(ctx context.Context, req *pb.ListRequest, 
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *SchoolHandler) SearchSchools(ctx context.Context, req *pb.SearchSchoolsRequest, rsp *pb.ListResponse) error {
+	schoolService := srv.NewSchoolService(ctx)
+
+	err := schoolService.SearchSchools(req, rsp)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -56,7 +56,7 @@ message UserClubProfile {
   string JoinTime = 7;
   string LeaveTime = 8;
   string JobID = 9;
-  string Job = 10;
+  Job Job = 10;
   string DepartmentID = 11;
   Organization Department = 12;
   string CreatedAt = 13;

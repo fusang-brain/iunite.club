@@ -40,6 +40,10 @@ type ClubsResult struct {
 	LastID        string
 }
 
+// type UserClubProfilesResult struct {
+// 	UserClubProfiles
+// }
+
 func (c *ClubService) Model(name string) monger.Model {
 	conn, err := ironic.MongerConnectionFromContext(c.Ctx())
 
@@ -391,4 +395,50 @@ func (c *ClubService) GetClubsBySchoolID(id bson.ObjectId) (*ClubsResult, error)
 	}
 
 	return resp, nil
+}
+
+func (c *ClubService) GetUserClubProfilesByUserID(id bson.ObjectId, rsp *clubPB.UserClubProfilesListResponse) error {
+	UserClubProfileModel := c.Model("UserClubProfile")
+	userClubProfiles := make([]models.UserClubProfile, 0)
+
+	err := UserClubProfileModel.
+		Find(bson.M{"user_id": id}).
+		Populate("User", "Organization", "Job", "Department").
+		Exec(&userClubProfiles)
+	if err != nil {
+		return c.Error().InternalServerError(err.Error())
+	}
+	rsp.UserClubProfiles = make([]*orgPB.UserClubProfile, 0)
+	rsp.Total = int64(len(userClubProfiles))
+	for i, v := range userClubProfiles {
+		if i == 0 {
+			rsp.FirstID = v.ID.Hex()
+		}
+
+		if i == len(userClubProfiles)-1 {
+			rsp.LastID = v.ID.Hex()
+		}
+
+		rsp.UserClubProfiles = append(rsp.UserClubProfiles, v.ToPB())
+	}
+
+	return nil
+}
+
+func (c *ClubService) GetUserClubProfileDetailsByID(orgID, userID bson.ObjectId, rsp *clubPB.UserClubProfileResponse) error {
+	UserClubProfileModel := c.Model("UserClubProfile")
+	userClubProfile := new(models.UserClubProfile)
+
+	err := UserClubProfileModel.
+		FindOne(bson.M{"organization_id": orgID, "user_id": userID}).
+		Populate("User", "Organization", "Job", "Department").
+		Exec(userClubProfile)
+
+	if err != nil {
+		return c.Error().InternalServerError(err.Error())
+	}
+
+	rsp.UserClubProfile = userClubProfile.ToPB()
+
+	return nil
 }

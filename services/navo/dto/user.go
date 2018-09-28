@@ -4,13 +4,13 @@ type User struct {
 	ID        string   `json:"ID,omitempty"`
 	CreatedAt int64    `json:"CreatedAt,omitempty"`
 	UpdatedAt int64    `json:"UpdatedAt,omitempty"`
-	IsTeacher bool     `json:"isTeacher,omitempty"`
-	IsAdmin   bool     `json:"ee,omitempty"`
+	IsTeacher bool     `json:"isTeacher"`
+	IsAdmin   bool     `json:"ee"`
 	Username  string   `json:"Username,omitempty"`
 	Mobile    string   `json:"Mobile,omitempty"`
 	AreaCode  string   `json:"AreaCode,omitempty"`
 	Email     string   `json:"Email,omitempty"`
-	Enabled   bool     `json:"Enabled,omitempty"`
+	Enabled   bool     `json:"Enabled"`
 	School    *School  `json:"School,omitempty"`
 	Profile   *Profile `json:"Profile,omitempty"`
 }

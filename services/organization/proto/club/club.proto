@@ -17,15 +17,25 @@ service Club {
   rpc FindClubDetailsByID(GetClubByIDRequest) returns(ClubDetailsResponse) {}
   rpc UpdateClubInfo(UpdateClubInfoRequest) returns(UpdatedResponse) {}
   rpc FindClubsBySchoolID(GetClubsBySchoolIDRequest) returns(ClubListResponse) {}
-  rpc GetUserClubProfilesByUserID(GetUserClubProfilesByUserIDRequest) returns(ClubProfilesListResponse) {}
+  rpc GetUserClubProfilesByUserID(GetUserClubProfilesByUserIDRequest) returns(UserClubProfilesListResponse) {}
+  rpc GetUserClubProfileDetailsByID(GetUserClubProfileDetailsByIDRequest) returns(UserClubProfileResponse) {}
   // rcp GetOrganizationDetails()
+}
+
+message GetUserClubProfileDetailsByIDRequest {
+  string OrganizationID = 1;
+  string UserID = 2;
+}
+
+message UserClubProfileResponse {
+  iunite.club.srv.organization.UserClubProfile UserClubProfile = 1;
 }
 
 message GetUserClubProfilesByUserIDRequest {
   string UserID = 1;
 }
 
-message ClubProfilesListResponse {
+message UserClubProfilesListResponse {
   int64 Total = 1;
   repeated iunite.club.srv.organization.UserClubProfile UserClubProfiles = 2;
   string FirstID = 3;

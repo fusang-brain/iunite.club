@@ -7,9 +7,11 @@ import (
 	"github.com/micro/go-log"
 	"github.com/micro/go-micro"
 	"iunite.club/models"
+
 	// "iunite.club/services/user/client"
-	"iunite.club/services/user/handler"
 	"os"
+
+	"iunite.club/services/user/handler"
 
 	user "iunite.club/services/user/proto"
 	secruity "iunite.club/services/user/proto/secruity"
@@ -37,6 +39,7 @@ func main() {
 						&models.User{},
 						&models.Profile{},
 						&models.School{},
+						&models.UserClubProfile{},
 					)
 					return nil
 				},

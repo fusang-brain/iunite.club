@@ -14,9 +14,30 @@ service UserSrv {
   rpc RegisterUserByMobile(RegisterUserRequest) returns (RegisterUserResponse) {}
 
   // ResetPasswordByMobile 重置密码
-  rpc ResetPasswordByMobile(ResetPasswordRequest) returns (Response) {}
+  rpc ResetPasswordByMobile(ResetPasswordRequest) returns (ResetPasswordResponse) {}
 
   rpc SigninByMobile(SigninByMobileRequest) returns (UserResponse) {}
+
+  // rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
+  rpc FindUsersByClubID(FindUsersByClubIDRequest) returns(UserListResponse) {}
+}
+
+// message ResetPasswordRequest {
+//   string Passsword = 1;
+//   string ConfirmPassword = 2;
+//   string Mobile = 3;
+//   string UserID = 4;
+// }
+
+message FindUsersByClubIDRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string ClubID = 3;
+}
+
+message ResetPasswordResponse {
+  string UpdatedAt = 1;
+  string ID = 2;
 }
 
 message User {
@@ -29,6 +50,7 @@ message User {
   string UpdatedAt = 7;
   bool Deleted = 8;
   string Password = 9;
+  string DefaultClubID = 10;
 }
 
 message Profile {
@@ -47,10 +69,11 @@ message Profile {
 
 message ResetPasswordRequest {
   string Mobile = 1;
-  string MobileAreaCode = 2;
-  string Code = 3;
-  string Password = 4;
-  string ConfirmPassword = 5;
+  // string MobileAreaCode = 2;
+  // string Code = 3;
+  string Password = 2;
+  string ConfirmPassword = 3;
+  string UserID = 4;
 }
 
 message SigninByMobileRequest {
@@ -91,7 +114,10 @@ message PagerRequest {
 }
 
 message UpdateUserRequest {
-  User userInfo = 1;
+  // User userInfo = 1;
+  string ID = 1;
+  bytes User = 2;
+  bytes Profile = 3;
 }
 
 message QueryUserRequest {

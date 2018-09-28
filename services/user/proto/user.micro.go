@@ -10,6 +10,8 @@ It is generated from these files:
 	proto/user.proto
 
 It has these top-level messages:
+	FindUsersByClubIDRequest
+	ResetPasswordResponse
 	User
 	Profile
 	ResetPasswordRequest
@@ -65,8 +67,10 @@ type UserSrvService interface {
 	// RegisterUserByMobile 注册一个新的用户
 	RegisterUserByMobile(ctx context.Context, in *RegisterUserRequest, opts ...client.CallOption) (*RegisterUserResponse, error)
 	// ResetPasswordByMobile 重置密码
-	ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, opts ...client.CallOption) (*Response, error)
+	ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, opts ...client.CallOption) (*ResetPasswordResponse, error)
 	SigninByMobile(ctx context.Context, in *SigninByMobileRequest, opts ...client.CallOption) (*UserResponse, error)
+	// rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
+	FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error)
 }
 
 type userSrvService struct {
@@ -157,9 +161,9 @@ func (c *userSrvService) RegisterUserByMobile(ctx context.Context, in *RegisterU
 	return out, nil
 }
 
-func (c *userSrvService) ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, opts ...client.CallOption) (*Response, error) {
+func (c *userSrvService) ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, opts ...client.CallOption) (*ResetPasswordResponse, error) {
 	req := c.c.NewRequest(c.name, "UserSrv.ResetPasswordByMobile", in)
-	out := new(Response)
+	out := new(ResetPasswordResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -170,6 +174,16 @@ func (c *userSrvService) ResetPasswordByMobile(ctx context.Context, in *ResetPas
 func (c *userSrvService) SigninByMobile(ctx context.Context, in *SigninByMobileRequest, opts ...client.CallOption) (*UserResponse, error) {
 	req := c.c.NewRequest(c.name, "UserSrv.SigninByMobile", in)
 	out := new(UserResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userSrvService) FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.FindUsersByClubID", in)
+	out := new(UserListResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -189,8 +203,10 @@ type UserSrvHandler interface {
 	// RegisterUserByMobile 注册一个新的用户
 	RegisterUserByMobile(context.Context, *RegisterUserRequest, *RegisterUserResponse) error
 	// ResetPasswordByMobile 重置密码
-	ResetPasswordByMobile(context.Context, *ResetPasswordRequest, *Response) error
+	ResetPasswordByMobile(context.Context, *ResetPasswordRequest, *ResetPasswordResponse) error
 	SigninByMobile(context.Context, *SigninByMobileRequest, *UserResponse) error
+	// rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
+	FindUsersByClubID(context.Context, *FindUsersByClubIDRequest, *UserListResponse) error
 }
 
 func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server.HandlerOption) error {
@@ -202,8 +218,9 @@ func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server
 		FindUsers(ctx context.Context, in *PagerRequest, out *UserListResponse) error
 		IsUserEnabled(ctx context.Context, in *QueryUserRequest, out *Response) error
 		RegisterUserByMobile(ctx context.Context, in *RegisterUserRequest, out *RegisterUserResponse) error
-		ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *Response) error
+		ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *ResetPasswordResponse) error
 		SigninByMobile(ctx context.Context, in *SigninByMobileRequest, out *UserResponse) error
+		FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, out *UserListResponse) error
 	}
 	type UserSrv struct {
 		userSrv
@@ -244,10 +261,14 @@ func (h *userSrvHandler) RegisterUserByMobile(ctx context.Context, in *RegisterU
 	return h.UserSrvHandler.RegisterUserByMobile(ctx, in, out)
 }
 
-func (h *userSrvHandler) ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *Response) error {
+func (h *userSrvHandler) ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *ResetPasswordResponse) error {
 	return h.UserSrvHandler.ResetPasswordByMobile(ctx, in, out)
 }
 
 func (h *userSrvHandler) SigninByMobile(ctx context.Context, in *SigninByMobileRequest, out *UserResponse) error {
 	return h.UserSrvHandler.SigninByMobile(ctx, in, out)
+}
+
+func (h *userSrvHandler) FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, out *UserListResponse) error {
+	return h.UserSrvHandler.FindUsersByClubID(ctx, in, out)
 }

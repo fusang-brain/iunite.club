@@ -8,6 +8,7 @@ It is generated from these files:
 	proto/school/school.proto
 
 It has these top-level messages:
+	SearchSchoolsRequest
 	GetSchoolRequest
 	SchoolResponse
 	CreateSchoolRequest
@@ -50,6 +51,7 @@ type SchoolSrvService interface {
 	CreateSchool(ctx context.Context, in *CreateSchoolRequest, opts ...client.CallOption) (*CreateSchoolResponse, error)
 	GetSchoolList(ctx context.Context, in *ListRequest, opts ...client.CallOption) (*ListResponse, error)
 	GetSchoolByID(ctx context.Context, in *GetSchoolRequest, opts ...client.CallOption) (*SchoolResponse, error)
+	SearchSchools(ctx context.Context, in *SearchSchoolsRequest, opts ...client.CallOption) (*ListResponse, error)
 }
 
 type schoolSrvService struct {
@@ -100,12 +102,23 @@ func (c *schoolSrvService) GetSchoolByID(ctx context.Context, in *GetSchoolReque
 	return out, nil
 }
 
+func (c *schoolSrvService) SearchSchools(ctx context.Context, in *SearchSchoolsRequest, opts ...client.CallOption) (*ListResponse, error) {
+	req := c.c.NewRequest(c.name, "SchoolSrv.SearchSchools", in)
+	out := new(ListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for SchoolSrv service
 
 type SchoolSrvHandler interface {
 	CreateSchool(context.Context, *CreateSchoolRequest, *CreateSchoolResponse) error
 	GetSchoolList(context.Context, *ListRequest, *ListResponse) error
 	GetSchoolByID(context.Context, *GetSchoolRequest, *SchoolResponse) error
+	SearchSchools(context.Context, *SearchSchoolsRequest, *ListResponse) error
 }
 
 func RegisterSchoolSrvHandler(s server.Server, hdlr SchoolSrvHandler, opts ...server.HandlerOption) error {
@@ -113,6 +126,7 @@ func RegisterSchoolSrvHandler(s server.Server, hdlr SchoolSrvHandler, opts ...se
 		CreateSchool(ctx context.Context, in *CreateSchoolRequest, out *CreateSchoolResponse) error
 		GetSchoolList(ctx context.Context, in *ListRequest, out *ListResponse) error
 		GetSchoolByID(ctx context.Context, in *GetSchoolRequest, out *SchoolResponse) error
+		SearchSchools(ctx context.Context, in *SearchSchoolsRequest, out *ListResponse) error
 	}
 	type SchoolSrv struct {
 		schoolSrv
@@ -135,4 +149,8 @@ func (h *schoolSrvHandler) GetSchoolList(ctx context.Context, in *ListRequest, o
 
 func (h *schoolSrvHandler) GetSchoolByID(ctx context.Context, in *GetSchoolRequest, out *SchoolResponse) error {
 	return h.SchoolSrvHandler.GetSchoolByID(ctx, in, out)
+}
+
+func (h *schoolSrvHandler) SearchSchools(ctx context.Context, in *SearchSchoolsRequest, out *ListResponse) error {
+	return h.SchoolSrvHandler.SearchSchools(ctx, in, out)
 }

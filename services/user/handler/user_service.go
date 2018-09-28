@@ -3,6 +3,8 @@ package handler
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
@@ -148,14 +150,13 @@ func (u *UserService) RegisterUserByMobile(user *kit_iron_srv_user.RegisterUserR
 	return newUser, u.CreateUser(newUser)
 }
 
-func (u *UserService) ResetPasswordByMobile(req *kit_iron_srv_user.ResetPasswordRequest) (bool, error) {
+func (u *UserService) ResetPasswordByMobile(req *kit_iron_srv_user.ResetPasswordRequest, rsp *kit_iron_srv_user.ResetPasswordResponse) (bool, error) {
 	// profile := u.
 	if req.Password != req.ConfirmPassword {
 		return false, u.Error().ActionError("ConfirmPassword")
 	}
 
-	// TODO validate mobile code
-
+	// validate mobile code
 	profile, err := u.FindProfileByMobile(req.Mobile)
 
 	if err != nil {
@@ -182,7 +183,8 @@ func (u *UserService) ResetPasswordByMobile(req *kit_iron_srv_user.ResetPassword
 	}, bson.M{"$set": bson.M{"secruity_infos.$.secret": password, "secruity_infos.$.plain_password": req.Password}}); err != nil {
 		return false, u.Error().InternalServerError(err.Error())
 	}
-
+	rsp.UpdatedAt = time.Now().String()
+	rsp.ID = profile.UserID.Hex()
 	return true, nil
 	// foundUser, err
 }
@@ -233,14 +235,36 @@ func (u *UserService) CreateUser(user *models.User) error {
 }
 
 // UpdateUser  更新用户
-func (u *UserService) UpdateUser(user models.User) error {
+func (u *UserService) UpdateUser(id bson.ObjectId, user map[string]interface{}) error {
 	UserModel := u.Model("User")
+	for k, v := range user {
+		if k == "defaultClubID" {
+			user[k] = bson.ObjectIdHex(v.(string))
+		}
+		if k == "school_id" {
+			user[k] = bson.ObjectIdHex(v.(string))
+		}
+	}
+	_, err := UserModel.Upsert(bson.M{"_id": id}, bson.M{"$set": user})
 
-	// d, _ := assistant.MongerDocumentToMap(&user)
-	// d, _ := json.Marshal(&user)
-
-	return UserModel.Update(bson.M{"_id": user.ID}, bson.M{"$set": &user})
+	return err
 }
+
+// UpdateProfileByID  更新用户简历
+func (u *UserService) UpdateProfileByID(id bson.ObjectId, profile interface{}) error {
+	UserModel := u.Model("Profile")
+	_, err := UserModel.Upsert(bson.M{"_id": id}, bson.M{"$set": profile})
+	return err
+}
+
+// UpdateProfileByUserID  更新用户简历
+func (u *UserService) UpdateProfileByUserID(id bson.ObjectId, profile interface{}) error {
+	UserModel := u.Model("Profile")
+	_, err := UserModel.Upsert(bson.M{"user_id": id}, bson.M{"$set": profile})
+	return err
+}
+
+// func (u )
 
 // GetProfileByID 通过ID获取简历
 func (u *UserService) GetProfileByID(id string) *models.Profile {
@@ -255,19 +279,52 @@ func (u *UserService) GetProfileByID(id string) *models.Profile {
 // IsUserEnabled 用户是否启用了
 func (u *UserService) IsUserEnabled(id string) bool {
 	userModel := u.Model("User")
-
-	// count, err := userModel.Where(bson.M{"_id": bson.ObjectIdHex(id), "enabled": true}).Count()
 	count := userModel.Count(bson.M{"_id": bson.ObjectIdHex(id), "enabled": true})
-	// userModel.Count()
 	log.Logf("IsUserEnabled 找到的用户数: %d", count)
-
-	// if err != nil {
-	// 	return false, err
-	// }
 
 	if count > 0 {
 		return true
 	}
 
 	return false
+}
+
+func (u *UserService) FindUsersByClubID(req *kit_iron_srv_user.FindUsersByClubIDRequest, rsp *kit_iron_srv_user.UserListResponse) error {
+	if !bson.IsObjectIdHex(req.ClubID) {
+		return u.Error().BadRequest("ID must be a objectid")
+	}
+	UserModel := u.Model("User")
+	total := 0
+	users := make([]models.User, 0)
+	condition := bson.M{
+		"user_club_profiles": bson.M{
+			"$elemMatch": bson.M{
+				"organization_id": bson.ObjectIdHex(req.ClubID),
+			},
+		},
+	}
+
+	// fmt.Println(condition)
+	query := UserModel.Find(condition).Populate("UserClubProfiles", "Profile")
+
+	total, _ = query.Count()
+
+	err := query.Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).Exec(&users)
+	// b, _ := json.Marshal(users)
+
+	// fmt.Println(string(b))
+	if err != nil {
+		return u.Error().InternalServerError(err.Error())
+	}
+
+	rsp.Count = int32(total)
+	rsp.Page = int32(req.Page)
+	rsp.Limit = int32(req.Limit)
+	rsp.Users = make([]*kit_iron_srv_user.User, 0)
+
+	for _, v := range users {
+		rsp.Users = append(rsp.Users, v.ToPB())
+	}
+
+	return nil
 }

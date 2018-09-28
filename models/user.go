@@ -3,9 +3,12 @@ package models
 import (
 	"time"
 
+	"github.com/iron-kit/go-ironic/utils"
+
 	assistant "github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
+	orgPB "iunite.club/services/organization/proto"
 	kit_iron_srv_user "iunite.club/services/user/proto"
 )
 
@@ -19,25 +22,35 @@ type SecruityInfo struct {
 type User struct {
 	monger.Document `json:",inline" bson:",inline"`
 
-	Username      string         `json:"username,omitempty" bson:"username,omitempty"`
-	Enabled       bool           `json:"enabled" bson:"enabled"`
-	SchoolID      bson.ObjectId  `json:"schoolID,omitempty" bson:"school_id,omitempty"`
-	Profile       *Profile       `json:"profile,omitempty" bson:"profile" monger:"hasOne,foreignKey=user_id"`
-	SecruityInfos []SecruityInfo `json:"-" bson:"secruity_infos,omitempty"`
+	Username         string            `json:"username,omitempty" bson:"username,omitempty"`
+	Enabled          bool              `json:"enabled,omitempty" bson:"enabled"`
+	SchoolID         bson.ObjectId     `json:"schoolID,omitempty" bson:"school_id,omitempty"`
+	Profile          *Profile          `json:"profile,omitempty" bson:"profile" monger:"hasOne,foreignKey=user_id"`
+	SecruityInfos    []SecruityInfo    `json:"-,omitempty" bson:"secruity_infos,omitempty"`
+	DefaultClubID    bson.ObjectId     `json:"defaultClubID,omitempty" bson:"defaultClubID"`
+	UserClubProfiles []UserClubProfile `json:"user_club_profiles,omitempty" bson:"user_club_profiles" monger:"hasMany,foreignKey=user_id"`
 }
 
 type Profile struct {
 	monger.Document `json:",inline" bson:",inline"`
 
-	Avatar    string        `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Mobile    string        `json:"mobile,omitempty" bson:"mobile,omitempty"`
-	Firstname string        `json:"firstname,omitempty" bson:"first_name,omitempty"`
-	Lastname  string        `json:"lastname,omitempty" bson:"last_name,omitempty"`
-	Gender    string        `json:"gender,omitempty" bson:"gender,omitempty"`
-	Birthday  time.Time     `json:"birthday,omitempty" bson:"birthday,omitempty"`
-	Nickname  string        `json:"nickname,omitempty" bson:"nickname,omitempty"`
-	UserID    bson.ObjectId `json:"userID,omitempty" bson:"user_id,omitempty"`
-	User      *User         `json:"user,omitempty" bson:"user" monger:"belongTo,foreignKey=user_id"`
+	Avatar           string        `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Mobile           string        `json:"mobile,omitempty" bson:"mobile,omitempty"`
+	Email            string        `json:"email,omitempty" bson:"email,omitempty"`
+	Firstname        string        `json:"firstname,omitempty" bson:"first_name,omitempty"`
+	Lastname         string        `json:"lastname,omitempty" bson:"last_name,omitempty"`
+	Gender           string        `json:"gender,omitempty" bson:"gender,omitempty"`
+	Birthday         time.Time     `json:"birthday,omitempty" bson:"birthday,omitempty"`
+	Nickname         string        `json:"nickname,omitempty" bson:"nickname,omitempty"`
+	UserID           bson.ObjectId `json:"userID,omitempty" bson:"user_id,omitempty"`
+	User             *User         `json:"user,omitempty" bson:"user" monger:"belongTo,foreignKey=user_id"`
+	SchoolDepartment string        `json:"school_department,omitempty" bson:"school_department,omitempty"`
+	SchoolClass      string        `json:"school_class,omitempty" bson:"school_class,omitempty"`
+	Major            string        `json:"major,omitempty" bson:"major,omitempty"`
+	AdvisorMobile    string        `json:"advisor_mobile,omitempty" bson:"advisor_mobile,omitempty"` // 辅导员手机
+	AdvisorName      string        `json:"advisor_name,omitempty" bson:"advisor_name,omitempty"`     // 辅导员姓名
+	StudentID        string        `json:"student_id,omitempty" bson:"student_id,omitempty"`         // 学号
+	RoomNumber       string        `json:"room_number,omitempty" bson:"room_number,omitempty"`       // 寝室号
 }
 
 type UserClubProfile struct {
@@ -85,11 +98,42 @@ func (u *User) ToPB() *kit_iron_srv_user.User {
 		CreatedAt: u.CreatedAt.String(),
 		UpdatedAt: u.UpdatedAt.String(),
 		// Profile:  u.Profile.ToPB(),
+		DefaultClubID: u.DefaultClubID.Hex(),
 	}
 	if !assistant.IsZero(u.Profile) {
 		upb.Profile = u.Profile.ToPB()
 	}
 	return &upb
+}
+
+func (ucp *UserClubProfile) ToPB() *orgPB.UserClubProfile {
+	pb := orgPB.UserClubProfile{
+		ID:             ucp.ID.Hex(),
+		UserID:         ucp.UserID.Hex(),
+		OrganizationID: ucp.OrganizationID.Hex(),
+		State:          int64(ucp.State),
+		IsCreator:      ucp.IsCreator,
+		IsMaster:       ucp.IsMaster,
+		JoinTime:       ucp.JoinTime.String(),
+		LeaveTime:      ucp.LeaveTime.String(),
+		JobID:          ucp.JobID.Hex(),
+		DepartmentID:   ucp.DepartmentID.Hex(),
+	}
+	if !utils.IsZero(ucp.User) {
+		pb.User = ucp.User.ToPB()
+	}
+	if !utils.IsZero(ucp.Department) {
+		pb.Department = ucp.Department.ToPB()
+	}
+
+	if !utils.IsZero(ucp.Organization) {
+		pb.Organization = ucp.Organization.ToPB()
+	}
+	if !utils.IsZero(ucp.Job) {
+		pb.Job = ucp.Job.ToPB()
+	}
+
+	return &pb
 }
 
 // type ClubProfile struct {

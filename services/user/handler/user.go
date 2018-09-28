@@ -2,9 +2,12 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
+	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
 	smsPB "iunite.club/services/message/proto/sms"
 	"iunite.club/services/user/client"
@@ -69,13 +72,32 @@ func (u *UserSrv) CreateUser(ctx context.Context, req *user.User, resp *user.Res
 
 func (u *UserSrv) UpdateUser(ctx context.Context, req *user.UpdateUserRequest, resp *user.Response) error {
 
-	// willUpdateUser := models.User{}
+	//
+	if !bson.IsObjectIdHex(req.ID) {
+		return u.Error(ctx).BadRequest("ID must be a objectid")
+	}
 
-	// assistant.TransformDTOToMongerSchema(req.UserInfo, &willUpdateUser)
-
-	// if err := u.UserService.UpdateUser(willUpdateUser); err != nil {
-	// 	return err
-	// }
+	userFields := make(map[string]interface{})
+	log.Logf("will updated user fields %v \r\n", string(req.User))
+	profileFields := make(map[string]interface{})
+	log.Logf("will updated profile fields %v \r\n", string(req.Profile))
+	userService := newUserService(ctx)
+	if len(req.User) > 0 {
+		if err := json.Unmarshal(req.User, &userFields); err != nil {
+			return u.Error(ctx).InternalServerError(err.Error())
+		}
+		if err := userService.UpdateUser(bson.ObjectIdHex(req.ID), userFields); err != nil {
+			return u.Error(ctx).InternalServerError(err.Error())
+		}
+	}
+	if len(req.Profile) > 0 {
+		if err := json.Unmarshal(req.Profile, &profileFields); err != nil {
+			return u.Error(ctx).InternalServerError(err.Error())
+		}
+		if err := userService.UpdateProfileByUserID(bson.ObjectIdHex(req.ID), profileFields); err != nil {
+			return u.Error(ctx).InternalServerError(err.Error())
+		}
+	}
 
 	resp.OK = true
 	return nil
@@ -135,16 +157,14 @@ func (u *UserSrv) RegisterUserByMobile(ctx context.Context, req *user.RegisterUs
 	return nil
 }
 
-func (u *UserSrv) ResetPasswordByMobile(ctx context.Context, req *user.ResetPasswordRequest, resp *user.Response) error {
+func (u *UserSrv) ResetPasswordByMobile(ctx context.Context, req *user.ResetPasswordRequest, resp *user.ResetPasswordResponse) error {
 	log.Log("receive reset password by mobile request")
 	userService := newUserService(ctx)
-	isSuccess, err := userService.ResetPasswordByMobile(req)
+	_, err := userService.ResetPasswordByMobile(req, resp)
 
 	if err != nil {
 		return err
 	}
-
-	resp.OK = isSuccess
 
 	return nil
 }
@@ -161,5 +181,16 @@ func (u *UserSrv) SigninByMobile(ctx context.Context, req *user.SigninByMobileRe
 	}
 
 	resp.User = user.ToPB()
+	return nil
+}
+
+func (u *UserSrv) FindUsersByClubID(ctx context.Context, req *user.FindUsersByClubIDRequest, rsp *user.UserListResponse) error {
+	userService := newUserService(ctx)
+
+	err := userService.FindUsersByClubID(req, rsp)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"iunite.club/services/navo/handler"
 	core "iunite.club/services/navo/proto"
 	auth "iunite.club/services/navo/proto/auth"
+	school "iunite.club/services/navo/proto/school"
 	// example "iunite.club/services/navo/proto/example"
 )
 
@@ -130,6 +131,36 @@ func main() {
 		apiEndpoint("OrganizationHandler.SelectOrganizations", "POST", "/v1/organization/selectOrganizations"),
 	)
 
+	school.RegisterSchoolHandlerHandler(
+		service.Server(),
+		new(handler.SchoolSrv),
+		apiEndpoint("SchoolHandler.SchoolList", "GET", "/v1/school/allSchools"),
+		apiEndpoint("SchoolHandler.SearchSchools", "GET", "/v1/school/searchSchools"),
+		apiEndpoint("SchoolHandler.Create", "POST", "/v1/school/create"),
+	)
+
+	core.RegisterUserHandlerHandler(
+		service.Server(),
+		new(handler.UserHandler),
+		apiEndpoint("UserHandler.Info", "GET", "/v1/user/info"),
+		apiEndpoint("UserHandler.UpdateCurrentOrg", "POST", "/v1/user/UpdateCurrentOrg"),
+		apiEndpoint("UserHandler.ForgetPassword", "POST", "/v1/user/forgetPassword"),
+		apiEndpoint("UserHandler.AllUser", "GET", "/v1/user/allUser"),
+		apiEndpoint("UserHandler.GetCurrentOrganization", "", "/v1/user/getCurrentOrganization"),
+		apiEndpoint("UserHandler.GetAllMembers", "GET", "/v1/user/getAllMembers"),
+		apiEndpoint("UserHandler.CreateMember", "POST", "/v1/user/createMember"),
+		apiEndpoint("UserHandler.RemvoeMemberFromOrg", "POST", "/v1/user/removeMemberFromOrg"),
+		apiEndpoint("UserHandler.UpdateMember", "POST", "/v1/user/updateMember"),
+		apiEndpoint("UserHandler.GetMemberDetails", "GET", "/v1/user/getMemberDetails"),
+		apiEndpoint("UserHandler.RemoveOrg", "POST", "/v1/user/removeOrg"),
+		apiEndpoint("UserHandler.UpdateUserInfo", "POST", "/v1/user/updateUserInfo"),
+		apiEndpoint("UserHandler.FlagMemberState", "POST", "/v1/user/flagMemberState"),
+		apiEndpoint("UserHandler.GetHotUsers", "GET", "/v1/user/getHotUsers"),
+		apiEndpoint("UserHandler.UploadAvatar", "POST", "/v1/user/uploadAvatar"),
+		apiEndpoint("UserHandler.ExportList", "GET", "/v1/user/exportList"),
+		apiEndpoint("UserHandler.DownloadExportTemplate", "GET", "/v1/user/downloadExportTemplate"),
+		apiEndpoint("UserHandler.UploadUserList", "POST", "/v1/user/uploadUserList"),
+	)
 	// example.RegisterExampleHandler(service.Server(), new(handler.Example))
 
 	// Run service

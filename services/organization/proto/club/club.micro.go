@@ -8,8 +8,10 @@ It is generated from these files:
 	proto/club/club.proto
 
 It has these top-level messages:
+	GetUserClubProfileDetailsByIDRequest
+	UserClubProfileResponse
 	GetUserClubProfilesByUserIDRequest
-	ClubProfilesListResponse
+	UserClubProfilesListResponse
 	GetClubsBySchoolIDRequest
 	UpdateClubInfoRequest
 	UpdatedResponse
@@ -71,7 +73,8 @@ type ClubService interface {
 	FindClubDetailsByID(ctx context.Context, in *GetClubByIDRequest, opts ...client.CallOption) (*ClubDetailsResponse, error)
 	UpdateClubInfo(ctx context.Context, in *UpdateClubInfoRequest, opts ...client.CallOption) (*UpdatedResponse, error)
 	FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, opts ...client.CallOption) (*ClubListResponse, error)
-	GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*ClubProfilesListResponse, error)
+	GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*UserClubProfilesListResponse, error)
+	GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error)
 }
 
 type clubService struct {
@@ -192,9 +195,19 @@ func (c *clubService) FindClubsBySchoolID(ctx context.Context, in *GetClubsBySch
 	return out, nil
 }
 
-func (c *clubService) GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*ClubProfilesListResponse, error) {
+func (c *clubService) GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*UserClubProfilesListResponse, error) {
 	req := c.c.NewRequest(c.name, "Club.GetUserClubProfilesByUserID", in)
-	out := new(ClubProfilesListResponse)
+	out := new(UserClubProfilesListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clubService) GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.GetUserClubProfileDetailsByID", in)
+	out := new(UserClubProfileResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -216,7 +229,8 @@ type ClubHandler interface {
 	FindClubDetailsByID(context.Context, *GetClubByIDRequest, *ClubDetailsResponse) error
 	UpdateClubInfo(context.Context, *UpdateClubInfoRequest, *UpdatedResponse) error
 	FindClubsBySchoolID(context.Context, *GetClubsBySchoolIDRequest, *ClubListResponse) error
-	GetUserClubProfilesByUserID(context.Context, *GetUserClubProfilesByUserIDRequest, *ClubProfilesListResponse) error
+	GetUserClubProfilesByUserID(context.Context, *GetUserClubProfilesByUserIDRequest, *UserClubProfilesListResponse) error
+	GetUserClubProfileDetailsByID(context.Context, *GetUserClubProfileDetailsByIDRequest, *UserClubProfileResponse) error
 }
 
 func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.HandlerOption) error {
@@ -231,7 +245,8 @@ func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.Handl
 		FindClubDetailsByID(ctx context.Context, in *GetClubByIDRequest, out *ClubDetailsResponse) error
 		UpdateClubInfo(ctx context.Context, in *UpdateClubInfoRequest, out *UpdatedResponse) error
 		FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, out *ClubListResponse) error
-		GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *ClubProfilesListResponse) error
+		GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *UserClubProfilesListResponse) error
+		GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, out *UserClubProfileResponse) error
 	}
 	type Club struct {
 		club
@@ -284,6 +299,10 @@ func (h *clubHandler) FindClubsBySchoolID(ctx context.Context, in *GetClubsBySch
 	return h.ClubHandler.FindClubsBySchoolID(ctx, in, out)
 }
 
-func (h *clubHandler) GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *ClubProfilesListResponse) error {
+func (h *clubHandler) GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *UserClubProfilesListResponse) error {
 	return h.ClubHandler.GetUserClubProfilesByUserID(ctx, in, out)
+}
+
+func (h *clubHandler) GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, out *UserClubProfileResponse) error {
+	return h.ClubHandler.GetUserClubProfileDetailsByID(ctx, in, out)
 }

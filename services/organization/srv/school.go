@@ -80,3 +80,32 @@ func (s *SchoolService) GetSchoolList(req *pb.ListRequest, resp *pb.ListResponse
 
 	return nil
 }
+
+func (s *SchoolService) SearchSchools(req *pb.SearchSchoolsRequest, rsp *pb.ListResponse) error {
+	SchoolModel := s.Model("School")
+	rsp.Schools = make([]*pb.School, 0)
+	schools := make([]models.School, 0)
+	total := SchoolModel.Count(bson.M{
+		"name": bson.RegEx{req.Search, "i"},
+	})
+
+	rsp.Total = int64(total)
+
+	if err := SchoolModel.Find(bson.M{
+		"name": bson.RegEx{req.Search, "i"},
+	}).Exec(&schools); err != nil {
+		return s.Error().InternalServerError(err.Error())
+	}
+
+	for _, v := range schools {
+		rsp.Schools = append(rsp.Schools, &pb.School{
+			ID:          v.ID.Hex(),
+			Name:        v.Name,
+			SlugName:    v.SlugName,
+			SchoolCode:  v.SchoolCode,
+			Description: v.Description,
+		})
+	}
+
+	return nil
+}
