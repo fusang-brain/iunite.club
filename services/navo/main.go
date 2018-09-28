@@ -1,17 +1,18 @@
 package main
 
 import (
+	"log"
+
 	"github.com/iron-kit/go-ironic"
-	"github.com/micro/go-api"
 	apiHandler "github.com/micro/go-api/handler/api"
-	"github.com/micro/go-log"
-	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/server"
 	"iunite.club/services/navo/client"
 	"iunite.club/services/navo/handler"
 	core "iunite.club/services/navo/proto"
 	auth "iunite.club/services/navo/proto/auth"
 	school "iunite.club/services/navo/proto/school"
+	api "old/github.com/micro/go-api"
+	micro "old/github.com/micro/go-micro"
 	// example "iunite.club/services/navo/proto/example"
 )
 
