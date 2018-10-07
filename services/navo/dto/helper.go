@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"github.com/iron-kit/go-ironic/utils"
 	orgPB "iunite.club/services/organization/proto"
 	schoolPB "iunite.club/services/organization/proto/school"
@@ -34,13 +35,17 @@ func PBToProfile(pb *userPB.Profile) *Profile {
 	if pb == nil {
 		return &Profile{}
 	}
+	updatedAt := hptypes.Timestamp(pb.UpdatedAt)
+	createdAt := hptypes.Timestamp(pb.CreatedAt)
+	birthday := hptypes.Timestamp(pb.Birthday)
 	return &Profile{
 		ID:        pb.ID,
-		CreatedAt: utils.ISOTime2MicroUnix(pb.CreatedAt),
-		UpdatedAt: utils.ISOTime2MicroUnix(pb.UpdatedAt),
+		CreatedAt: utils.Time2MicroUnix(&createdAt),
+		// CreatedAt: utils.ISOTime2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt: utils.Time2MicroUnix(&updatedAt),
 		Avatar:    pb.Avatar,
 		Gender:    pb.Gender,
-		Birthday:  utils.ISOTime2MicroUnix(pb.Birthday),
+		Birthday:  utils.Time2MicroUnix(&birthday),
 		Nickname:  pb.Nickname,
 		UserID:    pb.UserID,
 	}

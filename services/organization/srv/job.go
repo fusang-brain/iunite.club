@@ -54,7 +54,7 @@ func (j *JobService) CreateJob(in *CreateJobBundle) (*models.OrganizationJob, er
 	}
 	foundClub := models.Organization{}
 
-	OrgModel.FindByID(bson.ObjectIdHex(in.ClubID)).Exec(&foundClub)
+	OrgModel.FindByID(bson.ObjectIdHex(in.ClubID), &foundClub)
 
 	if foundClub.IsEmpty() {
 		return nil, j.Error().TemplateBadRequest("NotFoundClub")
@@ -89,7 +89,7 @@ func (j *JobService) UpdateJob(in *UpdateJobBundle) error {
 
 	if in.ClubID != "" {
 		foundClub := models.Organization{}
-		JobModel.FindByID(bson.ObjectIdHex(in.ClubID)).Exec(&foundClub)
+		JobModel.FindByID(bson.ObjectIdHex(in.ClubID), &foundClub)
 		if foundClub.IsEmpty() {
 			return j.Error().TemplateBadRequest("NotFoundCLub")
 		}
@@ -136,12 +136,12 @@ func (j *JobService) GetJobListByParentID(in *JobListRequestBundle) (*JobListRes
 		"organization_id": bson.ObjectIdHex(in.OrganizationID),
 	}
 
-	total, _ := JobModel.Find(condition).Count()
+	total := JobModel.Where(condition).Count()
 	err := JobModel.
-		Find(condition).
+		Where(condition).
 		Skip(int(in.Page)).
 		Limit(int(in.Limit)).
-		Exec(&jobs)
+		FindAll(&jobs)
 
 	if err != nil {
 		return nil, j.Error().InternalServerError(err.Error())

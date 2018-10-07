@@ -121,7 +121,7 @@ type SchoolSrvHandler interface {
 	SearchSchools(context.Context, *SearchSchoolsRequest, *ListResponse) error
 }
 
-func RegisterSchoolSrvHandler(s server.Server, hdlr SchoolSrvHandler, opts ...server.HandlerOption) error {
+func RegisterSchoolSrvHandler(s server.Server, hdlr SchoolSrvHandler, opts ...server.HandlerOption) {
 	type schoolSrv interface {
 		CreateSchool(ctx context.Context, in *CreateSchoolRequest, out *CreateSchoolResponse) error
 		GetSchoolList(ctx context.Context, in *ListRequest, out *ListResponse) error
@@ -132,7 +132,7 @@ func RegisterSchoolSrvHandler(s server.Server, hdlr SchoolSrvHandler, opts ...se
 		schoolSrv
 	}
 	h := &schoolSrvHandler{hdlr}
-	return s.Handle(s.NewHandler(&SchoolSrv{h}, opts...))
+	s.Handle(s.NewHandler(&SchoolSrv{h}, opts...))
 }
 
 type schoolSrvHandler struct {

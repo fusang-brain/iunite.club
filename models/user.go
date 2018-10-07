@@ -3,9 +3,9 @@ package models
 import (
 	"time"
 
-	"github.com/iron-kit/go-ironic/utils"
-
+	ptypes "github.com/golang/protobuf/ptypes"
 	assistant "github.com/iron-kit/go-ironic"
+	"github.com/iron-kit/go-ironic/utils"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
 	orgPB "iunite.club/services/organization/proto"
@@ -20,7 +20,7 @@ type SecruityInfo struct {
 }
 
 type User struct {
-	monger.Document `json:",inline" bson:",inline"`
+	monger.Schema `json:",inline" bson:",inline"`
 
 	Username         string            `json:"username,omitempty" bson:"username,omitempty"`
 	Enabled          bool              `json:"enabled,omitempty" bson:"enabled"`
@@ -32,7 +32,7 @@ type User struct {
 }
 
 type Profile struct {
-	monger.Document `json:",inline" bson:",inline"`
+	monger.Schema `json:",inline" bson:",inline"`
 
 	Avatar           string        `json:"avatar,omitempty" bson:"avatar,omitempty"`
 	Mobile           string        `json:"mobile,omitempty" bson:"mobile,omitempty"`
@@ -54,7 +54,7 @@ type Profile struct {
 }
 
 type UserClubProfile struct {
-	monger.Document `json:",inline" bson:",inline"`
+	monger.Schema `json:",inline" bson:",inline"`
 
 	State          int              `json:"state,omitempty" bson:"state,omitempty"` // 0: 申请中 1: 在职 2: 离职 3: 重新申请 4: 拒绝加入
 	UserID         bson.ObjectId    `json:"user_id,omitempty" bson:"user_id,omitempty"`
@@ -71,8 +71,6 @@ type UserClubProfile struct {
 	Department     *Organization    `json:"department,omitempty" bson:"department,omitempty" monger:"belongTo,foreignKey=department_id"`
 }
 
-// func (p *Profile) FromPB()
-
 func (p *Profile) ToPB() *kit_iron_srv_user.Profile {
 	pb := kit_iron_srv_user.Profile{
 		ID:        p.ID.Hex(),
@@ -81,9 +79,17 @@ func (p *Profile) ToPB() *kit_iron_srv_user.Profile {
 		Firstname: p.Firstname,
 		Lastname:  p.Lastname,
 		Gender:    p.Gender,
-		Birthday:  p.Birthday.String(),
 		Nickname:  p.Nickname,
 		UserID:    p.UserID.Hex(),
+	}
+	if birthdayPB, err := ptypes.TimestampProto(p.Birthday); err == nil {
+		pb.Birthday = birthdayPB
+	}
+	if t, err := ptypes.TimestampProto(p.CreatedAt); err == nil {
+		pb.CreatedAt = t
+	}
+	if t, err := ptypes.TimestampProto(p.UpdatedAt); err == nil {
+		pb.UpdatedAt = t
 	}
 	return &pb
 }
@@ -135,14 +141,3 @@ func (ucp *UserClubProfile) ToPB() *orgPB.UserClubProfile {
 
 	return &pb
 }
-
-// type ClubProfile struct {
-// 	monger.Document `json:",inline" bson:",inline"`
-
-// 	JobID bson.ObjectId `json:"-" bson:"job_id"`
-// 	OrganizationID bson.ObjectId `json:"-" bson:"organization_id"`
-
-// 	// 社团职务
-// 	Job string `json:"job"`
-
-// }

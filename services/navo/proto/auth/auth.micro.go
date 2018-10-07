@@ -91,7 +91,7 @@ type AuthHandlerHandler interface {
 	Register(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterAuthHandlerHandler(s server.Server, hdlr AuthHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterAuthHandlerHandler(s server.Server, hdlr AuthHandlerHandler, opts ...server.HandlerOption) {
 	type authHandler interface {
 		Login(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		Register(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -100,7 +100,7 @@ func RegisterAuthHandlerHandler(s server.Server, hdlr AuthHandlerHandler, opts .
 		authHandler
 	}
 	h := &authHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&AuthHandler{h}, opts...))
+	s.Handle(s.NewHandler(&AuthHandler{h}, opts...))
 }
 
 type authHandlerHandler struct {

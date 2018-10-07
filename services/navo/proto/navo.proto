@@ -25,7 +25,7 @@ service UserHandler {
   rpc GetCurrentOrganization(go.api.Request) returns (go.api.Response) {}
   rpc GetAllMembers(go.api.Request) returns (go.api.Response) {}
   rpc CreateMember(go.api.Request) returns (go.api.Response) {}
-  rpc RemvoeMemberFromOrg(go.api.Request) returns (go.api.Response) {}
+  rpc RemoveMemberFromOrg(go.api.Request) returns (go.api.Response) {}
   rpc UpdateMember(go.api.Request) returns (go.api.Response) {}
   rpc GetMemberDetails(go.api.Request) returns (go.api.Response) {}
   rpc RemoveOrg(go.api.Request) returns (go.api.Response) {}

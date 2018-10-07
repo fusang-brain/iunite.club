@@ -103,7 +103,7 @@ type SchoolHandlerHandler interface {
 	Create(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterSchoolHandlerHandler(s server.Server, hdlr SchoolHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterSchoolHandlerHandler(s server.Server, hdlr SchoolHandlerHandler, opts ...server.HandlerOption) {
 	type schoolHandler interface {
 		SchoolList(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		SearchSchools(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -113,7 +113,7 @@ func RegisterSchoolHandlerHandler(s server.Server, hdlr SchoolHandlerHandler, op
 		schoolHandler
 	}
 	h := &schoolHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&SchoolHandler{h}, opts...))
+	s.Handle(s.NewHandler(&SchoolHandler{h}, opts...))
 }
 
 type schoolHandlerHandler struct {

@@ -3,6 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
+
+	"github.com/iron-kit/go-ironic/protobuf/hptypes"
+
 	"github.com/iron-kit/go-ironic/utils"
 	"iunite.club/services/navo/dto"
 	schoolPB "iunite.club/services/organization/proto/school"
@@ -77,6 +80,8 @@ func (a *AuthHandler) Login(ctx context.Context, req *go_api.Request, resp *go_a
 		schoolResp = sR
 	}
 
+	pCreatedAt := hptypes.Timestamp(uR.User.Profile.CreatedAt)
+	pUpdatedAt := hptypes.Timestamp(uR.User.Profile.UpdatedAt)
 	return SuccessResponse(resp, map[string]interface{}{
 		"Token":                loginResp.Token,
 		"TokenTime":            loginResp.ExpiredAt,
@@ -92,8 +97,10 @@ func (a *AuthHandler) Login(ctx context.Context, req *go_api.Request, resp *go_a
 			AreaCode:  "+86",
 			Profile: &dto.Profile{
 				ID:        uR.User.Profile.ID,
-				CreatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.CreatedAt),
-				UpdatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.UpdatedAt),
+				CreatedAt: utils.Time2MicroUnix(&pCreatedAt),
+				UpdatedAt: utils.Time2MicroUnix(&pUpdatedAt),
+				// CreatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.CreatedAt),
+				// UpdatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.UpdatedAt),
 				UserNO:    "-",
 				Avatar:    uR.User.Profile.Avatar,
 				FirstName: uR.User.Profile.Firstname,

@@ -157,8 +157,6 @@ func (u *UserHandler) AllUser(ctx context.Context, req *go_api.Request, rsp *go_
 		ClubID string `json:"club_id" query:"club_id"`
 	}{}
 
-	defaultClubID := params.ClubID
-
 	if err := u.Bind(req, &params); err != nil {
 		return u.Error(ctx).BadRequest(err.Error())
 	}
@@ -166,12 +164,14 @@ func (u *UserHandler) AllUser(ctx context.Context, req *go_api.Request, rsp *go_
 	if err := u.Validate(&params); err != nil {
 		return u.Error(ctx).BadRequest(err.Error())
 	}
-
+	defaultClubID := params.ClubID
+	// fmt.Println(params.ClubID)
 	userService, found := client.UserServiceFromContext(ctx)
 
 	if !found {
 		return ErrorResponse(rsp, u.Error(ctx).InternalServerError("Not found user service"))
 	}
+
 	if defaultClubID == "" {
 		token, _ := u.GetTokenCliamsFromRequest(req)
 		foundUserResp, err := userService.FindUserByID(ctx, &userPB.QueryUserRequest{Id: token.UserID})
@@ -243,25 +243,143 @@ func (u *UserHandler) GetCurrentOrganization(ctx context.Context, req *go_api.Re
 	})
 }
 
-func (u *UserHandler) GetAllMembers(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
-
-}
-
-func (u *UserHandler) CreateMember(context.Context, *go_api.Request, *go_api.Response) error {
+func (u *UserHandler) GetAllMembers(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
 	panic("not implemented")
 }
 
-func (u *UserHandler) RemvoeMemberFromOrg(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (u *UserHandler) CreateMember(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		Name       string   `json:"name"`
+		Mobile     string   `json:"mobile"`
+		Email      string   `json:"email"`
+		Job        string   `json:"job" validate:"nonzero,objectid"`
+		Department string   `json:"department" validate:"nonzero,objectid"`
+		Roles      []string `json:"roles"`
+	}{}
+
+	if err := u.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, u.Error(ctx).InternalServerError(err.Error()))
+	}
+
+	if err := u.Validate(&params); err != nil {
+		return ErrorResponse(rsp, err.Error())
+	}
+
+	userSrv, found := client.UserServiceFromContext(ctx)
+
+	if !found {
+		return ErrorResponse(rsp, u.Error(ctx).InternalServerError("Not found user service"))
+	}
+
+	userID := u.GetUserIDFromRequest(req)
+
+	foundUserResp, err := userSrv.FindUserByID(ctx, &userPB.QueryUserRequest{Id: userID})
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	name := []rune(params.Name)
+	firstname := string(name[0:1])
+	lastname := string(name[1:])
+
+	createdResp, err := userSrv.CreateMember(ctx, &userPB.CreateMemberRequest{
+		User: &userPB.User{
+			Profile: &userPB.Profile{
+				Firstname: firstname,
+				Lastname:  lastname,
+				Email:     params.Email,
+				Mobile:    params.Mobile,
+			},
+		},
+		JobID:        params.Job,
+		DepartmentID: params.Department,
+		ClubID:       foundUserResp.User.DefaultClubID,
+	})
+
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	if !createdResp.OK {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest("CreatedError"))
+	}
+
+	return SuccessResponse(rsp, D{})
+	// panic("not implemented")
+}
+
+func (u *UserHandler) RemoveMemberFromOrg(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		ID string `json:"id" validate:"nonzero,objectid"`
+	}{}
+
+	if err := u.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if err := u.Validate(&params); err != nil {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest(err.Error()))
+	}
+
+	// userSrv, found := client.UserServiceFromContext(ctx)
+	clubSrv, found := client.ClubServiceFromContext(ctx)
+
+	if !found {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest("Not found user service"))
+	}
+
+	userID := u.GetUserIDFromRequest(req)
+
+	removeResp, err := clubSrv.RemoveUserFromClub(ctx, &clubPB.RemoveUserFromClubRequest{UserID: userID, ClubID: params.ID})
+	// removeResp, err := userSrv.RemoveUserFromClub(ctx, &userPB.RemoveFromClubRequest{UserID: userID, ClubID: params.ID})
+
+	if err != nil {
+		return ErrorResponse(rsp, err)
+	}
+
+	if !removeResp.OK {
+		return ErrorResponse(rsp, "Action Error")
+	}
+
+	return SuccessResponse(rsp, D{})
 }
 
 func (u *UserHandler) UpdateMember(context.Context, *go_api.Request, *go_api.Response) error {
 	panic("not implemented")
 }
 
-func (u *UserHandler) GetMemberDetails(context.Context, *go_api.Request, *go_api.Response) error {
-	panic("not implemented")
+func (u *UserHandler) GetMemberDetails(ctx context.Context, req *go_api.Request, rsp *go_api.Response) error {
+	params := struct {
+		ID     string `json:"id,omitempty"`
+		ClubID string `json:"org,omitempty"`
+	}{}
+
+	if err := u.Bind(req, &params); err != nil {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest(err.Error()))
+	}
+
+	if err := u.Validate(&params); err != nil {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest(err.Error()))
+	}
+
+	clubSrv, found := client.ClubServiceFromContext(ctx)
+
+	if !found {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest("Not found user service"))
+	}
+
+	ucpResp, err := clubSrv.GetUserClubProfileDetailsByID(ctx, &clubPB.GetUserClubProfileDetailsByIDRequest{
+		OrganizationID: params.ClubID,
+		UserID:         params.ID,
+	})
+
+	if err != nil {
+		return ErrorResponse(rsp, u.Error(ctx).BadRequest(err.Error()))
+	}
+
+	return SuccessResponse(rsp, D{
+		"Details": dto.PBToOrganizationUser(ucpResp.UserClubProfile),
+	})
 }
 
 func (u *UserHandler) RemoveOrg(context.Context, *go_api.Request, *go_api.Response) error {

@@ -19,6 +19,8 @@ github.com/iron-kit/go-api v0.3.2 h1:IgVtYlnBPlIiTY5rz36Sbr3b+Pi7tFDANjL1sw6yHAE
 github.com/iron-kit/go-api v0.3.2/go.mod h1:zAp2Q9BSa1fkSodBcO09dya74qSFkNT0GERvjZXSvGc=
 github.com/iron-kit/go-ironic v0.0.0-20180928131205-6aee951da06c h1:xde7HXTHB6HZDQcFEUcA+G0dcIz/r8Z+19vKJ2p4zLY=
 github.com/iron-kit/go-ironic v0.0.0-20180928131205-6aee951da06c/go.mod h1:GViZGN0yt/VcH/spORTToOvgCb0DT1Q7VMVg5bNR2v0=
+github.com/iron-kit/go-ironic v0.0.0-20180929033554-812339c06eec h1:1zcZYPVcnbibZ0vPJKybvCKQZiNPLJK5/sANVjy2uyo=
+github.com/iron-kit/go-ironic v0.0.0-20180929033554-812339c06eec/go.mod h1:CCLtpBjGtEHPCkdL0D1HAlLBz2sKLZv0daiKCeXsryI=
 github.com/iron-kit/monger v0.0.0-20180928161300-b598c989f064 h1:tc75KEa3FWjh0v+tkl0BkiUKMt2VgSIPGoLmV4SoqZk=
 github.com/iron-kit/monger v0.0.0-20180928161300-b598c989f064/go.mod h1:ME0PixylnDXmlcQquBihbcHpIIEY+LOhSM6XczM/Kyo=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
@@ -38,6 +40,8 @@ github.com/micro/mdns v0.0.0-20160929165650-cdf30746f9f7 h1:DbCL1cj4e6CW1R+e+BMr
 github.com/micro/mdns v0.0.0-20160929165650-cdf30746f9f7/go.mod h1:SQG6o/94RinohLuB5noHSevg2Iqg2wXLDUn4lj2LWWo=
 github.com/micro/micro v0.14.0 h1:N+OtirVK8ujM4dYc84QJDqfV54QH8A1BWXd2HcsOj9g=
 github.com/micro/micro v0.14.0/go.mod h1:fkfl/b2vWYkKiUgYW/3uw8OVZTxE/ARw761basyjcBY=
+github.com/micro/protoc-gen-micro v0.4.0 h1:4Nr/caEbCcPlRPq32hg1TQYOzZN8QWaLgvMZS7vMBlY=
+github.com/micro/protoc-gen-micro v0.4.0/go.mod h1:QgEs4oW0uXue7N3WxGFDbOKXaMLyt0mEjOZghByrgpc=
 github.com/micro/util v0.0.0-20180417104657-4b7ed83e8520 h1:UgysDrM51CTeMHo/KOasDrWvrE0K15xjnR/qLeuPRFg=
 github.com/micro/util v0.0.0-20180417104657-4b7ed83e8520/go.mod h1:vxd7TGn28ynEMF4szG3PHTzgo3bx3FpfON9xpFsGc+g=
 github.com/miekg/dns v1.0.10 h1:nlArCVipL4Ggg5ate/uYdKkoBl8iGlKGPQ0jS2ahqA8=

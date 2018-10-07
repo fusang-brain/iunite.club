@@ -107,7 +107,7 @@ type SecruityHandler interface {
 	GetUserIDFromToken(context.Context, *TokenRequest, *UserIDResponse) error
 }
 
-func RegisterSecruityHandler(s server.Server, hdlr SecruityHandler, opts ...server.HandlerOption) error {
+func RegisterSecruityHandler(s server.Server, hdlr SecruityHandler, opts ...server.HandlerOption) {
 	type secruity interface {
 		Signin(ctx context.Context, in *AuthRequest, out *AuthResponse) error
 		SignupWithMobile(ctx context.Context, in *SignupWithMobileRequest, out *SignupResponse) error
@@ -117,7 +117,7 @@ func RegisterSecruityHandler(s server.Server, hdlr SecruityHandler, opts ...serv
 		secruity
 	}
 	h := &secruityHandler{hdlr}
-	return s.Handle(s.NewHandler(&Secruity{h}, opts...))
+	s.Handle(s.NewHandler(&Secruity{h}, opts...))
 }
 
 type secruityHandler struct {

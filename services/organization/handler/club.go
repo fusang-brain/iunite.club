@@ -256,3 +256,22 @@ func (o ClubHandler) GetUserClubProfileDetailsByID(ctx context.Context, req *pb.
 
 	return nil
 }
+
+func (o ClubHandler) RemoveUserFromClub(ctx context.Context, req *pb.RemoveUserFromClubRequest, rsp *pb.Response) error {
+	clubSrv := srv.NewClubService(ctx)
+
+	if !bson.IsObjectIdHex(req.UserID) {
+		return o.Error(ctx).BadRequest("userID must be objectid")
+	}
+
+	if !bson.IsObjectIdHex(req.ClubID) {
+		return o.Error(ctx).BadRequest("clubID must be objectid")
+	}
+
+	if err := clubSrv.RemoveUserFromClub(bson.ObjectIdHex(req.UserID), bson.ObjectIdHex(req.ClubID)); err != nil {
+		return o.Error(ctx).InternalServerError(err.Error())
+	}
+
+	rsp.OK = true
+	return nil
+}

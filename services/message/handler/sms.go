@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/go-ironic/utils"
@@ -11,8 +14,6 @@ import (
 	"iunite.club/models"
 	smsPB "iunite.club/services/message/proto/sms"
 	smsUtils "iunite.club/services/message/utils"
-	"strconv"
-	"time"
 )
 
 type SMSHandler struct {
@@ -60,7 +61,7 @@ func (s *SMSHandler) ValidateMobileCode(ctx context.Context, in *smsPB.ValidateM
 	verifyCode := models.ValidateCode{}
 
 	ValdiateCodeModel.
-		FindOne(bson.M{
+		Where(bson.M{
 			"mobile": in.Mobile,
 			"code":   in.Code,
 			"$or": []bson.M{
@@ -74,7 +75,7 @@ func (s *SMSHandler) ValidateMobileCode(ctx context.Context, in *smsPB.ValidateM
 				},
 			},
 			// "usaged": false,
-		}).Exec(&verifyCode)
+		}).FindOne(&verifyCode)
 
 	fmt.Println(verifyCode)
 	now := time.Now()

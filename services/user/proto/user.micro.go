@@ -4,12 +4,11 @@
 /*
 Package iunite_club_srv_user is a generated protocol buffer package.
 
-import "google/protobuf/timestamp.proto";
-
 It is generated from these files:
 	proto/user.proto
 
 It has these top-level messages:
+	CreateMemberRequest
 	FindUsersByClubIDRequest
 	ResetPasswordResponse
 	User
@@ -32,6 +31,7 @@ package iunite_club_srv_user
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import _ "github.com/golang/protobuf/ptypes/timestamp"
 
 import (
 	client "github.com/micro/go-micro/client"
@@ -71,6 +71,7 @@ type UserSrvService interface {
 	SigninByMobile(ctx context.Context, in *SigninByMobileRequest, opts ...client.CallOption) (*UserResponse, error)
 	// rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
 	FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error)
+	CreateMember(ctx context.Context, in *CreateMemberRequest, opts ...client.CallOption) (*Response, error)
 }
 
 type userSrvService struct {
@@ -191,6 +192,16 @@ func (c *userSrvService) FindUsersByClubID(ctx context.Context, in *FindUsersByC
 	return out, nil
 }
 
+func (c *userSrvService) CreateMember(ctx context.Context, in *CreateMemberRequest, opts ...client.CallOption) (*Response, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.CreateMember", in)
+	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserSrv service
 
 type UserSrvHandler interface {
@@ -207,9 +218,10 @@ type UserSrvHandler interface {
 	SigninByMobile(context.Context, *SigninByMobileRequest, *UserResponse) error
 	// rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
 	FindUsersByClubID(context.Context, *FindUsersByClubIDRequest, *UserListResponse) error
+	CreateMember(context.Context, *CreateMemberRequest, *Response) error
 }
 
-func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server.HandlerOption) error {
+func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server.HandlerOption) {
 	type userSrv interface {
 		FindUserByID(ctx context.Context, in *QueryUserRequest, out *UserResponse) error
 		FindProfileByID(ctx context.Context, in *QueryProfileRequest, out *ProfileResponse) error
@@ -221,12 +233,13 @@ func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server
 		ResetPasswordByMobile(ctx context.Context, in *ResetPasswordRequest, out *ResetPasswordResponse) error
 		SigninByMobile(ctx context.Context, in *SigninByMobileRequest, out *UserResponse) error
 		FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, out *UserListResponse) error
+		CreateMember(ctx context.Context, in *CreateMemberRequest, out *Response) error
 	}
 	type UserSrv struct {
 		userSrv
 	}
 	h := &userSrvHandler{hdlr}
-	return s.Handle(s.NewHandler(&UserSrv{h}, opts...))
+	s.Handle(s.NewHandler(&UserSrv{h}, opts...))
 }
 
 type userSrvHandler struct {
@@ -271,4 +284,8 @@ func (h *userSrvHandler) SigninByMobile(ctx context.Context, in *SigninByMobileR
 
 func (h *userSrvHandler) FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, out *UserListResponse) error {
 	return h.UserSrvHandler.FindUsersByClubID(ctx, in, out)
+}
+
+func (h *userSrvHandler) CreateMember(ctx context.Context, in *CreateMemberRequest, out *Response) error {
+	return h.UserSrvHandler.CreateMember(ctx, in, out)
 }

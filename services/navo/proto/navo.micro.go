@@ -127,7 +127,7 @@ type NavoHandlerHandler interface {
 	UploadPackage(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterNavoHandlerHandler(s server.Server, hdlr NavoHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterNavoHandlerHandler(s server.Server, hdlr NavoHandlerHandler, opts ...server.HandlerOption) {
 	type navoHandler interface {
 		TaskCounts(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetHomeCounts(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -139,7 +139,7 @@ func RegisterNavoHandlerHandler(s server.Server, hdlr NavoHandlerHandler, opts .
 		navoHandler
 	}
 	h := &navoHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&NavoHandler{h}, opts...))
+	s.Handle(s.NewHandler(&NavoHandler{h}, opts...))
 }
 
 type navoHandlerHandler struct {
@@ -218,7 +218,7 @@ type SMSHandlerHandler interface {
 	ValidateSimpleCode(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterSMSHandlerHandler(s server.Server, hdlr SMSHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterSMSHandlerHandler(s server.Server, hdlr SMSHandlerHandler, opts ...server.HandlerOption) {
 	type sMSHandler interface {
 		SendVerifyCode(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		ValidateSimpleCode(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -227,7 +227,7 @@ func RegisterSMSHandlerHandler(s server.Server, hdlr SMSHandlerHandler, opts ...
 		sMSHandler
 	}
 	h := &sMSHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&SMSHandler{h}, opts...))
+	s.Handle(s.NewHandler(&SMSHandler{h}, opts...))
 }
 
 type sMSHandlerHandler struct {
@@ -252,7 +252,7 @@ type UserHandlerService interface {
 	GetCurrentOrganization(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	GetAllMembers(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	CreateMember(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
-	RemvoeMemberFromOrg(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
+	RemoveMemberFromOrg(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	UpdateMember(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	GetMemberDetails(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
 	RemoveOrg(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error)
@@ -353,8 +353,8 @@ func (c *userHandlerService) CreateMember(ctx context.Context, in *go_api.Reques
 	return out, nil
 }
 
-func (c *userHandlerService) RemvoeMemberFromOrg(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error) {
-	req := c.c.NewRequest(c.name, "UserHandler.RemvoeMemberFromOrg", in)
+func (c *userHandlerService) RemoveMemberFromOrg(ctx context.Context, in *go_api.Request, opts ...client.CallOption) (*go_api.Response, error) {
+	req := c.c.NewRequest(c.name, "UserHandler.RemoveMemberFromOrg", in)
 	out := new(go_api.Response)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -473,7 +473,7 @@ type UserHandlerHandler interface {
 	GetCurrentOrganization(context.Context, *go_api.Request, *go_api.Response) error
 	GetAllMembers(context.Context, *go_api.Request, *go_api.Response) error
 	CreateMember(context.Context, *go_api.Request, *go_api.Response) error
-	RemvoeMemberFromOrg(context.Context, *go_api.Request, *go_api.Response) error
+	RemoveMemberFromOrg(context.Context, *go_api.Request, *go_api.Response) error
 	UpdateMember(context.Context, *go_api.Request, *go_api.Response) error
 	GetMemberDetails(context.Context, *go_api.Request, *go_api.Response) error
 	RemoveOrg(context.Context, *go_api.Request, *go_api.Response) error
@@ -486,7 +486,7 @@ type UserHandlerHandler interface {
 	UploadUserList(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterUserHandlerHandler(s server.Server, hdlr UserHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterUserHandlerHandler(s server.Server, hdlr UserHandlerHandler, opts ...server.HandlerOption) {
 	type userHandler interface {
 		Info(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		UpdateCurrentOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -495,7 +495,7 @@ func RegisterUserHandlerHandler(s server.Server, hdlr UserHandlerHandler, opts .
 		GetCurrentOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetAllMembers(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		CreateMember(ctx context.Context, in *go_api.Request, out *go_api.Response) error
-		RemvoeMemberFromOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error
+		RemoveMemberFromOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		UpdateMember(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetMemberDetails(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		RemoveOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -511,7 +511,7 @@ func RegisterUserHandlerHandler(s server.Server, hdlr UserHandlerHandler, opts .
 		userHandler
 	}
 	h := &userHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&UserHandler{h}, opts...))
+	s.Handle(s.NewHandler(&UserHandler{h}, opts...))
 }
 
 type userHandlerHandler struct {
@@ -546,8 +546,8 @@ func (h *userHandlerHandler) CreateMember(ctx context.Context, in *go_api.Reques
 	return h.UserHandlerHandler.CreateMember(ctx, in, out)
 }
 
-func (h *userHandlerHandler) RemvoeMemberFromOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error {
-	return h.UserHandlerHandler.RemvoeMemberFromOrg(ctx, in, out)
+func (h *userHandlerHandler) RemoveMemberFromOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error {
+	return h.UserHandlerHandler.RemoveMemberFromOrg(ctx, in, out)
 }
 
 func (h *userHandlerHandler) UpdateMember(ctx context.Context, in *go_api.Request, out *go_api.Response) error {
@@ -642,7 +642,7 @@ type FileHandlerHandler interface {
 	UploadMutipartFile(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterFileHandlerHandler(s server.Server, hdlr FileHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterFileHandlerHandler(s server.Server, hdlr FileHandlerHandler, opts ...server.HandlerOption) {
 	type fileHandler interface {
 		UploadSingleFile(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		UploadMutipartFile(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -651,7 +651,7 @@ func RegisterFileHandlerHandler(s server.Server, hdlr FileHandlerHandler, opts .
 		fileHandler
 	}
 	h := &fileHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&FileHandler{h}, opts...))
+	s.Handle(s.NewHandler(&FileHandler{h}, opts...))
 }
 
 type fileHandlerHandler struct {
@@ -886,7 +886,7 @@ type OrganizationHandlerHandler interface {
 	SelectOrganizations(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterOrganizationHandlerHandler(s server.Server, hdlr OrganizationHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterOrganizationHandlerHandler(s server.Server, hdlr OrganizationHandlerHandler, opts ...server.HandlerOption) {
 	type organizationHandler interface {
 		CreateOrganization(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetAllOrgByUserID(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -909,7 +909,7 @@ func RegisterOrganizationHandlerHandler(s server.Server, hdlr OrganizationHandle
 		organizationHandler
 	}
 	h := &organizationHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&OrganizationHandler{h}, opts...))
+	s.Handle(s.NewHandler(&OrganizationHandler{h}, opts...))
 }
 
 type organizationHandlerHandler struct {
@@ -1128,7 +1128,7 @@ type DepartmentHandlerHandler interface {
 	Remove(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterDepartmentHandlerHandler(s server.Server, hdlr DepartmentHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterDepartmentHandlerHandler(s server.Server, hdlr DepartmentHandlerHandler, opts ...server.HandlerOption) {
 	type departmentHandler interface {
 		AddDept(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetDepartmentByOrg(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -1145,7 +1145,7 @@ func RegisterDepartmentHandlerHandler(s server.Server, hdlr DepartmentHandlerHan
 		departmentHandler
 	}
 	h := &departmentHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&DepartmentHandler{h}, opts...))
+	s.Handle(s.NewHandler(&DepartmentHandler{h}, opts...))
 }
 
 type departmentHandlerHandler struct {
@@ -1316,7 +1316,7 @@ type JobHandlerHandler interface {
 	Remove(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterJobHandlerHandler(s server.Server, hdlr JobHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterJobHandlerHandler(s server.Server, hdlr JobHandlerHandler, opts ...server.HandlerOption) {
 	type jobHandler interface {
 		CreateJob(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetUsersWithJob(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -1331,7 +1331,7 @@ func RegisterJobHandlerHandler(s server.Server, hdlr JobHandlerHandler, opts ...
 		jobHandler
 	}
 	h := &jobHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&JobHandler{h}, opts...))
+	s.Handle(s.NewHandler(&JobHandler{h}, opts...))
 }
 
 type jobHandlerHandler struct {
@@ -1482,7 +1482,7 @@ type RoleHandlerHandler interface {
 	DeleteRoleOrGroup(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterRoleHandlerHandler(s server.Server, hdlr RoleHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterRoleHandlerHandler(s server.Server, hdlr RoleHandlerHandler, opts ...server.HandlerOption) {
 	type roleHandler interface {
 		CreateRoleOrGroup(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		AddUsersToRole(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -1496,7 +1496,7 @@ func RegisterRoleHandlerHandler(s server.Server, hdlr RoleHandlerHandler, opts .
 		roleHandler
 	}
 	h := &roleHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&RoleHandler{h}, opts...))
+	s.Handle(s.NewHandler(&RoleHandler{h}, opts...))
 }
 
 type roleHandlerHandler struct {
@@ -1703,7 +1703,7 @@ type ContactsHandlerHandler interface {
 	RemoveFriends(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterContactsHandlerHandler(s server.Server, hdlr ContactsHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterContactsHandlerHandler(s server.Server, hdlr ContactsHandlerHandler, opts ...server.HandlerOption) {
 	type contactsHandler interface {
 		GetContactsList(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetUserCardDetails(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -1722,7 +1722,7 @@ func RegisterContactsHandlerHandler(s server.Server, hdlr ContactsHandlerHandler
 		contactsHandler
 	}
 	h := &contactsHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&ContactsHandler{h}, opts...))
+	s.Handle(s.NewHandler(&ContactsHandler{h}, opts...))
 }
 
 type contactsHandlerHandler struct {
@@ -1913,7 +1913,7 @@ type ActivityHandlerHandler interface {
 	PublishActivity(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterActivityHandlerHandler(s server.Server, hdlr ActivityHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterActivityHandlerHandler(s server.Server, hdlr ActivityHandlerHandler, opts ...server.HandlerOption) {
 	type activityHandler interface {
 		Create(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		List(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -1929,7 +1929,7 @@ func RegisterActivityHandlerHandler(s server.Server, hdlr ActivityHandlerHandler
 		activityHandler
 	}
 	h := &activityHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&ActivityHandler{h}, opts...))
+	s.Handle(s.NewHandler(&ActivityHandler{h}, opts...))
 }
 
 type activityHandlerHandler struct {
@@ -2072,7 +2072,7 @@ type FundingHandlerHandler interface {
 	UndoOne(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterFundingHandlerHandler(s server.Server, hdlr FundingHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterFundingHandlerHandler(s server.Server, hdlr FundingHandlerHandler, opts ...server.HandlerOption) {
 	type fundingHandler interface {
 		Create(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		List(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -2085,7 +2085,7 @@ func RegisterFundingHandlerHandler(s server.Server, hdlr FundingHandlerHandler, 
 		fundingHandler
 	}
 	h := &fundingHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&FundingHandler{h}, opts...))
+	s.Handle(s.NewHandler(&FundingHandler{h}, opts...))
 }
 
 type fundingHandlerHandler struct {
@@ -2216,7 +2216,7 @@ type GoodsBorrowHandlerHandler interface {
 	UndoOne(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterGoodsBorrowHandlerHandler(s server.Server, hdlr GoodsBorrowHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterGoodsBorrowHandlerHandler(s server.Server, hdlr GoodsBorrowHandlerHandler, opts ...server.HandlerOption) {
 	type goodsBorrowHandler interface {
 		List(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		Create(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -2229,7 +2229,7 @@ func RegisterGoodsBorrowHandlerHandler(s server.Server, hdlr GoodsBorrowHandlerH
 		goodsBorrowHandler
 	}
 	h := &goodsBorrowHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&GoodsBorrowHandler{h}, opts...))
+	s.Handle(s.NewHandler(&GoodsBorrowHandler{h}, opts...))
 }
 
 type goodsBorrowHandlerHandler struct {
@@ -2384,7 +2384,7 @@ type ApprovedHandlerHandler interface {
 	ListByPusher(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterApprovedHandlerHandler(s server.Server, hdlr ApprovedHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterApprovedHandlerHandler(s server.Server, hdlr ApprovedHandlerHandler, opts ...server.HandlerOption) {
 	type approvedHandler interface {
 		List(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		Details(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -2399,7 +2399,7 @@ func RegisterApprovedHandlerHandler(s server.Server, hdlr ApprovedHandlerHandler
 		approvedHandler
 	}
 	h := &approvedHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&ApprovedHandler{h}, opts...))
+	s.Handle(s.NewHandler(&ApprovedHandler{h}, opts...))
 }
 
 type approvedHandlerHandler struct {
@@ -2598,7 +2598,7 @@ type StatisticHandlerHandler interface {
 	GetPeopleStatisticsDetails(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterStatisticHandlerHandler(s server.Server, hdlr StatisticHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterStatisticHandlerHandler(s server.Server, hdlr StatisticHandlerHandler, opts ...server.HandlerOption) {
 	type statisticHandler interface {
 		FundingAmount(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		FundingAmount2DMapdata(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -2616,7 +2616,7 @@ func RegisterStatisticHandlerHandler(s server.Server, hdlr StatisticHandlerHandl
 		statisticHandler
 	}
 	h := &statisticHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&StatisticHandler{h}, opts...))
+	s.Handle(s.NewHandler(&StatisticHandler{h}, opts...))
 }
 
 type statisticHandlerHandler struct {
@@ -2791,7 +2791,7 @@ type CloudHandlerHandler interface {
 	ShowFile(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterCloudHandlerHandler(s server.Server, hdlr CloudHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterCloudHandlerHandler(s server.Server, hdlr CloudHandlerHandler, opts ...server.HandlerOption) {
 	type cloudHandler interface {
 		List(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		CreateDIR(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -2806,7 +2806,7 @@ func RegisterCloudHandlerHandler(s server.Server, hdlr CloudHandlerHandler, opts
 		cloudHandler
 	}
 	h := &cloudHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&CloudHandler{h}, opts...))
+	s.Handle(s.NewHandler(&CloudHandler{h}, opts...))
 }
 
 type cloudHandlerHandler struct {
@@ -2921,7 +2921,7 @@ type NotifyHanlerHandler interface {
 	ClearCurrentNotification(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterNotifyHanlerHandler(s server.Server, hdlr NotifyHanlerHandler, opts ...server.HandlerOption) error {
+func RegisterNotifyHanlerHandler(s server.Server, hdlr NotifyHanlerHandler, opts ...server.HandlerOption) {
 	type notifyHanler interface {
 		UnreadCount(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		GetNotifications(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -2932,7 +2932,7 @@ func RegisterNotifyHanlerHandler(s server.Server, hdlr NotifyHanlerHandler, opts
 		notifyHanler
 	}
 	h := &notifyHanlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&NotifyHanler{h}, opts...))
+	s.Handle(s.NewHandler(&NotifyHanler{h}, opts...))
 }
 
 type notifyHanlerHandler struct {
@@ -3127,7 +3127,7 @@ type RecruitmentHandlerHandler interface {
 	AdjustOnePost(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterRecruitmentHandlerHandler(s server.Server, hdlr RecruitmentHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterRecruitmentHandlerHandler(s server.Server, hdlr RecruitmentHandlerHandler, opts ...server.HandlerOption) {
 	type recruitmentHandler interface {
 		LatestRecruitmentRecord(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		AddRecruitmentRecord(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -3146,7 +3146,7 @@ func RegisterRecruitmentHandlerHandler(s server.Server, hdlr RecruitmentHandlerH
 		recruitmentHandler
 	}
 	h := &recruitmentHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&RecruitmentHandler{h}, opts...))
+	s.Handle(s.NewHandler(&RecruitmentHandler{h}, opts...))
 }
 
 type recruitmentHandlerHandler struct {
@@ -3397,7 +3397,7 @@ type ConversationHandlerHandler interface {
 	JoinGroup(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterConversationHandlerHandler(s server.Server, hdlr ConversationHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterConversationHandlerHandler(s server.Server, hdlr ConversationHandlerHandler, opts ...server.HandlerOption) {
 	type conversationHandler interface {
 		GetConversationsByMemberID(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		CreateConversation(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -3418,7 +3418,7 @@ func RegisterConversationHandlerHandler(s server.Server, hdlr ConversationHandle
 		conversationHandler
 	}
 	h := &conversationHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&ConversationHandler{h}, opts...))
+	s.Handle(s.NewHandler(&ConversationHandler{h}, opts...))
 }
 
 type conversationHandlerHandler struct {
@@ -3569,7 +3569,7 @@ type AnnounceHandlerHandler interface {
 	MarkedToRead(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterAnnounceHandlerHandler(s server.Server, hdlr AnnounceHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterAnnounceHandlerHandler(s server.Server, hdlr AnnounceHandlerHandler, opts ...server.HandlerOption) {
 	type announceHandler interface {
 		CreateInstructions(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		CreateReminderAnnounce(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -3581,7 +3581,7 @@ func RegisterAnnounceHandlerHandler(s server.Server, hdlr AnnounceHandlerHandler
 		announceHandler
 	}
 	h := &announceHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&AnnounceHandler{h}, opts...))
+	s.Handle(s.NewHandler(&AnnounceHandler{h}, opts...))
 }
 
 type announceHandlerHandler struct {
@@ -3696,7 +3696,7 @@ type ManagerHandlerHandler interface {
 	DelOrg(context.Context, *go_api.Request, *go_api.Response) error
 }
 
-func RegisterManagerHandlerHandler(s server.Server, hdlr ManagerHandlerHandler, opts ...server.HandlerOption) error {
+func RegisterManagerHandlerHandler(s server.Server, hdlr ManagerHandlerHandler, opts ...server.HandlerOption) {
 	type managerHandler interface {
 		AgreeOrganizationAccept(ctx context.Context, in *go_api.Request, out *go_api.Response) error
 		Orgs(ctx context.Context, in *go_api.Request, out *go_api.Response) error
@@ -3708,7 +3708,7 @@ func RegisterManagerHandlerHandler(s server.Server, hdlr ManagerHandlerHandler, 
 		managerHandler
 	}
 	h := &managerHandlerHandler{hdlr}
-	return s.Handle(s.NewHandler(&ManagerHandler{h}, opts...))
+	s.Handle(s.NewHandler(&ManagerHandler{h}, opts...))
 }
 
 type managerHandlerHandler struct {

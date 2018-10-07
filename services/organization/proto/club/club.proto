@@ -20,6 +20,13 @@ service Club {
   rpc GetUserClubProfilesByUserID(GetUserClubProfilesByUserIDRequest) returns(UserClubProfilesListResponse) {}
   rpc GetUserClubProfileDetailsByID(GetUserClubProfileDetailsByIDRequest) returns(UserClubProfileResponse) {}
   // rcp GetOrganizationDetails()
+  rpc RemoveUserFromClub(RemoveUserFromClubRequest) returns(Response) {}
+
+}
+
+message RemoveUserFromClubRequest {
+  string UserID = 1;
+  string ClubID = 2;
 }
 
 message GetUserClubProfileDetailsByIDRequest {

@@ -93,7 +93,7 @@ type SMSHandler interface {
 	ValidateMobileCode(context.Context, *ValidateMobileCodeRequest, *ValidateResponse) error
 }
 
-func RegisterSMSHandler(s server.Server, hdlr SMSHandler, opts ...server.HandlerOption) error {
+func RegisterSMSHandler(s server.Server, hdlr SMSHandler, opts ...server.HandlerOption) {
 	type sMS interface {
 		SendVerifyCode(ctx context.Context, in *SendVerifyCodeRequest, out *SendResponse) error
 		ValidateMobileCode(ctx context.Context, in *ValidateMobileCodeRequest, out *ValidateResponse) error
@@ -102,7 +102,7 @@ func RegisterSMSHandler(s server.Server, hdlr SMSHandler, opts ...server.Handler
 		sMS
 	}
 	h := &sMSHandler{hdlr}
-	return s.Handle(s.NewHandler(&SMS{h}, opts...))
+	s.Handle(s.NewHandler(&SMS{h}, opts...))
 }
 
 type sMSHandler struct {

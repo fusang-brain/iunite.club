@@ -31,7 +31,7 @@ func (s *SchoolService) GetSchoolByID(id string) (*models.School, error) {
 		return &foundSchool, s.Error().NotFound("Not found school")
 	}
 
-	err := SchoolModel.FindByID(bson.ObjectIdHex(id)).Exec(&foundSchool)
+	err := SchoolModel.FindByID(bson.ObjectIdHex(id), &foundSchool)
 	if err != nil {
 		return &foundSchool, s.Error().InternalServerError(err.Error())
 	}
@@ -65,7 +65,7 @@ func (s *SchoolService) GetSchoolList(req *pb.ListRequest, resp *pb.ListResponse
 	if req.Page > 0 {
 		skipNum = int((req.Page - 1) * req.Limit)
 	}
-	if err := SchoolModel.Find().Skip(skipNum).Limit(int(req.Limit)).Exec(&schools); err != nil {
+	if err := SchoolModel.Where().Skip(skipNum).Limit(int(req.Limit)).FindAll(&schools); err != nil {
 		return s.Error().InternalServerError(err.Error())
 	}
 	for _, v := range schools {
@@ -91,9 +91,9 @@ func (s *SchoolService) SearchSchools(req *pb.SearchSchoolsRequest, rsp *pb.List
 
 	rsp.Total = int64(total)
 
-	if err := SchoolModel.Find(bson.M{
+	if err := SchoolModel.Where(bson.M{
 		"name": bson.RegEx{req.Search, "i"},
-	}).Exec(&schools); err != nil {
+	}).FindAll(&schools); err != nil {
 		return s.Error().InternalServerError(err.Error())
 	}
 

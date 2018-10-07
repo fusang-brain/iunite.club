@@ -6,7 +6,7 @@ import (
 
 // School class 学校类
 type School struct {
-	monger.Document `json:",inline" bson:",inline"`
+	monger.Schema `json:",inline" bson:",inline"`
 	// SchoolID string `gorm:"primay_key"`
 	// 学校名
 	Name string `json:"name,omitempty" bson:"name,omitempty"`

@@ -8,6 +8,7 @@ It is generated from these files:
 	proto/club/club.proto
 
 It has these top-level messages:
+	RemoveUserFromClubRequest
 	GetUserClubProfileDetailsByIDRequest
 	UserClubProfileResponse
 	GetUserClubProfilesByUserIDRequest
@@ -75,6 +76,8 @@ type ClubService interface {
 	FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, opts ...client.CallOption) (*ClubListResponse, error)
 	GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, opts ...client.CallOption) (*UserClubProfilesListResponse, error)
 	GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error)
+	// rcp GetOrganizationDetails()
+	RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, opts ...client.CallOption) (*Response, error)
 }
 
 type clubService struct {
@@ -215,6 +218,16 @@ func (c *clubService) GetUserClubProfileDetailsByID(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *clubService) RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, opts ...client.CallOption) (*Response, error) {
+	req := c.c.NewRequest(c.name, "Club.RemoveUserFromClub", in)
+	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Club service
 
 type ClubHandler interface {
@@ -231,9 +244,11 @@ type ClubHandler interface {
 	FindClubsBySchoolID(context.Context, *GetClubsBySchoolIDRequest, *ClubListResponse) error
 	GetUserClubProfilesByUserID(context.Context, *GetUserClubProfilesByUserIDRequest, *UserClubProfilesListResponse) error
 	GetUserClubProfileDetailsByID(context.Context, *GetUserClubProfileDetailsByIDRequest, *UserClubProfileResponse) error
+	// rcp GetOrganizationDetails()
+	RemoveUserFromClub(context.Context, *RemoveUserFromClubRequest, *Response) error
 }
 
-func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.HandlerOption) error {
+func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.HandlerOption) {
 	type club interface {
 		CreateClub(ctx context.Context, in *CreateClubRequest, out *CreateClubResponse) error
 		FindClubListByPage(ctx context.Context, in *GetClubListRequest, out *ClubListResponse) error
@@ -247,12 +262,13 @@ func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.Handl
 		FindClubsBySchoolID(ctx context.Context, in *GetClubsBySchoolIDRequest, out *ClubListResponse) error
 		GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *UserClubProfilesListResponse) error
 		GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, out *UserClubProfileResponse) error
+		RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, out *Response) error
 	}
 	type Club struct {
 		club
 	}
 	h := &clubHandler{hdlr}
-	return s.Handle(s.NewHandler(&Club{h}, opts...))
+	s.Handle(s.NewHandler(&Club{h}, opts...))
 }
 
 type clubHandler struct {
@@ -305,4 +321,8 @@ func (h *clubHandler) GetUserClubProfilesByUserID(ctx context.Context, in *GetUs
 
 func (h *clubHandler) GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, out *UserClubProfileResponse) error {
 	return h.ClubHandler.GetUserClubProfileDetailsByID(ctx, in, out)
+}
+
+func (h *clubHandler) RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, out *Response) error {
+	return h.ClubHandler.RemoveUserFromClub(ctx, in, out)
 }

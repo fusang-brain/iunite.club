@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/go-log/log"
@@ -47,20 +48,22 @@ func (u *UserService) SigninUser(authType string, key string, password string) (
 
 	UserModel := u.Model("User")
 	ProfileModel := u.Model("Profile")
+	// UserModel.Where(bson.M{"_id": "hello"}).FindOne()
+	// UserModel.FindOne()
 	user := models.User{}
 	// signin by mobileasfasdfasdf
 	if authType == MobileAuthType {
 		profile := models.Profile{}
 
-		ProfileModel.FindOne(bson.M{"mobile": key}).Exec(&profile)
-		UserModel.FindOne(bson.M{
+		ProfileModel.FindOne(&profile, bson.M{"mobile": key})
+		UserModel.FindOne(&user, bson.M{
 			"_id": profile.UserID,
 			"secruity_infos": bson.M{
 				"$elemMatch": bson.M{
 					"auth_type": "UniteApp",
 				},
 			},
-		}).Exec(&user)
+		})
 
 		if user.IsEmpty() {
 			return &user, u.Error().ActionError("NotFoundUser")
@@ -82,8 +85,8 @@ func (u *UserService) SigninUser(authType string, key string, password string) (
 		if secruityInfo.Secret == "" {
 			return &user, u.Error().ActionError("UserHasBan")
 		}
-		fmt.Println(password)
-		fmt.Println(secruityInfo.Secret)
+		// fmt.Println(password)
+		// fmt.Println(secruityInfo.Secret)
 		if err := utils.CheckPassword(password, secruityInfo.Secret); err != nil {
 			return &user, u.Error().ActionError("ErrorPassword")
 		}
@@ -193,7 +196,7 @@ func (u *UserService) FindProfileByMobile(mobile string) (*models.Profile, error
 	profile := models.Profile{}
 	Profile := u.Model("Profile")
 
-	if err := Profile.FindOne(bson.M{"mobile": mobile}).Exec(&profile); err != nil {
+	if err := Profile.FindOne(&profile, bson.M{"mobile": mobile}); err != nil {
 		return &profile, err
 	}
 
@@ -207,9 +210,9 @@ func (u *UserService) GetUserInfoByID(id string) *models.User {
 
 	// UserModel.FindOne(bson.M{"_id": bson.ObjectIdHex(id)}).One(user)
 	UserModel.
-		FindOne(bson.M{"_id": bson.ObjectIdHex(id)}).
+		Where(bson.M{"_id": bson.ObjectIdHex(id)}).
 		Populate("Profile").
-		Exec(user)
+		FindOne(user)
 	return user
 }
 
@@ -217,18 +220,26 @@ func (u *UserService) GetUserInfoByID(id string) *models.User {
 func (u *UserService) CreateUser(user *models.User) error {
 	UserModel := u.Model("User")
 	ProfileModel := u.Model("Profile")
+
 	profile := models.Profile{}
 	if user.Profile != nil {
 		// profile.Avatar =
 		profile = *user.Profile
+		found := new(models.Profile)
+		ProfileModel.FindOne(found, bson.M{"mobile": profile.Mobile})
+
+		if !found.IsEmpty() {
+			UserModel.Where(bson.M{"_id": found.UserID}).Populate("Profile").FindOne(user)
+			return u.Error().BadRequest("Account %v is exist", profile.Mobile)
+		}
 	}
 	if err := UserModel.Create(user); err != nil {
-		return err
+		return u.Error().InternalServerError(err.Error())
 	}
 	profile.UserID = user.ID
 
 	if err := ProfileModel.Create(&profile); err != nil {
-		return err
+		return u.Error().InternalServerError(err.Error())
 	}
 
 	return nil
@@ -271,7 +282,7 @@ func (u *UserService) GetProfileByID(id string) *models.Profile {
 	profile := &models.Profile{}
 
 	UserModel := u.Model("Profile")
-	UserModel.FindOne(bson.M{"_id": bson.ObjectIdHex(id)}).Exec(profile)
+	UserModel.Where(bson.M{"_id": bson.ObjectIdHex(id)}).FindOne(profile)
 
 	return profile
 }
@@ -305,11 +316,11 @@ func (u *UserService) FindUsersByClubID(req *kit_iron_srv_user.FindUsersByClubID
 	}
 
 	// fmt.Println(condition)
-	query := UserModel.Find(condition).Populate("UserClubProfiles", "Profile")
+	query := UserModel.Where(condition).Populate("UserClubProfiles", "Profile")
 
-	total, _ = query.Count()
+	total = query.Count()
 
-	err := query.Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).Exec(&users)
+	err := query.Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).FindAll(&users)
 	// b, _ := json.Marshal(users)
 
 	// fmt.Println(string(b))
@@ -324,6 +335,67 @@ func (u *UserService) FindUsersByClubID(req *kit_iron_srv_user.FindUsersByClubID
 
 	for _, v := range users {
 		rsp.Users = append(rsp.Users, v.ToPB())
+	}
+
+	return nil
+}
+
+func (u *UserService) GenerateUsername() string {
+	UserModel := u.Model("User")
+
+	count := UserModel.Count()
+
+	account := 100000001 + count
+	return strconv.Itoa(account)
+}
+
+type CreateMemberBundle struct {
+	User         *models.User
+	ClubID       bson.ObjectId
+	JobID        bson.ObjectId
+	DepartmentID bson.ObjectId
+}
+
+func (u *UserService) CreateMember(b *CreateMemberBundle) error {
+	UserClubProfileModel := u.Model("UserClubProfile")
+	u.CreateUser(b.User)
+	if len(b.User.ID) == 0 {
+		return u.Error().BadRequest("User create error")
+	}
+	condition := bson.M{"organization_id": b.ClubID, "user_id": b.User.ID.Hex()}
+	foundCount := UserClubProfileModel.Count(condition)
+
+	if foundCount > 0 {
+		err := UserClubProfileModel.Update(condition, bson.M{"$set": bson.M{"job_id": b.JobID, "department_id": b.DepartmentID}})
+		if err != nil {
+			return u.Error().BadRequest(err.Error())
+		}
+	}
+	now := time.Now()
+
+	if err := UserClubProfileModel.Create(&models.UserClubProfile{
+		OrganizationID: b.ClubID,
+		UserID:         b.User.ID,
+		IsMaster:       false,
+		IsCreator:      false,
+		JoinTime:       now,
+		State:          1,
+		JobID:          b.JobID,
+		DepartmentID:   b.DepartmentID,
+	}); err != nil {
+		return u.Error().BadRequest(err.Error())
+	}
+
+	return nil
+}
+
+func (u *UserService) RemoveFromClub(userID bson.ObjectId, id bson.ObjectId) error {
+	UserClubProfileModel := u.Model("UserClubProfile")
+
+	err := UserClubProfileModel.Update(bson.M{"user_id": userID, "organization_id": id}, bson.M{"deleted": true})
+
+	if err != nil {
+		return u.Error().BadRequest(err.Error())
 	}
 
 	return nil

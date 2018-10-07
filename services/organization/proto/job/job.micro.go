@@ -122,7 +122,7 @@ type JobHandler interface {
 	GetJobListByParentID(context.Context, *JobListRequest, *JobListResponse) error
 }
 
-func RegisterJobHandler(s server.Server, hdlr JobHandler, opts ...server.HandlerOption) error {
+func RegisterJobHandler(s server.Server, hdlr JobHandler, opts ...server.HandlerOption) {
 	type job interface {
 		CreateJob(ctx context.Context, in *CreateJobRequest, out *CreateJobResponse) error
 		UpdateJob(ctx context.Context, in *UpdateJobRequest, out *UpdateJobResponse) error
@@ -133,7 +133,7 @@ func RegisterJobHandler(s server.Server, hdlr JobHandler, opts ...server.Handler
 		job
 	}
 	h := &jobHandler{hdlr}
-	return s.Handle(s.NewHandler(&Job{h}, opts...))
+	s.Handle(s.NewHandler(&Job{h}, opts...))
 }
 
 type jobHandler struct {

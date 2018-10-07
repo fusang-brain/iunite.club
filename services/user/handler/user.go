@@ -7,11 +7,14 @@ import (
 
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
+
+	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
 	smsPB "iunite.club/services/message/proto/sms"
 	"iunite.club/services/user/client"
 	user "iunite.club/services/user/proto"
+	"iunite.club/services/user/utils"
 )
 
 type UserSrv struct {
@@ -44,24 +47,37 @@ func (u *UserSrv) FindProfileByID(ctx context.Context, in *user.QueryProfileRequ
 
 func (u *UserSrv) CreateUser(ctx context.Context, req *user.User, resp *user.Response) error {
 	userService := newUserService(ctx)
+	if req.Username == "" {
+		req.Username = userService.GenerateUsername()
+	}
+
+	password, err := utils.GeneratePassword(req.Password)
+	if err != nil {
+		return u.Error(ctx).InternalServerError(err.Error())
+	}
+
 	newUser := models.User{
 		Username: req.Username,
 		Enabled:  req.Enabled,
 		SecruityInfos: []models.SecruityInfo{
-			models.SecruityInfo{
+			{
 				AuthType:      "UniteApp",
-				Secret:        req.Password,
+				Secret:        password,
 				PlainPassword: req.Password,
 			},
 		},
 		Profile: &models.Profile{
-			Avatar: req.Profile.Avatar,
+			Avatar:    req.Profile.Avatar,
+			Lastname:  req.Profile.Lastname,
+			Firstname: req.Profile.Firstname,
+			Mobile:    req.Profile.Mobile,
+			Birthday:  hptypes.Timestamp(req.Profile.Birthday),
+			Nickname:  req.Profile.Nickname,
+			Gender:    req.Profile.Gender,
+			// RoomNumber: req.Profile.
 		},
 	}
 
-	// if err := assistant.TransformDTOToMongerSchema(req, &newUser); err != nil {
-	// 	return err
-	// }
 	if err := userService.CreateUser(&newUser); err != nil {
 		return err
 	}
@@ -194,3 +210,79 @@ func (u *UserSrv) FindUsersByClubID(ctx context.Context, req *user.FindUsersByCl
 
 	return nil
 }
+
+func (u *UserSrv) CreateMember(ctx context.Context, req *user.CreateMemberRequest, rsp *user.Response) error {
+
+	userService := newUserService(ctx)
+	if req.User.Profile == nil {
+		req.User.Profile = new(user.Profile)
+	}
+
+	profile := req.User.Profile
+	password := "123456"
+	pwd, _ := utils.GeneratePassword(password)
+
+	if !bson.IsObjectIdHex(req.ClubID) || !bson.IsObjectIdHex(req.DepartmentID) || !bson.IsObjectIdHex(req.JobID) {
+		return u.Error(ctx).BadRequest("ClubID/DepartmentID/JobID) must be objectid")
+	}
+
+	err := userService.CreateMember(&CreateMemberBundle{
+		ClubID:       bson.ObjectIdHex(req.ClubID),
+		DepartmentID: bson.ObjectIdHex(req.DepartmentID),
+		JobID:        bson.ObjectIdHex(req.JobID),
+		User: &models.User{
+			Username: userService.GenerateUsername(),
+			Enabled:  false,
+			SecruityInfos: []models.SecruityInfo{
+				{
+					AuthType:      "UniteApp",
+					Secret:        pwd,
+					PlainPassword: password,
+				},
+			},
+			Profile: &models.Profile{
+				Avatar:           profile.Avatar,
+				Mobile:           profile.Mobile,
+				Email:            profile.Email,
+				Firstname:        profile.Firstname,
+				Lastname:         profile.Lastname,
+				Gender:           profile.Gender,
+				Birthday:         hptypes.Timestamp(profile.Birthday),
+				Nickname:         profile.Nickname,
+				SchoolClass:      profile.SchoolClass,
+				SchoolDepartment: profile.SchoolDepartment,
+				Major:            profile.Major,
+				AdvisorMobile:    profile.AdvisorMobile,
+				AdvisorName:      profile.AdvisorName,
+				StudentID:        profile.StudentID,
+				RoomNumber:       profile.RoomNumber,
+			},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// func (u *UserSrv) RemoveUserFromClub(ctx context.Context, req *user.Remove, rsp *user.Response) error {
+// 	userSrv := newUserService(ctx)
+
+// 	if !bson.IsObjectIdHex(req.UserID) {
+// 		return u.Error(ctx).BadRequest("user id must be objectid")
+// 	}
+
+// 	if !bson.IsObjectIdHex(req.ClubID) {
+// 		return u.Error(ctx).BadRequest("club id must be objectid")
+// 	}
+
+// 	err := userSrv.RemoveFromClub(bson.ObjectIdHex(req.UserID), bson.ObjectIdHex(req.ClubID))
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }

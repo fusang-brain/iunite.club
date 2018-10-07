@@ -178,7 +178,7 @@ type ExampleHandler interface {
 	PingPong(context.Context, Example_PingPongStream) error
 }
 
-func RegisterExampleHandler(s server.Server, hdlr ExampleHandler, opts ...server.HandlerOption) error {
+func RegisterExampleHandler(s server.Server, hdlr ExampleHandler, opts ...server.HandlerOption) {
 	type example interface {
 		Call(ctx context.Context, in *Request, out *Response) error
 		Stream(ctx context.Context, stream server.Stream) error
@@ -188,7 +188,7 @@ func RegisterExampleHandler(s server.Server, hdlr ExampleHandler, opts ...server
 		example
 	}
 	h := &exampleHandler{hdlr}
-	return s.Handle(s.NewHandler(&Example{h}, opts...))
+	s.Handle(s.NewHandler(&Example{h}, opts...))
 }
 
 type exampleHandler struct {

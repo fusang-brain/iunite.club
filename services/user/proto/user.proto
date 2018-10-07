@@ -1,5 +1,5 @@
 syntax = "proto3";
-// import "google/protobuf/timestamp.proto";
+import "google/protobuf/timestamp.proto";
 package iunite.club.srv.user;
 
 service UserSrv {
@@ -20,14 +20,15 @@ service UserSrv {
 
   // rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
   rpc FindUsersByClubID(FindUsersByClubIDRequest) returns(UserListResponse) {}
+  rpc CreateMember(CreateMemberRequest) returns(Response) {}
 }
 
-// message ResetPasswordRequest {
-//   string Passsword = 1;
-//   string ConfirmPassword = 2;
-//   string Mobile = 3;
-//   string UserID = 4;
-// }
+message CreateMemberRequest {
+  User User = 1;
+  string ClubID = 2;
+  string JobID = 3;
+  string DepartmentID = 4;
+}
 
 message FindUsersByClubIDRequest {
   int64 Page = 1;
@@ -59,12 +60,20 @@ message Profile {
   string Firstname = 2;
   string Lastname = 3;
   string Gender = 4;
-  string Birthday = 5;
+  google.protobuf.Timestamp Birthday = 5;
   string Nickname = 6;
   string UserID = 7;
   string Mobile = 8;
-  string CreatedAt = 9;
-  string UpdatedAt = 10;
+  google.protobuf.Timestamp CreatedAt = 9;
+  google.protobuf.Timestamp UpdatedAt = 10;
+  string Email = 12;
+  string Major = 13;
+  string SchoolDepartment = 14;
+  string SchoolClass = 15;
+  string AdvisorMobile = 16;
+  string AdvisorName = 17;
+  string StudentID = 18;
+  string RoomNumber = 19;
 }
 
 message ResetPasswordRequest {

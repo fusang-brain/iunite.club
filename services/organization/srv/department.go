@@ -60,7 +60,7 @@ func (d *DepartmentService) CreateDepartment(in *CreateDepartmentBundle) (*model
 	OrgModel := d.Model("Organization")
 	foundParentOrg := models.Organization{}
 
-	OrgModel.FindByID(bson.ObjectIdHex(in.ParentID)).Exec(&foundParentOrg)
+	OrgModel.FindByID(bson.ObjectIdHex(in.ParentID), &foundParentOrg)
 
 	if foundParentOrg.IsEmpty() {
 		return nil, d.Error().InternalServerError("NotFoundClub")
@@ -94,7 +94,7 @@ func (d *DepartmentService) UpdateDepartment(in *UpdateDepartmentBundle) error {
 	OrgModel := d.Model("Organization")
 	foundOrg := models.Organization{}
 
-	OrgModel.FindOne(bson.M{"_id": bson.ObjectIdHex(in.ID)}).Exec(&foundOrg)
+	OrgModel.Where(bson.M{"_id": bson.ObjectIdHex(in.ID)}).FindOne(&foundOrg)
 
 	if foundOrg.IsEmpty() {
 		return d.Error().ActionError("NotFoundOrganization")
@@ -110,7 +110,7 @@ func (d *DepartmentService) UpdateDepartment(in *UpdateDepartmentBundle) error {
 
 	if in.ParentID != "" {
 		foundParentOrg := models.Organization{}
-		OrgModel.Find(bson.M{"_id": bson.ObjectIdHex(in.ParentID)}).Exec(&foundParentOrg)
+		OrgModel.Where(bson.M{"_id": bson.ObjectIdHex(in.ParentID)}).FindOne(&foundParentOrg)
 		if foundParentOrg.IsEmpty() {
 			return d.Error().ActionError("NotFoundOrganization")
 		}
@@ -170,13 +170,13 @@ func (d *DepartmentService) GetDepartmentListByParentID(in *GetDepartmentListBun
 		condition["parent_id"] = bson.ObjectIdHex(in.ParentID)
 	}
 
-	total, _ := OrgModel.Find(condition).Count()
+	total := OrgModel.Where(condition).Count()
 
 	err := OrgModel.
-		Find(condition).
+		Where(condition).
 		Skip(int(in.Page)).
 		Limit(int(in.Limit)).
-		Exec(&departments)
+		FindAll(&departments)
 
 	if err != nil {
 		return nil, d.Error().InternalServerError(err.Error())
@@ -194,7 +194,7 @@ func (d *DepartmentService) GetDepartmentDetailsByID(id string) (*models.Organiz
 	if !bson.IsObjectIdHex(id) {
 		return dept, d.Error().BadRequest("ID must be a objectid hex string")
 	}
-	err := DepartmentModel.FindByID(bson.ObjectIdHex(id)).Exec(dept)
+	err := DepartmentModel.FindByID(bson.ObjectIdHex(id), dept)
 
 	if err != nil {
 		return dept, d.Error().InternalServerError(err.Error())

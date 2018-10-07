@@ -136,7 +136,7 @@ type DepartmentHandler interface {
 	GetDepartmentDetails(context.Context, *GetDepartmentWithIDRequest, *DepartmentResponse) error
 }
 
-func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...server.HandlerOption) error {
+func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...server.HandlerOption) {
 	type department interface {
 		CreateDepartment(ctx context.Context, in *CreateDepartmentRequest, out *CreateDepartmentResponse) error
 		UpdateDepartment(ctx context.Context, in *UpdateDepartmentRequest, out *UpdateDepartmentResponse) error
@@ -148,7 +148,7 @@ func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...
 		department
 	}
 	h := &departmentHandler{hdlr}
-	return s.Handle(s.NewHandler(&Department{h}, opts...))
+	s.Handle(s.NewHandler(&Department{h}, opts...))
 }
 
 type departmentHandler struct {

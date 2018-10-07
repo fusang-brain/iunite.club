@@ -97,13 +97,11 @@ func (c *ClubService) FindClubListByPage(req *clubPB.GetClubListRequest, resp *c
 		"kind": "club",
 	}
 
-	total, err := ClubModel.Find(condition).Count()
-	if err != nil {
-		return c.Error().InternalServerError(err.Error())
-	}
+	total := ClubModel.Where(condition).Count()
+
 	// list := []map
 	// ClubModel.Find().Exec()
-	if err := ClubModel.Find().Exec(&organizations); err != nil {
+	if err := ClubModel.FindAll(&organizations); err != nil {
 		return c.Error().InternalServerError(err.Error())
 	}
 
@@ -147,12 +145,12 @@ func (c *ClubService) GetClubsByUserID(id string, pg *PagerBundle) (*ClubsResult
 		"organization.kind": "club",
 	}
 
-	total, err := UserClubModel.Find(condition).Populate("Organization").Count()
-	if err != nil {
-		return nil, c.Error().InternalServerError(err.Error())
-	}
+	total := UserClubModel.Where(condition).Populate("Organization").Count()
+	// if err != nil {
+	// 	return nil, c.Error().InternalServerError(err.Error())
+	// }
 
-	if err := UserClubModel.Find(condition).Populate("Organization").Exec(&userClubProfiles); err != nil {
+	if err := UserClubModel.Where(condition).Populate("Organization").FindAll(&userClubProfiles); err != nil {
 		return nil, c.Error().InternalServerError(err.Error())
 	}
 
@@ -176,17 +174,13 @@ func (c *ClubService) AcceptJoinOneClub(in *AcceptJoinClubBundle) error {
 		"user_id":         bson.ObjectIdHex(in.UserID),
 		"organization_id": bson.ObjectIdHex(in.ClubID),
 	}
-	total, err := UserClubProfileModel.Find(condition).Count()
-
-	if err != nil {
-		return c.Error().InternalServerError(err.Error())
-	}
+	total := UserClubProfileModel.Where(condition).Count()
 
 	userClubProfile := models.UserClubProfile{}
 
 	if total > 0 {
 		// 已经拥有该社团关系, 判断是否需要重新加入
-		UserClubProfileModel.FindOne(condition).Exec(&userClubProfile)
+		UserClubProfileModel.Where(condition).FindOne(&userClubProfile)
 
 		if userClubProfile.State == 1 {
 			// 在职状态，不需要重新申请
@@ -235,7 +229,7 @@ func (c *ClubService) ExecuteJoinClubAccept(in *ExecuteJoinClubAccept) error {
 	UserClubProfileModel := c.Model("UserClubProfile")
 	accept := models.OrganizationAccept{}
 
-	AcceptModel.FindByID(bson.ObjectIdHex(in.AcceptID)).Exec(&accept)
+	AcceptModel.FindByID(bson.ObjectIdHex(in.AcceptID), &accept)
 
 	if accept.IsEmpty() {
 		return c.Error().ActionError("NotFoundAccept")
@@ -284,7 +278,7 @@ func (c *ClubService) SearchClubs(search string, page, limit int64) ([]models.Or
 	}
 	total := OrganizationModel.Count(condition)
 
-	err := OrganizationModel.Find(condition).Limit(int(limit)).Skip(int((page - 1) * limit)).Exec(&clubs)
+	err := OrganizationModel.Where(condition).Limit(int(limit)).Skip(int((page - 1) * limit)).FindAll(&clubs)
 
 	if err != nil {
 		return clubs, total, c.Error().InternalServerError(err.Error())
@@ -317,10 +311,10 @@ func (c *ClubService) FindRefusedAcceptByUserID(id string, page, limit int64) ([
 	total := OrganizationAcceptModel.Count(cond)
 
 	if err := OrganizationAcceptModel.
-		Find(cond).Skip(int((page - 1) * limit)).
+		Where(cond).Skip(int((page - 1) * limit)).
 		Limit(int(limit)).
 		Populate("Organization").
-		Exec(&joinAccepts); err != nil {
+		FindAll(&joinAccepts); err != nil {
 		return joinAccepts, total, c.Error().InternalServerError(err.Error())
 	}
 
@@ -333,7 +327,7 @@ func (c *ClubService) FindClubByID(id string) (*models.Organization, error) {
 	if !bson.IsObjectIdHex(id) {
 		return club, c.Error().InternalServerError("id must be a objectid hex")
 	}
-	err := ClubModel.FindByID(bson.ObjectIdHex(id)).Exec(club)
+	err := ClubModel.FindByID(bson.ObjectIdHex(id), club)
 
 	if err != nil {
 		return club, c.Error().InternalServerError(err.Error())
@@ -373,13 +367,13 @@ func (c *ClubService) GetClubsBySchoolID(id bson.ObjectId) (*ClubsResult, error)
 		"school_id": id,
 	}
 
-	total, err := ClubModel.Find(condition).Count()
-	if err != nil {
-		return nil, c.Error().InternalServerError(err.Error())
-	}
+	total := ClubModel.Where(condition).Count()
+	// if err != nil {
+	// 	return nil, c.Error().InternalServerError(err.Error())
+	// }
 	// list := []map
 	// ClubModel.Find().Exec()
-	if err := ClubModel.Find().Exec(&organizations); err != nil {
+	if err := ClubModel.FindAll(&organizations); err != nil {
 		return nil, c.Error().InternalServerError(err.Error())
 	}
 	resp.Total = total
@@ -402,9 +396,9 @@ func (c *ClubService) GetUserClubProfilesByUserID(id bson.ObjectId, rsp *clubPB.
 	userClubProfiles := make([]models.UserClubProfile, 0)
 
 	err := UserClubProfileModel.
-		Find(bson.M{"user_id": id}).
+		Where(bson.M{"user_id": id}).
 		Populate("User", "Organization", "Job", "Department").
-		Exec(&userClubProfiles)
+		FindAll(&userClubProfiles)
 	if err != nil {
 		return c.Error().InternalServerError(err.Error())
 	}
@@ -430,9 +424,9 @@ func (c *ClubService) GetUserClubProfileDetailsByID(orgID, userID bson.ObjectId,
 	userClubProfile := new(models.UserClubProfile)
 
 	err := UserClubProfileModel.
-		FindOne(bson.M{"organization_id": orgID, "user_id": userID}).
+		Where(bson.M{"organization_id": orgID, "user_id": userID}).
 		Populate("User", "Organization", "Job", "Department").
-		Exec(userClubProfile)
+		FindOne(userClubProfile)
 
 	if err != nil {
 		return c.Error().InternalServerError(err.Error())
@@ -441,4 +435,13 @@ func (c *ClubService) GetUserClubProfileDetailsByID(orgID, userID bson.ObjectId,
 	rsp.UserClubProfile = userClubProfile.ToPB()
 
 	return nil
+}
+
+func (c *ClubService) RemoveUserFromClub(userID, clubID bson.ObjectId) error {
+	UserClubProfileModel := c.Model("UserClubProfile")
+
+	return UserClubProfileModel.ForceDelete(bson.M{
+		"user_id":         userID,
+		"organization_id": clubID,
+	})
 }
