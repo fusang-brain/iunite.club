@@ -102,6 +102,35 @@ services:
       - 50055:50051
     environment:
       MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  storage-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/storage
+    links:
+      - consul
+    ports:
+      - 50056:50051
+    environment:
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  restful-web:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/restful
+    links:
+      - consul
+    ports:
+      - 50057:50051
+      - 8085:8085
+    environment:
+      MICRO_SERVER_ADDRESS: 0.0.0.0:8085
     depends_on:
       - consul
   mongodb:

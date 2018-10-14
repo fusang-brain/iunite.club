@@ -21,6 +21,30 @@ type UserSrv struct {
 	ironic.BaseHandler
 }
 
+func (u *UserSrv) FindUserClubProfileByID(ctx context.Context, req *user.FindUserClubProfileByIDRequest, rsp *user.UserClubProfileResponse) error {
+	userService := newUserService(ctx)
+	clubProfile := userService.FindUserClubProfileByID(req.ID)
+
+	if clubProfile.IsEmpty() {
+		return u.Error(ctx).NotFound("NotFoundUserClubProfle By %s", req.ID)
+	}
+	rsp.ClubProfile = &user.UserClubProfile{
+		ID:             clubProfile.ID.Hex(),
+		UserID:         clubProfile.UserID.Hex(),
+		OrganizationID: clubProfile.OrganizationID.Hex(),
+		State:          int32(clubProfile.State),
+		IsCreator:      clubProfile.IsCreator,
+		IsMaster:       clubProfile.IsMaster,
+		JoinTime:       hptypes.TimestampProto(clubProfile.JoinTime),
+		LeaveTime:      hptypes.TimestampProto(clubProfile.LeaveTime),
+		CreatedAt:      hptypes.TimestampProto(clubProfile.CreatedAt),
+		UpdatedAt:      hptypes.TimestampProto(clubProfile.UpdatedAt),
+		JobID:          clubProfile.JobID.Hex(),
+		DepartmentID:   clubProfile.DepartmentID.Hex(),
+	}
+	return nil
+}
+
 func (u *UserSrv) FindUserByID(ctx context.Context, req *user.QueryUserRequest, resp *user.UserResponse) error {
 	// log.Log("start load user info")
 	// fmt.Println("Helo")

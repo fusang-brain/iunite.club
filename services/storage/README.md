@@ -5,7 +5,7 @@ This is the Storage service
 Generated with
 
 ```
-micro new iunite.club/services/storage --namespace=iunite.club --alias=storage --type=srv
+micro new iunite.club/services/storage --namespace=go.micro --type=srv
 ```
 
 ## Getting Started
@@ -16,7 +16,7 @@ micro new iunite.club/services/storage --namespace=iunite.club --alias=storage -
 
 ## Configuration
 
-- FQDN: iunite.club.srv.storage
+- FQDN: go.micro.srv.storage
 - Type: srv
 - Alias: storage
 

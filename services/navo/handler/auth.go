@@ -70,9 +70,7 @@ func (a *AuthHandler) Login(ctx context.Context, req *go_api.Request, resp *go_a
 	}
 
 	schoolService, _ := client.SchoolServiceFromContext(ctx)
-
 	var schoolResp *schoolPB.SchoolResponse
-
 	if sR, e := schoolService.GetSchoolByID(ctx, &schoolPB.GetSchoolRequest{ID: uR.User.SchoolID}); e == nil {
 		schoolResp = sR
 	} else {
@@ -97,8 +95,8 @@ func (a *AuthHandler) Login(ctx context.Context, req *go_api.Request, resp *go_a
 			AreaCode:  "+86",
 			Profile: &dto.Profile{
 				ID:        uR.User.Profile.ID,
-				CreatedAt: utils.Time2MicroUnix(&pCreatedAt),
-				UpdatedAt: utils.Time2MicroUnix(&pUpdatedAt),
+				CreatedAt: utils.Time2MicroUnix(pCreatedAt),
+				UpdatedAt: utils.Time2MicroUnix(pUpdatedAt),
 				// CreatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.CreatedAt),
 				// UpdatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.UpdatedAt),
 				UserNO:    "-",

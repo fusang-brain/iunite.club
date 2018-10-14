@@ -8,6 +8,10 @@ It is generated from these files:
 	proto/job/job.proto
 
 It has these top-level messages:
+	UserFromJobRequest
+	ListByClubIDRequest
+	ListByJobIDRequest
+	UserListResponse
 	CreateJobRequest
 	CreateJobResponse
 	UpdateJobRequest
@@ -23,6 +27,7 @@ import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "iunite.club/services/organization/proto"
+import _ "iunite.club/services/user/proto"
 
 import (
 	client "github.com/micro/go-micro/client"
@@ -53,6 +58,10 @@ type JobService interface {
 	UpdateJob(ctx context.Context, in *UpdateJobRequest, opts ...client.CallOption) (*UpdateJobResponse, error)
 	RemoveJob(ctx context.Context, in *RemoveJobRequest, opts ...client.CallOption) (*RemoveJobResponse, error)
 	GetJobListByParentID(ctx context.Context, in *JobListRequest, opts ...client.CallOption) (*JobListResponse, error)
+	GetUsersByJobID(ctx context.Context, in *ListByJobIDRequest, opts ...client.CallOption) (*UserListResponse, error)
+	GetAllCanSelectedUsers(ctx context.Context, in *ListByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error)
+	AddUsersToJob(ctx context.Context, in *UserFromJobRequest, opts ...client.CallOption) (*UpdateJobResponse, error)
+	RemoveUsersFromJob(ctx context.Context, in *UserFromJobRequest, opts ...client.CallOption) (*UpdateJobResponse, error)
 }
 
 type jobService struct {
@@ -113,6 +122,46 @@ func (c *jobService) GetJobListByParentID(ctx context.Context, in *JobListReques
 	return out, nil
 }
 
+func (c *jobService) GetUsersByJobID(ctx context.Context, in *ListByJobIDRequest, opts ...client.CallOption) (*UserListResponse, error) {
+	req := c.c.NewRequest(c.name, "Job.GetUsersByJobID", in)
+	out := new(UserListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobService) GetAllCanSelectedUsers(ctx context.Context, in *ListByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error) {
+	req := c.c.NewRequest(c.name, "Job.GetAllCanSelectedUsers", in)
+	out := new(UserListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobService) AddUsersToJob(ctx context.Context, in *UserFromJobRequest, opts ...client.CallOption) (*UpdateJobResponse, error) {
+	req := c.c.NewRequest(c.name, "Job.AddUsersToJob", in)
+	out := new(UpdateJobResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobService) RemoveUsersFromJob(ctx context.Context, in *UserFromJobRequest, opts ...client.CallOption) (*UpdateJobResponse, error) {
+	req := c.c.NewRequest(c.name, "Job.RemoveUsersFromJob", in)
+	out := new(UpdateJobResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Job service
 
 type JobHandler interface {
@@ -120,6 +169,10 @@ type JobHandler interface {
 	UpdateJob(context.Context, *UpdateJobRequest, *UpdateJobResponse) error
 	RemoveJob(context.Context, *RemoveJobRequest, *RemoveJobResponse) error
 	GetJobListByParentID(context.Context, *JobListRequest, *JobListResponse) error
+	GetUsersByJobID(context.Context, *ListByJobIDRequest, *UserListResponse) error
+	GetAllCanSelectedUsers(context.Context, *ListByClubIDRequest, *UserListResponse) error
+	AddUsersToJob(context.Context, *UserFromJobRequest, *UpdateJobResponse) error
+	RemoveUsersFromJob(context.Context, *UserFromJobRequest, *UpdateJobResponse) error
 }
 
 func RegisterJobHandler(s server.Server, hdlr JobHandler, opts ...server.HandlerOption) {
@@ -128,6 +181,10 @@ func RegisterJobHandler(s server.Server, hdlr JobHandler, opts ...server.Handler
 		UpdateJob(ctx context.Context, in *UpdateJobRequest, out *UpdateJobResponse) error
 		RemoveJob(ctx context.Context, in *RemoveJobRequest, out *RemoveJobResponse) error
 		GetJobListByParentID(ctx context.Context, in *JobListRequest, out *JobListResponse) error
+		GetUsersByJobID(ctx context.Context, in *ListByJobIDRequest, out *UserListResponse) error
+		GetAllCanSelectedUsers(ctx context.Context, in *ListByClubIDRequest, out *UserListResponse) error
+		AddUsersToJob(ctx context.Context, in *UserFromJobRequest, out *UpdateJobResponse) error
+		RemoveUsersFromJob(ctx context.Context, in *UserFromJobRequest, out *UpdateJobResponse) error
 	}
 	type Job struct {
 		job
@@ -154,4 +211,20 @@ func (h *jobHandler) RemoveJob(ctx context.Context, in *RemoveJobRequest, out *R
 
 func (h *jobHandler) GetJobListByParentID(ctx context.Context, in *JobListRequest, out *JobListResponse) error {
 	return h.JobHandler.GetJobListByParentID(ctx, in, out)
+}
+
+func (h *jobHandler) GetUsersByJobID(ctx context.Context, in *ListByJobIDRequest, out *UserListResponse) error {
+	return h.JobHandler.GetUsersByJobID(ctx, in, out)
+}
+
+func (h *jobHandler) GetAllCanSelectedUsers(ctx context.Context, in *ListByClubIDRequest, out *UserListResponse) error {
+	return h.JobHandler.GetAllCanSelectedUsers(ctx, in, out)
+}
+
+func (h *jobHandler) AddUsersToJob(ctx context.Context, in *UserFromJobRequest, out *UpdateJobResponse) error {
+	return h.JobHandler.AddUsersToJob(ctx, in, out)
+}
+
+func (h *jobHandler) RemoveUsersFromJob(ctx context.Context, in *UserFromJobRequest, out *UpdateJobResponse) error {
+	return h.JobHandler.RemoveUsersFromJob(ctx, in, out)
 }

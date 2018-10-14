@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/iron-kit/go-ironic/protobuf/hptypes"
+
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
 	orgPB "iunite.club/services/organization/proto"
@@ -48,7 +50,8 @@ type Organization struct {
 	SchoolID      bson.ObjectId     `json:"school_id,omitempty" bson:"school_id,omitempty"`                                   // 归属学校ID
 	Description   string            `json:"description,omitempty" bson:"description,omitempty"`                               // 组织描述
 	ParentID      bson.ObjectId     `json:"parent_id,omitempty" bson:"parent_id,omitempty"`                                   // 上级ID
-	PathIndexs    []PathIndex       `json:"path_indexs,omitempty" bson:"pathindexs,omitempty"`                                // 路径索引
+	ClubID        bson.ObjectId     `json:"club_id,omitempty" bson:"club_id,omitempty"`                                       // 归属社团ID
+	PathIndexs    []Organization    `json:"path_indexs,omitempty" bson:"pathindexs,omitempty"`                                // 路径索引
 	ClubProfile   ClubProfile       `json:"club_profile,omitempty" bson:"club_profile,omitempty"`                             // 社团信息
 	Jobs          []OrganizationJob `json:"jobs,omitempty" bson:"jobs,omitempty" monger:"hasMany,foreignKey=organization_id"` // 所有的职位
 }
@@ -103,9 +106,13 @@ func (o *Organization) ToPB() *orgPB.Organization {
 		// 	OrganizationID: o.PathIndexs[0].ID.Hex(),
 	}
 
-	if len(o.PathIndexs) > 0 {
-		// o.PathIndexs[0].
-		orgRaw.ClubID = o.PathIndexs[0].ID.Hex()
+	// if len(o.PathIndexs) > 0 {
+	// 	// o.PathIndexs[0].
+	// 	orgRaw.ClubID = o.PathIndexs[0].ID.Hex()
+	// }
+
+	if len(o.ClubID) > 0 {
+		orgRaw.ClubID = o.ClubID.Hex()
 	}
 
 	return &orgRaw
@@ -113,8 +120,11 @@ func (o *Organization) ToPB() *orgPB.Organization {
 
 func (j *OrganizationJob) ToPB() *orgPB.Job {
 	return &orgPB.Job{
-		Name: j.Name,
-		ID:   j.ID.Hex(),
-		Slug: j.Slug,
+		Name:      j.Name,
+		ID:        j.ID.Hex(),
+		Slug:      j.Slug,
+		CreatedAt: hptypes.TimestampProto(j.CreatedAt),
+		UpdatedAt: hptypes.TimestampProto(j.UpdatedAt),
+		ClubID:    j.OrganizationID.Hex(),
 	}
 }

@@ -3,8 +3,10 @@ package dto
 import (
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"github.com/iron-kit/go-ironic/utils"
+	approvedPB "iunite.club/services/core/proto/approved"
 	orgPB "iunite.club/services/organization/proto"
 	schoolPB "iunite.club/services/organization/proto/school"
+	storagePB "iunite.club/services/storage/proto"
 	userPB "iunite.club/services/user/proto"
 )
 
@@ -40,12 +42,12 @@ func PBToProfile(pb *userPB.Profile) *Profile {
 	birthday := hptypes.Timestamp(pb.Birthday)
 	return &Profile{
 		ID:        pb.ID,
-		CreatedAt: utils.Time2MicroUnix(&createdAt),
+		CreatedAt: utils.Time2MicroUnix(createdAt),
 		// CreatedAt: utils.ISOTime2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
-		UpdatedAt: utils.Time2MicroUnix(&updatedAt),
+		UpdatedAt: utils.Time2MicroUnix(updatedAt),
 		Avatar:    pb.Avatar,
 		Gender:    pb.Gender,
-		Birthday:  utils.Time2MicroUnix(&birthday),
+		Birthday:  utils.Time2MicroUnix(birthday),
 		Nickname:  pb.Nickname,
 		UserID:    pb.UserID,
 	}
@@ -99,6 +101,23 @@ func PBToDepartment(pb *orgPB.Organization) *Department {
 	}
 }
 
+func PBToJob(pb *orgPB.Job) *Job {
+	if pb == nil {
+		return new(Job)
+	}
+
+	return &Job{
+		ID:        pb.ID,
+		Name:      pb.Name,
+		SlugName:  pb.Slug,
+		CreatedAt: utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt: utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		Org:       pb.ClubID,
+		// CreatedAt: utils.ISOTime2MicroUnix()
+		// Org: pb.
+	}
+}
+
 func PBToOrganizationUser(pb *orgPB.UserClubProfile) *OrganizationUser {
 	if pb == nil {
 		return new(OrganizationUser)
@@ -135,4 +154,96 @@ func PBToOrganizationUser(pb *orgPB.UserClubProfile) *OrganizationUser {
 		rs.State = 0
 	}
 	return rs
+}
+
+func PBToApprovedProcess(pb *approvedPB.ApprovedFlowPB) *ApprovedProcess {
+	if pb == nil {
+		return new(ApprovedProcess)
+	}
+
+	ap := &ApprovedProcess{
+		ID:          pb.ID,
+		CreatedAt:   utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt:   utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		ProcessSort: int(pb.Sort),
+		ProcessType: pb.Kind,
+		Options:     pb.Options,
+		ApprovedID:  pb.ApprovedID,
+		HandlerID:   pb.HandlerID,
+		Archived:    false,
+		Status:      int(pb.Status),
+	}
+
+	return ap
+}
+
+// func GetApprovedContent(pb *approvedPB.ApprovedPB) interface{} {
+// 	if pb == nil {
+// 		return nil
+// 	}
+
+// 	var res interface{}
+// 	content := hptypes.DecodeToMap(pb.Content)
+// 	switch pb.Kind {
+// 	case "activity":
+
+// 		activity := &Activity{
+// 			ID:        content["ID"].(string),
+// 			CreatedAt: utils.ISOTime2MicroUnix(content["CreatedAt"].(string)),
+// 			UpdatedAt: utils.ISOTime2MicroUnix(content["UpdatedAt"].(string)),
+// 			Subject: content["subject"].(string),
+// 			Location: content["location"].(string),
+// 			ApplicantID: content["applicant_id"].(string),
+// 			Applicant: content["applicant"]
+// 		}
+// 	case "borrow":
+// 	case "funding":
+
+// 	}
+// 	// res := interface{}{}
+
+// }
+
+func PBToFile(pb *storagePB.FilePB) *File {
+	return &File{
+		ID: pb.ID,
+		// CreatedAt:
+		Filename:         pb.FileKey,
+		Path:             pb.Path,
+		Ext:              pb.Ext,
+		AbstractPath:     pb.Path,
+		Host:             pb.Host,
+		OriginalFilename: pb.OriginalFilename,
+		Size:             pb.Size,
+	}
+}
+
+func PBToApprovedTask(pb *approvedPB.ApprovedPB) *ApprovedTask {
+	if pb == nil {
+		return new(ApprovedTask)
+	}
+
+	at := &ApprovedTask{
+		ID:           pb.ID,
+		CreatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		Name:         pb.Title,
+		Description:  pb.Description,
+		ApprovedType: pb.Kind,
+		Content:      pb.Description,
+		Status:       pb.Status,
+		Summary:      pb.Summary,
+	}
+
+	if len(pb.Flows) > 0 {
+		flows := make([]ApprovedProcess, 0, len(pb.Flows))
+
+		for _, v := range pb.Flows {
+			f := PBToApprovedProcess(v)
+			flows = append(flows, *f)
+		}
+		at.ApprovedProcesses = flows
+	}
+
+	return at
 }

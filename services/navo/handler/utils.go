@@ -14,6 +14,18 @@ func SuccessResponse(resp *go_api.Response, data interface{}) error {
 	return nil
 }
 
+func SuccessResponseWithPage(rsp *go_api.Response, page, limit, total int64, list interface{}) error {
+	rsp.Body = APISuccess(D{
+		"CurrentPage": page,
+		"PageSize":    limit,
+		"PageTotal":   total,
+		"Total":       total,
+		"List":        list,
+	}).String()
+
+	return nil
+}
+
 func ErrorResponse(resp *go_api.Response, data ...interface{}) error {
 	dataLen := len(data)
 

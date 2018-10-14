@@ -44,6 +44,13 @@ func (u *UserService) Model(name string) monger.Model {
 	return conn.M(name)
 }
 
+func (u *UserService) FindUserClubProfileByID(id string) *models.UserClubProfile {
+	ClubProfileModel := u.Model("UserClubProfile")
+	res := new(models.UserClubProfile)
+	ClubProfileModel.FindByID(bson.ObjectIdHex(id), res)
+	return res
+}
+
 func (u *UserService) SigninUser(authType string, key string, password string) (*models.User, error) {
 
 	UserModel := u.Model("User")

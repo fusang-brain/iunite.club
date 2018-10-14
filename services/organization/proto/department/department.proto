@@ -3,6 +3,7 @@ syntax = "proto3";
 package iunite.club.srv.organization.department;
 
 import "iunite.club/services/organization/proto/organization.proto";
+import "iunite.club/services/user/proto/user.proto";
 
 service Department {
   rpc CreateDepartment(CreateDepartmentRequest) returns(CreateDepartmentResponse) {}
@@ -10,6 +11,39 @@ service Department {
   rpc RemoveDepartment(RemoveDepartmentRequest) returns(RemoveDepartmentResponse) {}
   rpc GetDepartmentListByParentID(DepartmentListByParentIDRequest) returns(DepartmentListResponse) {}
   rpc GetDepartmentDetails(GetDepartmentWithIDRequest) returns(DepartmentResponse) {}
+
+  rpc AddUsersToDepartment(UserFromDepartmentRequest) returns(UpdateDepartmentResponse) {}
+  rpc RemoveUsersFromDepartment(UserFromDepartmentRequest) returns(UpdateDepartmentResponse) {}
+  rpc GetUsersByDepartmentID(ListByDepartmentIDRequest) returns(UserListResponse) {}
+  rpc GetAllCanSelectUsers(ListByClubIDRequest) returns(UserListResponse) {}
+  rpc SearchDepartment(SearchDepartmentRequest) returns(DepartmentListResponse) {}
+}
+
+message SearchDepartmentRequest {
+  string Name = 1;
+}
+
+message UserListResponse {
+  repeated iunite.club.srv.user.User Users = 1;
+  int64 Total = 2;
+}
+
+message UserFromDepartmentRequest {
+  repeated string Users = 1;
+  string DepartmentID = 2;
+  string ClubID = 3;
+}
+
+message ListByDepartmentIDRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string DepartmentID = 3;
+}
+
+message ListByClubIDRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string ClubID = 3;
 }
 
 message GetDepartmentWithIDRequest {

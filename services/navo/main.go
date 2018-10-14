@@ -43,6 +43,8 @@ func main() {
 		micro.WrapHandler(
 			client.OrganizationServiceWrapper(service),
 			client.MessageServiceWrapper(service),
+			client.CoreServiceWrapper(service),
+			client.StorageServiceWrapper(service),
 		),
 	)
 
@@ -147,7 +149,7 @@ func main() {
 		apiEndpoint("UserHandler.UpdateCurrentOrg", "POST", "/v1/user/UpdateCurrentOrg"),
 		apiEndpoint("UserHandler.ForgetPassword", "POST", "/v1/user/forgetPassword"),
 		apiEndpoint("UserHandler.AllUser", "GET", "/v1/user/allUser"),
-		apiEndpoint("UserHandler.GetCurrentOrganization", "", "/v1/user/getCurrentOrganization"),
+		apiEndpoint("UserHandler.GetCurrentOrganization", "GET", "/v1/user/getCurrentOrganization"),
 		apiEndpoint("UserHandler.GetAllMembers", "GET", "/v1/user/getAllMembers"),
 		apiEndpoint("UserHandler.CreateMember", "POST", "/v1/user/createMember"),
 		apiEndpoint("UserHandler.RemvoeMemberFromOrg", "POST", "/v1/user/removeMemberFromOrg"),
@@ -161,6 +163,41 @@ func main() {
 		apiEndpoint("UserHandler.ExportList", "GET", "/v1/user/exportList"),
 		apiEndpoint("UserHandler.DownloadExportTemplate", "GET", "/v1/user/downloadExportTemplate"),
 		apiEndpoint("UserHandler.UploadUserList", "POST", "/v1/user/uploadUserList"),
+	)
+
+	core.RegisterJobHandlerHandler(
+		service.Server(),
+		new(handler.JobHandler),
+		apiEndpoint("JobHandler.CreateJob", "POST", "/v1/job/createJob"),
+		apiEndpoint("JobHandler.GetUsersWithJob", "GET", "/v1/job/getUsersWithJob"),
+		apiEndpoint("JobHandler.AllCanSelectedUsers", "GET", "/v1/job/allCanSelectedUsers"),
+		apiEndpoint("JobHandler.AddUsersToJob", "POST", "/v1/job/addUsersToJob"),
+		apiEndpoint("JobHandler.RemoveUsersFromJob", "POST", "/v1/job/removeUsersFromJob"),
+		apiEndpoint("JobHandler.GetAllJobs", "GET", "/v1/job/getAllJobs"),
+		apiEndpoint("JobHandler.Update", "POST", "/v1/job/update"),
+		apiEndpoint("JobHandler.Remove", "POST", "/v1/job/deleteJob"),
+	)
+
+	core.RegisterDepartmentHandlerHandler(
+		service.Server(),
+		new(handler.DepartmentHandler),
+		apiEndpoint("DepartmentHandler.AddDept", "POST", "/v1/department/addDept"),
+		apiEndpoint("DepartmentHandler.GetDepartmentByOrg", "GET", "/v1/department/getDepartmentByOrg"),
+		apiEndpoint("DepartmentHandler.GetAllDepartmentByOrg", "GET", "/v1/department/getAllDepartmentByOrg"),
+		apiEndpoint("DepartmentHandler.SearchDepartment", "GET", "/v1/department/searchDepartment"),
+		apiEndpoint("DepartmentHandler.AddUserToDepartment", "POST", "/v1/department/addUserToDepartment"),
+		apiEndpoint("DepartmentHandler.RemoveUserFromDepartment", "POST", "/v1/department/removeUserFromDepartment"),
+		apiEndpoint("DepartmentHandler.AllCanSelectedUsers", "GET", "/v1/department/allCanSelectedUsers"),
+		apiEndpoint("DepartmentHandler.GetAllUsersWithDepartment", "GET", "/v1/department/getAllUsersWithDepartment"),
+		apiEndpoint("DepartmentHandler.Update", "POST", "/v1/department/update"),
+		apiEndpoint("DepartmentHandler.Remove", "POST", "/v1/department/remove"),
+	)
+
+	core.RegisterFileHandlerHandler(
+		service.Server(),
+		new(handler.FileHandler),
+		apiEndpoint("FileHandler.UploadSingleFile", "POST", "/v1/file/uploadSingleFile"),
+		apiEndpoint("FileHandler.UploadMutipartFile", "POST", "/v1/file/uploadMultipartFile"),
 	)
 	// example.RegisterExampleHandler(service.Server(), new(handler.Example))
 

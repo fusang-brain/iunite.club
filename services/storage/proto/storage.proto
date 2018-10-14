@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package iunite.club.srv.storage;
+
+service Storage {
+	rpc SaveFile(FileRequest) returns (FileResponse) {}
+  rpc SaveFiles(FilesRequest) returns (RepeatedFileResponse) {}
+  rpc SaveFileInfo(FileInfoRequest) returns (FileResponse) {}
+	// rpc PingPong(stream Ping) returns (stream Pong) {}
+}
+
+message File {
+  string Filename = 1;
+  int64 Size = 2;
+  bytes Content = 3;
+}
+
+message FilePB {
+  string ID = 1;
+  string FileKey = 2;
+  string Storage = 3;
+  string Ext = 4;
+  string Host = 5;
+  string Bulket = 6;
+  string OriginalFilename = 7;
+  int64 Size = 8;
+  string Path = 9;
+}
+
+message FileInfoRequest {
+  FilePB File = 1;
+}
+
+message FileRequest {
+  File File = 1;
+  // repeated File Files = 2;
+}
+message FilesRequest {
+  // File File = 1;
+  repeated File Files = 2;
+}
+
+message FileResponse {
+  bool OK = 1;
+  FilePB File = 2;
+}
+
+message RepeatedFileResponse {
+  bool OK = 1;
+  repeated FilePB Files = 2;
+}
+// message Message {
+// 	string say = 1;
+// }
+
+// message Request {
+// 	string name = 1;
+// }
+
+// message Response {
+// 	string msg = 1;
+// }
+
+// message StreamingRequest {
+// 	int64 count = 1;
+// }
+
+// message StreamingResponse {
+// 	int64 count = 1;
+// }
+
+// message Ping {
+// 	int64 stroke = 1;
+// }
+
+// message Pong {
+// 	int64 stroke = 1;
+// }

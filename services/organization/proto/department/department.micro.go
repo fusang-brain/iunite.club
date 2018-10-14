@@ -8,6 +8,11 @@ It is generated from these files:
 	proto/department/department.proto
 
 It has these top-level messages:
+	SearchDepartmentRequest
+	UserListResponse
+	UserFromDepartmentRequest
+	ListByDepartmentIDRequest
+	ListByClubIDRequest
 	GetDepartmentWithIDRequest
 	DepartmentResponse
 	CreateDepartmentRequest
@@ -25,6 +30,7 @@ import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
 import _ "iunite.club/services/organization/proto"
+import _ "iunite.club/services/user/proto"
 
 import (
 	client "github.com/micro/go-micro/client"
@@ -56,6 +62,11 @@ type DepartmentService interface {
 	RemoveDepartment(ctx context.Context, in *RemoveDepartmentRequest, opts ...client.CallOption) (*RemoveDepartmentResponse, error)
 	GetDepartmentListByParentID(ctx context.Context, in *DepartmentListByParentIDRequest, opts ...client.CallOption) (*DepartmentListResponse, error)
 	GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, opts ...client.CallOption) (*DepartmentResponse, error)
+	AddUsersToDepartment(ctx context.Context, in *UserFromDepartmentRequest, opts ...client.CallOption) (*UpdateDepartmentResponse, error)
+	RemoveUsersFromDepartment(ctx context.Context, in *UserFromDepartmentRequest, opts ...client.CallOption) (*UpdateDepartmentResponse, error)
+	GetUsersByDepartmentID(ctx context.Context, in *ListByDepartmentIDRequest, opts ...client.CallOption) (*UserListResponse, error)
+	GetAllCanSelectUsers(ctx context.Context, in *ListByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error)
+	SearchDepartment(ctx context.Context, in *SearchDepartmentRequest, opts ...client.CallOption) (*DepartmentListResponse, error)
 }
 
 type departmentService struct {
@@ -126,6 +137,56 @@ func (c *departmentService) GetDepartmentDetails(ctx context.Context, in *GetDep
 	return out, nil
 }
 
+func (c *departmentService) AddUsersToDepartment(ctx context.Context, in *UserFromDepartmentRequest, opts ...client.CallOption) (*UpdateDepartmentResponse, error) {
+	req := c.c.NewRequest(c.name, "Department.AddUsersToDepartment", in)
+	out := new(UpdateDepartmentResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *departmentService) RemoveUsersFromDepartment(ctx context.Context, in *UserFromDepartmentRequest, opts ...client.CallOption) (*UpdateDepartmentResponse, error) {
+	req := c.c.NewRequest(c.name, "Department.RemoveUsersFromDepartment", in)
+	out := new(UpdateDepartmentResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *departmentService) GetUsersByDepartmentID(ctx context.Context, in *ListByDepartmentIDRequest, opts ...client.CallOption) (*UserListResponse, error) {
+	req := c.c.NewRequest(c.name, "Department.GetUsersByDepartmentID", in)
+	out := new(UserListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *departmentService) GetAllCanSelectUsers(ctx context.Context, in *ListByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error) {
+	req := c.c.NewRequest(c.name, "Department.GetAllCanSelectUsers", in)
+	out := new(UserListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *departmentService) SearchDepartment(ctx context.Context, in *SearchDepartmentRequest, opts ...client.CallOption) (*DepartmentListResponse, error) {
+	req := c.c.NewRequest(c.name, "Department.SearchDepartment", in)
+	out := new(DepartmentListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Department service
 
 type DepartmentHandler interface {
@@ -134,6 +195,11 @@ type DepartmentHandler interface {
 	RemoveDepartment(context.Context, *RemoveDepartmentRequest, *RemoveDepartmentResponse) error
 	GetDepartmentListByParentID(context.Context, *DepartmentListByParentIDRequest, *DepartmentListResponse) error
 	GetDepartmentDetails(context.Context, *GetDepartmentWithIDRequest, *DepartmentResponse) error
+	AddUsersToDepartment(context.Context, *UserFromDepartmentRequest, *UpdateDepartmentResponse) error
+	RemoveUsersFromDepartment(context.Context, *UserFromDepartmentRequest, *UpdateDepartmentResponse) error
+	GetUsersByDepartmentID(context.Context, *ListByDepartmentIDRequest, *UserListResponse) error
+	GetAllCanSelectUsers(context.Context, *ListByClubIDRequest, *UserListResponse) error
+	SearchDepartment(context.Context, *SearchDepartmentRequest, *DepartmentListResponse) error
 }
 
 func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...server.HandlerOption) {
@@ -143,6 +209,11 @@ func RegisterDepartmentHandler(s server.Server, hdlr DepartmentHandler, opts ...
 		RemoveDepartment(ctx context.Context, in *RemoveDepartmentRequest, out *RemoveDepartmentResponse) error
 		GetDepartmentListByParentID(ctx context.Context, in *DepartmentListByParentIDRequest, out *DepartmentListResponse) error
 		GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, out *DepartmentResponse) error
+		AddUsersToDepartment(ctx context.Context, in *UserFromDepartmentRequest, out *UpdateDepartmentResponse) error
+		RemoveUsersFromDepartment(ctx context.Context, in *UserFromDepartmentRequest, out *UpdateDepartmentResponse) error
+		GetUsersByDepartmentID(ctx context.Context, in *ListByDepartmentIDRequest, out *UserListResponse) error
+		GetAllCanSelectUsers(ctx context.Context, in *ListByClubIDRequest, out *UserListResponse) error
+		SearchDepartment(ctx context.Context, in *SearchDepartmentRequest, out *DepartmentListResponse) error
 	}
 	type Department struct {
 		department
@@ -173,4 +244,24 @@ func (h *departmentHandler) GetDepartmentListByParentID(ctx context.Context, in 
 
 func (h *departmentHandler) GetDepartmentDetails(ctx context.Context, in *GetDepartmentWithIDRequest, out *DepartmentResponse) error {
 	return h.DepartmentHandler.GetDepartmentDetails(ctx, in, out)
+}
+
+func (h *departmentHandler) AddUsersToDepartment(ctx context.Context, in *UserFromDepartmentRequest, out *UpdateDepartmentResponse) error {
+	return h.DepartmentHandler.AddUsersToDepartment(ctx, in, out)
+}
+
+func (h *departmentHandler) RemoveUsersFromDepartment(ctx context.Context, in *UserFromDepartmentRequest, out *UpdateDepartmentResponse) error {
+	return h.DepartmentHandler.RemoveUsersFromDepartment(ctx, in, out)
+}
+
+func (h *departmentHandler) GetUsersByDepartmentID(ctx context.Context, in *ListByDepartmentIDRequest, out *UserListResponse) error {
+	return h.DepartmentHandler.GetUsersByDepartmentID(ctx, in, out)
+}
+
+func (h *departmentHandler) GetAllCanSelectUsers(ctx context.Context, in *ListByClubIDRequest, out *UserListResponse) error {
+	return h.DepartmentHandler.GetAllCanSelectUsers(ctx, in, out)
+}
+
+func (h *departmentHandler) SearchDepartment(ctx context.Context, in *SearchDepartmentRequest, out *DepartmentListResponse) error {
+	return h.DepartmentHandler.SearchDepartment(ctx, in, out)
 }

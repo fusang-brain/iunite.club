@@ -66,6 +66,11 @@ func (d *DepartmentService) CreateDepartment(in *CreateDepartmentBundle) (*model
 		return nil, d.Error().InternalServerError("NotFoundClub")
 	}
 
+	clubID := foundParentOrg.ClubID
+	if len(clubID) == 0 {
+		clubID = foundParentOrg.ID
+	}
+
 	newDepartment := models.Organization{
 		Kind:        "department",
 		Name:        in.Name,
@@ -73,12 +78,13 @@ func (d *DepartmentService) CreateDepartment(in *CreateDepartmentBundle) (*model
 		Slug:        utils.Hans2Pinyin(in.Name, "_"),
 		ParentID:    foundParentOrg.ID,
 		SchoolID:    foundParentOrg.SchoolID,
-		PathIndexs: append(foundParentOrg.PathIndexs, models.PathIndex{
-			ID:   foundParentOrg.ID,
-			Name: foundParentOrg.Name,
-			Slug: foundParentOrg.Slug,
-			Sort: len(foundParentOrg.PathIndexs),
-		}),
+		ClubID:      clubID,
+		// PathIndexs: append(foundParentOrg.PathIndexs, models.PathIndex{
+		// 	ID:   foundParentOrg.ID,
+		// 	Name: foundParentOrg.Name,
+		// 	Slug: foundParentOrg.Slug,
+		// 	Sort: len(foundParentOrg.PathIndexs),
+		// }),
 	}
 
 	OrgModel.Create(&newDepartment)
@@ -116,12 +122,12 @@ func (d *DepartmentService) UpdateDepartment(in *UpdateDepartmentBundle) error {
 		}
 
 		foundOrg.ParentID = foundParentOrg.ID
-		foundOrg.PathIndexs = append(foundParentOrg.PathIndexs, models.PathIndex{
-			ID:   foundParentOrg.ID,
-			Name: foundParentOrg.Name,
-			Slug: foundParentOrg.Slug,
-			Sort: len(foundParentOrg.PathIndexs),
-		})
+		// foundOrg.PathIndexs = append(foundParentOrg.PathIndexs, models.PathIndex{
+		// 	ID:   foundParentOrg.ID,
+		// 	Name: foundParentOrg.Name,
+		// 	Slug: foundParentOrg.Slug,
+		// 	Sort: len(foundParentOrg.PathIndexs),
+		// })
 	}
 
 	if err := OrgModel.Update(bson.M{"_id": foundOrg.ID}, &foundOrg); err != nil {
@@ -163,20 +169,71 @@ func (d *DepartmentService) GetDepartmentListByParentID(in *GetDepartmentListBun
 				"parent_id": bson.ObjectIdHex(in.ParentID),
 			},
 			{
-				"pathindexs.$.id": bson.ObjectIdHex(in.ParentID),
+				"pathindexs._id": bson.ObjectIdHex(in.ParentID),
 			},
 		}
 	} else {
 		condition["parent_id"] = bson.ObjectIdHex(in.ParentID)
 	}
 
-	total := OrgModel.Where(condition).Count()
+	// total := OrgModel.Where(condition).Count()
 
-	err := OrgModel.
-		Where(condition).
-		Skip(int(in.Page)).
-		Limit(int(in.Limit)).
-		FindAll(&departments)
+	// err := OrgModel.
+	// 	Where(condition).
+	// 	Skip(int((in.Page - 1) * in.Limit)).
+	// 	Limit(int(in.Limit)).
+	// 	FindAll(&departments)
+
+	err := OrgModel.Aggregate([]bson.M{
+		{
+			"$graphLookup": bson.M{
+				"from":             "organization",
+				"startWith":        "$parent_id",
+				"connectFromField": "parent_id",
+				"connectToField":   "_id",
+				"as":               "pathindexs",
+			},
+		},
+		{
+			"$match": condition,
+		},
+		{
+			"$skip": int((in.Page - 1) * in.Limit),
+		},
+		{
+			"$limit": int(in.Limit),
+		},
+	}).Pipe().All(&departments)
+	pipes := []bson.M{
+		{
+			"$graphLookup": bson.M{
+				"from":             "organization",
+				"startWith":        "$parent_id",
+				"connectFromField": "parent_id",
+				"connectToField":   "_id",
+				"as":               "pathindexs",
+			},
+		},
+		{
+			"$match": condition,
+		},
+		{
+			"$group": bson.M{
+				"_id": "null",
+				"count": bson.M{
+					"$sum": 1,
+				},
+			},
+		},
+		{
+			"$project": bson.M{"_id": 0},
+		},
+	}
+
+	Cs := struct {
+		Count int64 `bson:"count"`
+	}{}
+	OrgModel.Aggregate(pipes).Pipe().One(&Cs)
 
 	if err != nil {
 		return nil, d.Error().InternalServerError(err.Error())
@@ -184,7 +241,7 @@ func (d *DepartmentService) GetDepartmentListByParentID(in *GetDepartmentListBun
 
 	return &DepartmentListResponseBundle{
 		Departments: departments,
-		Total:       total,
+		Total:       int(Cs.Count),
 	}, err
 }
 

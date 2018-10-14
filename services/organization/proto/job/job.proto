@@ -3,12 +3,40 @@ syntax = "proto3";
 package iunite.club.srv.organization.job;
 
 import "iunite.club/services/organization/proto/organization.proto";
+import "iunite.club/services/user/proto/user.proto";
 
 service Job {
   rpc CreateJob(CreateJobRequest) returns(CreateJobResponse) {}
   rpc UpdateJob(UpdateJobRequest) returns(UpdateJobResponse) {}
   rpc RemoveJob(RemoveJobRequest) returns(RemoveJobResponse) {}
   rpc GetJobListByParentID(JobListRequest) returns(JobListResponse) {}
+  rpc GetUsersByJobID(ListByJobIDRequest) returns(UserListResponse) {}
+  rpc GetAllCanSelectedUsers(ListByClubIDRequest) returns(UserListResponse) {}
+  rpc AddUsersToJob(UserFromJobRequest) returns (UpdateJobResponse) {}
+  rpc RemoveUsersFromJob(UserFromJobRequest) returns(UpdateJobResponse) {}
+}
+
+message UserFromJobRequest {
+  repeated string Users = 1;
+  string JobID = 2;
+  string ClubID = 3;
+}
+
+message ListByClubIDRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string ClubID = 3;
+}
+
+message ListByJobIDRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string JobID = 3;
+}
+
+message UserListResponse {
+  repeated iunite.club.srv.user.User Users = 1;
+  int64 Total = 2;
 }
 
 message CreateJobRequest {

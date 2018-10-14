@@ -88,16 +88,19 @@ func (j *JobService) UpdateJob(in *UpdateJobBundle) error {
 	}
 
 	if in.ClubID != "" {
+		OrganizationModel := j.Model("Organization")
 		foundClub := models.Organization{}
-		JobModel.FindByID(bson.ObjectIdHex(in.ClubID), &foundClub)
+		// fmt.Println(in.ClubID)
+		OrganizationModel.FindByID(bson.ObjectIdHex(in.ClubID), &foundClub)
 		if foundClub.IsEmpty() {
 			return j.Error().TemplateBadRequest("NotFoundCLub")
 		}
 		willUpdateJob.OrganizationID = foundClub.ID
+		willUpdateJob.ID = bson.ObjectIdHex(in.ID)
 	}
-
+	// fmt.Println(in.ID)
 	// return j.Error.TemplateBadRequest()
-	if err := JobModel.Update(bson.M{"_id": bson.ObjectIdHex(in.ID)}, willUpdateJob); err != nil {
+	if err := JobModel.Update(bson.M{"_id": bson.ObjectIdHex(in.ID)}, &willUpdateJob); err != nil {
 		return j.Error().InternalServerError(err.Error())
 	}
 
@@ -112,7 +115,10 @@ func (j *JobService) RemoveJob(id string) error {
 	JobModel := j.Model("OrganizationJob")
 
 	_, err := JobModel.UpsertID(bson.ObjectIdHex(id), bson.M{
-		"deleted": true,
+		"$set": bson.M{
+			"deleted": true,
+		},
+		// "deleted": true,
 	})
 
 	if err != nil {
@@ -139,7 +145,7 @@ func (j *JobService) GetJobListByParentID(in *JobListRequestBundle) (*JobListRes
 	total := JobModel.Where(condition).Count()
 	err := JobModel.
 		Where(condition).
-		Skip(int(in.Page)).
+		Skip(int((in.Page - 1) * in.Limit)).
 		Limit(int(in.Limit)).
 		FindAll(&jobs)
 

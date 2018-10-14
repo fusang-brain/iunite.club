@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"context"
 	"strings"
+
+	"iunite.club/services/navo/client"
+	userPB "iunite.club/services/user/proto"
 
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
@@ -37,6 +41,19 @@ func (h *BaseHandler) GetUserIDFromRequest(req *go_api.Request) string {
 	}
 
 	return token.UserID
+}
+
+func (h *BaseHandler) GetCurrentClubIDFromRequest(ctx context.Context, req *go_api.Request) string {
+	currentUserID := h.GetUserIDFromRequest(req)
+
+	userSrv, _ := client.UserServiceFromContext(ctx)
+
+	resp, err := userSrv.FindUserByID(ctx, &userPB.QueryUserRequest{Id: currentUserID})
+	if err != nil {
+		panic(err)
+	}
+
+	return resp.User.DefaultClubID
 }
 
 func (h *BaseHandler) GetPlatformFromRequest(req *go_api.Request) string {

@@ -21,6 +21,15 @@ service UserSrv {
   // rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
   rpc FindUsersByClubID(FindUsersByClubIDRequest) returns(UserListResponse) {}
   rpc CreateMember(CreateMemberRequest) returns(Response) {}
+  rpc FindUserClubProfileByID(FindUserClubProfileByIDRequest) returns (UserClubProfileResponse) {}
+}
+
+message FindUserClubProfileByIDRequest {
+  string ID = 1;
+}
+
+message UserClubProfileResponse {
+  UserClubProfile ClubProfile = 1;
 }
 
 message CreateMemberRequest {
@@ -39,6 +48,21 @@ message FindUsersByClubIDRequest {
 message ResetPasswordResponse {
   string UpdatedAt = 1;
   string ID = 2;
+}
+
+message UserClubProfile {
+  string ID = 1;
+  int32 State = 2;
+  string UserID = 3;
+  string OrganizationID = 4;
+  bool IsCreator = 5;
+  bool IsMaster = 6;
+  google.protobuf.Timestamp JoinTime = 7;
+  google.protobuf.Timestamp LeaveTime = 8;
+  google.protobuf.Timestamp CreatedAt = 9;
+  google.protobuf.Timestamp UpdatedAt = 10;
+  string JobID = 11;
+  string DepartmentID = 12;
 }
 
 message User {

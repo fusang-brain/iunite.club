@@ -20,6 +20,7 @@ package iunite_club_srv_organization
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import _ "github.com/golang/protobuf/ptypes/timestamp"
 import _ "iunite.club/services/user/proto"
 
 // Reference imports to suppress errors if they are not otherwise used.

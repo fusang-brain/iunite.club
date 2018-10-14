@@ -8,9 +8,12 @@ It is generated from these files:
 	proto/user.proto
 
 It has these top-level messages:
+	FindUserClubProfileByIDRequest
+	UserClubProfileResponse
 	CreateMemberRequest
 	FindUsersByClubIDRequest
 	ResetPasswordResponse
+	UserClubProfile
 	User
 	Profile
 	ResetPasswordRequest
@@ -72,6 +75,7 @@ type UserSrvService interface {
 	// rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
 	FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error)
 	CreateMember(ctx context.Context, in *CreateMemberRequest, opts ...client.CallOption) (*Response, error)
+	FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error)
 }
 
 type userSrvService struct {
@@ -202,6 +206,16 @@ func (c *userSrvService) CreateMember(ctx context.Context, in *CreateMemberReque
 	return out, nil
 }
 
+func (c *userSrvService) FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.FindUserClubProfileByID", in)
+	out := new(UserClubProfileResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserSrv service
 
 type UserSrvHandler interface {
@@ -219,6 +233,7 @@ type UserSrvHandler interface {
 	// rpc ResetPassword(ResetPasswordRequest) returns(ResetPasswordResponse) {}
 	FindUsersByClubID(context.Context, *FindUsersByClubIDRequest, *UserListResponse) error
 	CreateMember(context.Context, *CreateMemberRequest, *Response) error
+	FindUserClubProfileByID(context.Context, *FindUserClubProfileByIDRequest, *UserClubProfileResponse) error
 }
 
 func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server.HandlerOption) {
@@ -234,6 +249,7 @@ func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server
 		SigninByMobile(ctx context.Context, in *SigninByMobileRequest, out *UserResponse) error
 		FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, out *UserListResponse) error
 		CreateMember(ctx context.Context, in *CreateMemberRequest, out *Response) error
+		FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, out *UserClubProfileResponse) error
 	}
 	type UserSrv struct {
 		userSrv
@@ -288,4 +304,8 @@ func (h *userSrvHandler) FindUsersByClubID(ctx context.Context, in *FindUsersByC
 
 func (h *userSrvHandler) CreateMember(ctx context.Context, in *CreateMemberRequest, out *Response) error {
 	return h.UserSrvHandler.CreateMember(ctx, in, out)
+}
+
+func (h *userSrvHandler) FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, out *UserClubProfileResponse) error {
+	return h.UserSrvHandler.FindUserClubProfileByID(ctx, in, out)
 }

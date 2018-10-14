@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package iunite.club.srv.organization;
 
+import "google/protobuf/timestamp.proto";
 import "iunite.club/services/user/proto/user.proto";
 
 
@@ -33,6 +34,9 @@ message Job {
   string ID = 1;
   string Name  = 2;
   string Slug = 3;
+  google.protobuf.Timestamp CreatedAt = 4;
+  google.protobuf.Timestamp UpdatedAt = 5;
+  string ClubID = 6;
 }
 
 message Paperwork {
