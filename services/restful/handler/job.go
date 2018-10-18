@@ -21,7 +21,7 @@ type JobHandler struct {
 func NewJobService(c client.Client) *JobHandler {
 	return &JobHandler{
 		jobService:  jobPB.NewJobService(OrganizationService, c),
-		userService: userPB.NewUserSrvService(OrganizationService, c),
+		userService: userPB.NewUserSrvService(UserSerivce, c),
 	}
 }
 
@@ -35,7 +35,7 @@ func (j *JobHandler) CreateJob(req *go_api.Request, rsp *go_api.Response) {
 	jobSrv := j.getJobService()
 	params := struct {
 		JobName string `json:"jobName"`
-		ClubID  string `json:"org" validate:"nonzero,objectid"`
+		ClubID  string `json:"org" validate:"objectid"`
 	}{}
 
 	if err := j.Bind(req, &params); err != nil {
@@ -46,6 +46,10 @@ func (j *JobHandler) CreateJob(req *go_api.Request, rsp *go_api.Response) {
 	if err := j.Validate(&params); err != nil {
 		ErrorResponse(rsp, j.Error().BadRequest(err.Error()))
 		return
+	}
+
+	if params.ClubID == "" {
+		params.ClubID = j.GetCurrentClubIDFromRequest(req)
 	}
 
 	createdRsp, err := jobSrv.CreateJob(ctx, &jobPB.CreateJobRequest{
@@ -158,7 +162,7 @@ func (j *JobHandler) AddUsersToJob(req *go_api.Request, rsp *go_api.Response) {
 	ctx := context.Background()
 	params := struct {
 		Users []string `json:"users,omitempty"`
-		JobID string   `json:"job_id,omitempty" validate:"objectid"`
+		JobID string   `json:"jobID,omitempty" validate:"objectid"`
 	}{}
 
 	if err := j.Bind(req, &params); err != nil {

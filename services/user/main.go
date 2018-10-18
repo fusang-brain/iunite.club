@@ -1,7 +1,13 @@
 package main
 
 import (
+	"time"
+
 	"github.com/iron-kit/go-ironic"
+	rl "github.com/juju/ratelimit"
+	"github.com/micro/go-plugins/wrapper/ratelimiter/ratelimit"
+	"iunite.club/services/user/client"
+
 	// "github.com/iron-kit/go-ironic/wrappers"
 	"github.com/iron-kit/monger"
 	"github.com/micro/go-log"
@@ -33,6 +39,7 @@ func main() {
 		micro.Name("iunite.club.srv.user"),
 		micro.Version("latest"),
 		micro.WrapHandler(
+			ratelimit.NewHandlerWrapper(rl.NewBucket(time.Second, 50), true),
 			ironic.MongerWrapper(
 				func(conn monger.Connection) error {
 					conn.BatchRegister(
@@ -57,7 +64,11 @@ func main() {
 	secruity.RegisterSecruityHandler(service.Server(), new(handler.Secruity))
 
 	// Initialise service
-	service.Init()
+	service.Init(
+		micro.WrapHandler(
+			client.MessageServiceWrapper(service),
+		),
+	)
 	// service.Init(
 	// 	micro.WrapHandler(
 	// 		client.MessageServiceWrapper(service),

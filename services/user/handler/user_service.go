@@ -129,12 +129,19 @@ func (u *UserService) RegisterUserByMobile(user *kit_iron_srv_user.RegisterUserR
 		return nil, u.Error().BadRequest("School is not exists")
 	}
 
-	if profile, err := u.FindProfileByMobile(user.Mobile); err != nil {
-		fmt.Println(err.Error())
-		return nil, u.Error().InternalServerError(err.Error())
-		// return nil, u.Error().BadRequest("Account %s has be registered", user.Mobile)
-	} else if !profile.IsEmpty() {
-		fmt.Println(profile)
+	// if profile, err := u.FindProfileByMobile(user.Mobile); err != nil {
+	// 	fmt.Println(err.Error())
+	// 	return nil, u.Error().InternalServerError(err.Error())
+	// 	// return nil, u.Error().BadRequest("Account %s has be registered", user.Mobile)
+	// } else if !profile.IsEmpty() {
+	// 	fmt.Println(profile)
+
+	// 	return nil, u.Error().BadRequest("Account has be registered")
+	// }
+
+	profile, err := u.FindProfileByMobile(user.Mobile)
+
+	if err == nil && !profile.IsEmpty() {
 
 		return nil, u.Error().BadRequest("Account has be registered")
 	}
@@ -243,6 +250,8 @@ func (u *UserService) CreateUser(user *models.User) error {
 	if err := UserModel.Create(user); err != nil {
 		return u.Error().InternalServerError(err.Error())
 	}
+
+	fmt.Println(user)
 	profile.UserID = user.ID
 
 	if err := ProfileModel.Create(&profile); err != nil {
@@ -278,6 +287,7 @@ func (u *UserService) UpdateProfileByID(id bson.ObjectId, profile interface{}) e
 // UpdateProfileByUserID  更新用户简历
 func (u *UserService) UpdateProfileByUserID(id bson.ObjectId, profile interface{}) error {
 	UserModel := u.Model("Profile")
+
 	_, err := UserModel.Upsert(bson.M{"user_id": id}, bson.M{"$set": profile})
 	return err
 }

@@ -141,8 +141,9 @@ func (c *ClubService) GetClubsByUserID(id string, pg *PagerBundle) (*ClubsResult
 	organizations := make([]models.Organization, 0, 1)
 
 	condition := bson.M{
-		"user_id":           bson.ObjectIdHex(id),
-		"organization.kind": "club",
+		"user_id":              bson.ObjectIdHex(id),
+		"organization.kind":    "club",
+		"organization.enabled": true,
 	}
 
 	total := UserClubModel.Where(condition).Populate("Organization").Count()
@@ -425,7 +426,7 @@ func (c *ClubService) GetUserClubProfileDetailsByID(orgID, userID bson.ObjectId,
 
 	err := UserClubProfileModel.
 		Where(bson.M{"organization_id": orgID, "user_id": userID}).
-		Populate("User", "Organization", "Job", "Department").
+		Populate("User", "User.Profile", "Organization", "Job", "Department").
 		FindOne(userClubProfile)
 
 	if err != nil {

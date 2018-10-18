@@ -2,6 +2,10 @@ package main
 
 import (
 	"os"
+	"time"
+
+	rl "github.com/juju/ratelimit"
+	"github.com/micro/go-plugins/wrapper/ratelimiter/ratelimit"
 
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
@@ -34,6 +38,7 @@ func main() {
 		micro.Name("iunite.club.srv.organization"),
 		micro.Version("latest"),
 		micro.WrapHandler(
+			ratelimit.NewHandlerWrapper(rl.NewBucket(time.Second, 50), true),
 			ironic.MongerWrapper(
 				func(conn monger.Connection) error {
 					conn.BatchRegister(

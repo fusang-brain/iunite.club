@@ -2,13 +2,12 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	go_api "github.com/emicklei/go-restful"
 	c "github.com/micro/go-micro/client"
 
-	"github.com/iron-kit/go-ironic/protobuf/hptypes"
-
-	"iunite.club/services/navo/dto"
+	"iunite.club/services/restful/dto"
 
 	approvedPB "iunite.club/services/core/proto/approved"
 	// "iunite.club/services/navo/client"
@@ -112,9 +111,11 @@ func (a *ApprovedHandler) Details(req *go_api.Request, rsp *go_api.Response) {
 		return
 	}
 
+	// pusher := detailsResp.Approved.Pu
 	SuccessResponse(rsp, D{
 		"approved": dto.PBToApprovedTask(detailsResp.Approved),
-		"details":  hptypes.DecodeToMap(detailsResp.Approved.Content),
+		// "details":  hptypes.DecodeToMap(detailsResp.Approved.Content),
+		"details": dto.GetApprovedContent(detailsResp.Approved),
 	})
 	return
 }
@@ -169,6 +170,7 @@ func (a *ApprovedHandler) ExecuteOne(req *go_api.Request, rsp *go_api.Response) 
 
 func (a *ApprovedHandler) ListV2(req *go_api.Request, rsp *go_api.Response) {
 	ctx := context.Background()
+	fmt.Println("list v2")
 	params := struct {
 		Page      int64  `json:"page,omitempty" query:"page"`
 		Limit     int64  `json:"limit,omitempty" query:"limit"`
@@ -189,8 +191,13 @@ func (a *ApprovedHandler) ListV2(req *go_api.Request, rsp *go_api.Response) {
 		return
 	}
 
+	if params.ClubID == "" {
+		params.ClubID = a.GetCurrentClubIDFromRequest(req)
+	}
+
 	approvedService := a.approvedService
 	listResp, err := approvedService.ListV2(ctx, &approvedPB.ListV2Request{
+		HandlerID:  a.GetUserIDFromRequest(req),
 		Page:       params.Page,
 		Limit:      params.Limit,
 		ClubID:     params.ClubID,
@@ -200,6 +207,7 @@ func (a *ApprovedHandler) ListV2(req *go_api.Request, rsp *go_api.Response) {
 	})
 
 	if err != nil {
+		fmt.Println(err.Error(), "error")
 		ErrorResponse(rsp, err)
 		return
 	}
@@ -233,10 +241,15 @@ func (a *ApprovedHandler) ListByPusher(req *go_api.Request, rsp *go_api.Response
 		ErrorResponse(rsp, a.Error().BadRequest(err.Error()))
 		return
 	}
+	userID := params.UserID
+
+	if userID == "" {
+		userID = a.GetUserIDFromRequest(req)
+	}
 
 	approvedService := a.approvedService
 	listResp, err := approvedService.ListByPusher(ctx, &approvedPB.ListByPusherRequest{
-		UserID: a.GetUserIDFromRequest(req),
+		UserID: userID,
 		ClubID: a.GetCurrentClubIDFromRequest(req),
 		Page:   params.Page,
 		Limit:  params.Limit,

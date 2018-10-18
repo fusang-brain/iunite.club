@@ -11,6 +11,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	approvedPB "iunite.club/services/core/proto/approved"
+	"iunite.club/services/restful/dto"
 
 	userPB "iunite.club/services/user/proto"
 
@@ -88,6 +89,8 @@ func (a *ActivityHandler) CreateActivity(req *restful.Request, rsp *restful.Resp
 	// fmt.Println(string(j))
 	activityContent := map[string]interface{}{
 		"_id":                bson.NewObjectId(),
+		"subject":            params.Subject,
+		"location":           params.Location,
 		"created_at":         now,
 		"updated_at":         now,
 		"start_time":         time.Unix(params.StartTime/1e3, 0),
@@ -105,7 +108,7 @@ func (a *ActivityHandler) CreateActivity(req *restful.Request, rsp *restful.Resp
 	_, err := a.approvedService.Create(ctx, &approvedPB.CreateRequest{
 		Title:         params.Subject,
 		Kind:          "activity",
-		Summary:       "无摘要",
+		Summary:       "",
 		Status:        "pending",
 		Description:   params.Subject,
 		Content:       hptypes.EncodeToStruct(activityContent),
@@ -125,4 +128,137 @@ func (a *ActivityHandler) CreateActivity(req *restful.Request, rsp *restful.Resp
 		"Activity": activityContent,
 	})
 
+}
+
+func (self *ActivityHandler) GetActivities(req *restful.Request, rsp *restful.Response) {
+	ctx := context.Background()
+
+	params := struct {
+		Page         int64  `query:"page"`
+		Limit        int64  `query:"limit"`
+		Kind         string `query:"kind"`
+		Organization string `query:"organization"`
+	}{}
+
+	if err := self.Bind(req, &params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+
+	if err := self.Validate(&params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+
+	listResp, err := self.approvedService.ListActivity(ctx, &approvedPB.ListActivityRequest{
+		Page:   params.Page,
+		Limit:  params.Limit,
+		Kind:   params.Kind,
+		ClubID: params.Organization,
+		UserID: self.GetUserIDFromRequest(req),
+	})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	activities := make([]*dto.Activity, 0)
+	for _, approved := range listResp.Approveds {
+		activities = append(activities, dto.GetApprovedContent(approved).(*dto.Activity))
+	}
+
+	SuccessResponseWithPage(rsp, params.Page, params.Limit, listResp.Total, activities)
+	return
+}
+
+func (self *ActivityHandler) Details(req *restful.Request, rsp *restful.Response) {
+	ctx := context.Background()
+
+	params := struct {
+		ID string `query:"id"`
+	}{}
+
+	if err := self.Bind(req, &params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+	if err := self.Validate(&params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+	detailsResp, err := self.approvedService.DetailsByContentID(ctx, &approvedPB.DetailsRequest{ID: params.ID})
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	// pusher := detailsResp.Approved.Pu
+	SuccessResponse(rsp, D{
+		"Activity": dto.GetApprovedContent(detailsResp.Approved),
+	})
+	return
+}
+
+func (self *ActivityHandler) PublishActivity(req *restful.Request, rsp *restful.Response) {
+	// panic("The function has not Impl")
+	ctx := context.Background()
+
+	params := struct {
+		ID string `query:"id" json:"id"`
+	}{}
+
+	if err := self.Bind(req, &params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+	if err := self.Validate(&params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+
+	_, err := self.approvedService.PublishActivity(
+		ctx,
+		&approvedPB.PublishActivityRequest{ID: params.ID},
+	)
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	// pusher := detailsResp.Approved.Pu
+	SuccessResponse(rsp, D{})
+	return
+}
+
+func (self *ActivityHandler) DismissActivity(req *restful.Request, rsp *restful.Response) {
+	ctx := context.Background()
+
+	params := struct {
+		ID string `query:"id" json:"id"`
+	}{}
+
+	if err := self.Bind(req, &params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+	if err := self.Validate(&params); err != nil {
+		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+		return
+	}
+
+	_, err := self.approvedService.DismissActivity(
+		ctx,
+		&approvedPB.DismissActivityRequest{ID: params.ID},
+	)
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	// pusher := detailsResp.Approved.Pu
+	SuccessResponse(rsp, D{})
+	return
 }

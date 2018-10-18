@@ -1,6 +1,12 @@
 package main
 
 import (
+	"os"
+	"time"
+
+	rl "github.com/juju/ratelimit"
+	"github.com/micro/go-plugins/wrapper/ratelimiter/ratelimit"
+
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	"github.com/micro/go-log"
@@ -9,7 +15,6 @@ import (
 	"iunite.club/services/message/client"
 	"iunite.club/services/message/handler"
 	"iunite.club/services/message/subscriber"
-	"os"
 
 	example "iunite.club/services/message/proto/example"
 	sms "iunite.club/services/message/proto/sms"
@@ -30,6 +35,7 @@ func main() {
 		micro.Name("iunite.club.srv.message"),
 		micro.Version("latest"),
 		micro.WrapHandler(
+			ratelimit.NewHandlerWrapper(rl.NewBucket(time.Second, 50), true),
 			ironic.MongerWrapper(
 				func(conn monger.Connection) error {
 					conn.BatchRegister(

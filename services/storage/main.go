@@ -2,6 +2,12 @@ package main
 
 import (
 	"os"
+	"time"
+
+	cloud "iunite.club/services/storage/proto/cloud"
+
+	rl "github.com/juju/ratelimit"
+	"github.com/micro/go-plugins/wrapper/ratelimiter/ratelimit"
 
 	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
@@ -27,10 +33,13 @@ func main() {
 		micro.Name("iunite.club.srv.storage"),
 		micro.Version("latest"),
 		micro.WrapHandler(
+			ratelimit.NewHandlerWrapper(rl.NewBucket(time.Second, 50), true),
 			ironic.MongerWrapper(
 				func(conn monger.Connection) error {
 					conn.BatchRegister(
 						&models.File{},
+						&models.Cloud{},
+						&models.UserClubProfile{},
 					)
 
 					return nil
@@ -50,6 +59,11 @@ func main() {
 	proto.RegisterStorageHandler(
 		service.Server(),
 		new(handler.Storage),
+	)
+
+	cloud.RegisterCloudDiskHandler(
+		service.Server(),
+		new(handler.Cloud),
 	)
 
 	// Register Struct as Subscriber

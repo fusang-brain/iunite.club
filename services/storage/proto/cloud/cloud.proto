@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package iunite.club.srv.storage.cloud;
+
+import "iunite.club/services/storage/proto/storage.proto";
+import "iunite.club/services/user/proto/user.proto";
+import "google/protobuf/timestamp.proto";
+
+service CloudDisk {
+  rpc FindFile(ByFileID) returns(FileResponse) {}
+  rpc DeleteOne(ByID) returns(IsOK) {}
+  rpc UpdatePermission(WithDepartmentsByFileID) returns(IsOK) {}
+  rpc CreateItem(WithItemBundle) returns (IsCreateOK) {}
+  rpc List(ByParentAndClubID) returns (ListResponse) {}
+  rpc GetDetails(ByID) returns (ItemResponse) {}
+}
+
+message ByFileID {
+  string ID = 1;
+}
+
+message FileResponse {
+  iunite.club.srv.storage.FilePB File = 1;
+}
+
+message ItemResponse {
+  CloudPB Item = 1;
+}
+
+message IsOK {
+  bool OK = 1;
+}
+
+message WithDepartmentsByFileID {
+  string ID = 1;
+  repeated string Departments = 2;
+  string UserID = 3;
+}
+
+message WithItemBundle {
+  string Name = 1;
+  string ParentID = 2;
+  string ClubID = 3;
+  repeated string Departments = 4;
+  int32 Kind = 5;
+  string UserID = 6;
+  string FileID = 7;
+}
+
+message IsCreateOK {
+  bool OK = 1;
+  CloudPB CloudItem = 2;
+  // iunite.club.srv.storage.FilePB File = 2;
+}
+
+message CloudPB {
+  string ID = 1;
+  string ClubID = 2;
+  string Name = 3;
+  string OriginalName = 4;
+  string ParentID = 5;
+  int32 Kind = 6;
+  string OwnerID = 7;
+  string FileID = 8;
+  bool EnabledToAll = 9;
+  repeated string UserIDS = 10;
+  repeated string DepartmentIDS = 11;
+  google.protobuf.Timestamp CreatedAt = 12;
+  google.protobuf.Timestamp UpdatedAt = 13;
+  iunite.club.srv.storage.FilePB File = 14;
+  iunite.club.srv.user.User Owner = 15;
+}
+
+message ByParentAndClubID {
+  string ClubID = 1;
+  string ParentID = 2;
+  string Search = 3;
+  int32 Page = 4;
+  int32 Limit = 5;
+  string UserID = 6;
+}
+
+message ListResponse {
+  int64 Total = 1;
+  repeated CloudPB Items = 2;
+}
+
+message ByID {
+  string ID = 1;
+}

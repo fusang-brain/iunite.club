@@ -27,8 +27,8 @@ type User struct {
 	SchoolID         bson.ObjectId     `json:"schoolID,omitempty" bson:"school_id,omitempty"`
 	Profile          *Profile          `json:"profile,omitempty" bson:"profile" monger:"hasOne,foreignKey=user_id"`
 	SecruityInfos    []SecruityInfo    `json:"-,omitempty" bson:"secruity_infos,omitempty"`
-	DefaultClubID    bson.ObjectId     `json:"defaultClubID,omitempty" bson:"defaultClubID"`
-	UserClubProfiles []UserClubProfile `json:"user_club_profiles,omitempty" bson:"user_club_profiles" monger:"hasMany,foreignKey=user_id"`
+	DefaultClubID    bson.ObjectId     `json:"defaultClubID,omitempty" bson:"defaultClubID,omitempty"`
+	UserClubProfiles []UserClubProfile `json:"user_club_profiles,omitempty" bson:"user_club_profiles,omitempty" monger:"hasMany,foreignKey=user_id"`
 }
 
 type Profile struct {
@@ -56,7 +56,7 @@ type Profile struct {
 type UserClubProfile struct {
 	monger.Schema `json:",inline" bson:",inline"`
 
-	State          int              `json:"state,omitempty" bson:"state,omitempty"` // 0: 申请中 1: 在职 2: 离职 3: 重新申请 4: 拒绝加入
+	State          int              `json:"state,omitempty" bson:"state"` // 0: 申请中 1: 在职 2: 离职 3: 重新申请 4: 拒绝加入
 	UserID         bson.ObjectId    `json:"user_id,omitempty" bson:"user_id,omitempty"`
 	User           *User            `json:"user,omitempty" bson:"user,omitempty" monger:"belongTo,foreignKey=user_id"`
 	OrganizationID bson.ObjectId    `json:"organization_id,omitempty" bson:"organization_id,omitempty"`
@@ -73,14 +73,22 @@ type UserClubProfile struct {
 
 func (p *Profile) ToPB() *kit_iron_srv_user.Profile {
 	pb := kit_iron_srv_user.Profile{
-		ID:        p.ID.Hex(),
-		Avatar:    p.Avatar,
-		Mobile:    p.Mobile,
-		Firstname: p.Firstname,
-		Lastname:  p.Lastname,
-		Gender:    p.Gender,
-		Nickname:  p.Nickname,
-		UserID:    p.UserID.Hex(),
+		ID:               p.ID.Hex(),
+		Avatar:           p.Avatar,
+		Mobile:           p.Mobile,
+		Email:            p.Email,
+		AdvisorMobile:    p.AdvisorMobile,
+		AdvisorName:      p.AdvisorName,
+		Major:            p.Major,
+		RoomNumber:       p.RoomNumber,
+		SchoolClass:      p.SchoolClass,
+		SchoolDepartment: p.SchoolDepartment,
+		StudentID:        p.StudentID,
+		Firstname:        p.Firstname,
+		Lastname:         p.Lastname,
+		Gender:           p.Gender,
+		Nickname:         p.Nickname,
+		UserID:           p.UserID.Hex(),
 	}
 	if birthdayPB, err := ptypes.TimestampProto(p.Birthday); err == nil {
 		pb.Birthday = birthdayPB
@@ -97,13 +105,12 @@ func (p *Profile) ToPB() *kit_iron_srv_user.Profile {
 func (u *User) ToPB() *kit_iron_srv_user.User {
 	// kit_iron_srv_user.User
 	upb := kit_iron_srv_user.User{
-		ID:        u.ID.Hex(),
-		Username:  u.Username,
-		Enabled:   u.Enabled,
-		SchoolID:  u.SchoolID.Hex(),
-		CreatedAt: u.CreatedAt.String(),
-		UpdatedAt: u.UpdatedAt.String(),
-		// Profile:  u.Profile.ToPB(),
+		ID:            u.ID.Hex(),
+		Username:      u.Username,
+		Enabled:       u.Enabled,
+		SchoolID:      u.SchoolID.Hex(),
+		CreatedAt:     u.CreatedAt.String(),
+		UpdatedAt:     u.UpdatedAt.String(),
 		DefaultClubID: u.DefaultClubID.Hex(),
 	}
 	if !assistant.IsZero(u.Profile) {
@@ -141,3 +148,33 @@ func (ucp *UserClubProfile) ToPB() *orgPB.UserClubProfile {
 
 	return &pb
 }
+
+// func (ucp *UserClubProfile) ToUserPB() *kit_iron_srv_user.UserClubProfile {
+// 	pb := kit_iron_srv_user.UserClubProfile{
+// 		ID:             ucp.ID.Hex(),
+// 		UserID:         ucp.UserID.Hex(),
+// 		OrganizationID: ucp.OrganizationID.Hex(),
+// 		State:          int32(ucp.State),
+// 		IsCreator:      ucp.IsCreator,
+// 		IsMaster:       ucp.IsMaster,
+// 		JoinTime:       hptypes.TimestampProto(ucp.JoinTime),
+// 		LeaveTime:      hptypes.TimestampProto(ucp.LeaveTime),
+// 		JobID:          ucp.JobID.Hex(),
+// 		DepartmentID:   ucp.DepartmentID.Hex(),
+// 	}
+// 	if !utils.IsZero(ucp.User) {
+// 		pb.User = ucp.User.ToPB()
+// 	}
+// 	if !utils.IsZero(ucp.Department) {
+// 		pb.Department = ucp.Department.ToPB()
+// 	}
+
+// 	if !utils.IsZero(ucp.Organization) {
+// 		pb.Organization = ucp.Organization.ToPB()
+// 	}
+// 	if !utils.IsZero(ucp.Job) {
+// 		pb.Job = ucp.Job.ToPB()
+// 	}
+
+// 	return &pb
+// }

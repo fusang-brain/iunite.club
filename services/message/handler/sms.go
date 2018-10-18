@@ -88,7 +88,7 @@ func (s *SMSHandler) ValidateMobileCode(ctx context.Context, in *smsPB.ValidateM
 		return s.Error(ctx).TemplateBadRequest("CodeHasExpired")
 	}
 	verifyCode.Usaged = true
-	ValdiateCodeModel.UpsertID(verifyCode.ID, verifyCode)
+	ValdiateCodeModel.UpsertID(verifyCode.ID, &verifyCode)
 	resp.OK = true
 
 	return nil

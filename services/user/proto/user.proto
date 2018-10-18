@@ -22,6 +22,20 @@ service UserSrv {
   rpc FindUsersByClubID(FindUsersByClubIDRequest) returns(UserListResponse) {}
   rpc CreateMember(CreateMemberRequest) returns(Response) {}
   rpc FindUserClubProfileByID(FindUserClubProfileByIDRequest) returns (UserClubProfileResponse) {}
+  // rpc FindUserClubProfiles(FindUserClubProfilesRequest) returns(UserClubProfilesResponse) {}
+
+  rpc FindUsersByOrganizationID(ByOrganizationIDRequest) returns (UserListResponse) {}
+  rpc UpdateAvatar(UpdateAvatarRequest) returns(Response) {}
+}
+
+message UpdateAvatarRequest {
+  string ID = 1;
+  string Avatar = 2;
+}
+
+message ByOrganizationIDRequest {
+  string Kind = 1;
+  string ID = 2;
 }
 
 message FindUserClubProfileByIDRequest {
@@ -63,6 +77,12 @@ message UserClubProfile {
   google.protobuf.Timestamp UpdatedAt = 10;
   string JobID = 11;
   string DepartmentID = 12;
+  User user = 13;
+  
+}
+
+message Department {
+
 }
 
 message User {

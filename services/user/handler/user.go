@@ -4,14 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
+	"github.com/iron-kit/monger"
 
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
 	smsPB "iunite.club/services/message/proto/sms"
+
 	"iunite.club/services/user/client"
 	user "iunite.club/services/user/proto"
 	"iunite.club/services/user/utils"
@@ -19,6 +22,34 @@ import (
 
 type UserSrv struct {
 	ironic.BaseHandler
+}
+
+func (u *UserSrv) model(ctx context.Context, name string) monger.Model {
+	conn, err := ironic.MongerConnectionFromContext(ctx)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return conn.M(name)
+}
+
+func (u *UserSrv) UpdateAvatar(ctx context.Context, req *user.UpdateAvatarRequest, rsp *user.Response) error {
+	ProfileModel := u.model(ctx, "Profile")
+
+	err := ProfileModel.Update(bson.M{
+		"user_id": req.ID,
+	}, bson.M{
+		"$set": bson.M{
+			"avatar": req.Avatar,
+		},
+	})
+
+	if err != nil {
+		return u.Error(ctx).InternalServerError(err.Error())
+	}
+	rsp.OK = true
+	return nil
 }
 
 func (u *UserSrv) FindUserClubProfileByID(ctx context.Context, req *user.FindUserClubProfileByIDRequest, rsp *user.UserClubProfileResponse) error {
@@ -133,6 +164,24 @@ func (u *UserSrv) UpdateUser(ctx context.Context, req *user.UpdateUserRequest, r
 	if len(req.Profile) > 0 {
 		if err := json.Unmarshal(req.Profile, &profileFields); err != nil {
 			return u.Error(ctx).InternalServerError(err.Error())
+		}
+
+		if profileFields["birthday"] != nil {
+			// profileFields["birthday"] = time.Unix()
+			profileFields["birthday"] = func(v string) time.Time {
+				fmt.Println(v, "生日 =====")
+				now := time.Now()
+				// time.RFC1123
+				// now.String(2006-01-02 15:04:05.999)
+				// return time.Unix(v/1e3, 0)
+				// now.String()
+				// time.ParseInLocation
+				if t, err := time.Parse(time.RFC1123Z, v); err == nil {
+					fmt.Println(t.String(), "生日 11======")
+					return t
+				}
+				return now
+			}(profileFields["birthday"].(string))
 		}
 		if err := userService.UpdateProfileByUserID(bson.ObjectIdHex(req.ID), profileFields); err != nil {
 			return u.Error(ctx).InternalServerError(err.Error())
@@ -288,7 +337,44 @@ func (u *UserSrv) CreateMember(ctx context.Context, req *user.CreateMemberReques
 		return err
 	}
 
+	rsp.OK = true
+
 	return nil
+}
+
+func (u *UserSrv) FindUsersByOrganizationID(ctx context.Context, req *user.ByOrganizationIDRequest, rsp *user.UserListResponse) error {
+	UserClubProfile := u.model(ctx, "UserClubProfile")
+
+	ucps := make([]models.UserClubProfile, 0)
+	users := make([]*user.User, 0)
+	if !bson.IsObjectIdHex(req.ID) {
+		return u.Error(ctx).BadRequest("ID must be objectid")
+	}
+
+	key := "department_id"
+
+	if req.Kind == "club" {
+		key = "organization_id"
+	}
+
+	err := UserClubProfile.Where(bson.M{key: bson.ObjectIdHex(req.ID)}).
+		Populate("User", "User.Profile").
+		FindAll(&ucps)
+
+	if err != nil {
+		return u.Error(ctx).InternalServerError(err.Error())
+	}
+
+	for _, ucp := range ucps {
+		user := ucp.User
+
+		users = append(users, user.ToPB())
+	}
+
+	rsp.Users = users
+	rsp.Count = int32(len(users))
+	return nil
+
 }
 
 // func (u *UserSrv) RemoveUserFromClub(ctx context.Context, req *user.Remove, rsp *user.Response) error {

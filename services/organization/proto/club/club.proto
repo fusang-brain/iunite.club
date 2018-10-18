@@ -21,7 +21,36 @@ service Club {
   rpc GetUserClubProfileDetailsByID(GetUserClubProfileDetailsByIDRequest) returns(UserClubProfileResponse) {}
   // rcp GetOrganizationDetails()
   rpc RemoveUserFromClub(RemoveUserFromClubRequest) returns(Response) {}
+  rpc FindUserClubProfiles(FindUserClubProfilesRequest) returns(UserClubProfilesResponse) {}
+  rpc FindAcceptByUserClubProfileID(ByUserClubProfileIDRequest) returns(AcceptResponse) {}
 
+}
+
+message ByUserClubProfileIDRequest {
+  string ID = 1;
+}
+
+message AcceptResponse {
+  string ID = 1;
+  string UserID = 2;
+  string OrganizationID = 3;
+  int32 State = 4;
+  int32 Kind = 5;
+}
+
+message UserClubProfilesResponse {
+  repeated iunite.club.srv.organization.UserClubProfile UserClubProfiles = 1;
+  int32 Total = 2;
+}
+
+message FindUserClubProfilesRequest {
+  string DepartmentID = 1;
+  string JobID = 2;
+  string Category = 3;
+  string Search = 4;
+  int64 Page = 5;
+  int64 Limit = 6;
+  string ClubID = 7;
 }
 
 message RemoveUserFromClubRequest {

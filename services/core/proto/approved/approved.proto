@@ -4,6 +4,7 @@ package iunite.club.srv.core.approved;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "iunite.club/services/user/proto/user.proto";
 
 service Approved {
   rpc List(ListRequest) returns(ListResponse) {}
@@ -11,8 +12,28 @@ service Approved {
   rpc ListByPusher(ListByPusherRequest) returns(ListResponse) {}
   rpc WaitingExecuteList(ListByCountRequest) returns(ListResponse) {}
   rpc Details(DetailsRequest) returns (ApprovedResponse) {}
+  rpc DetailsByContentID(DetailsRequest) returns (ApprovedResponse) {}
   rpc Execute(ExecuteRequest) returns (Response) {}
   rpc Create(CreateRequest) returns (ApprovedResponse) {}
+  rpc ListActivity(ListActivityRequest) returns(ListResponse) {}
+  rpc PublishActivity(PublishActivityRequest) returns(Response) {}
+  rpc DismissActivity(DismissActivityRequest) returns(Response) {}
+}
+
+message PublishActivityRequest {
+  string ID = 1;
+}
+
+message DismissActivityRequest {
+  string ID = 1;
+}
+
+message ListActivityRequest {
+  int64 Page = 1;
+  int64 Limit = 2;
+  string Kind = 3;
+  string ClubID = 4;
+  string UserID = 5;
 }
 
 message CreateRequest {
@@ -50,6 +71,7 @@ message ApprovedPB {
   google.protobuf.Timestamp CreatedAt = 9;
   google.protobuf.Timestamp UpdatedAt = 10;
   string ClubID = 11;
+  iunite.club.srv.user.User Pusher = 12;
 }
 
 message ApprovedFlowPB {
@@ -62,6 +84,7 @@ message ApprovedFlowPB {
   string ApprovedID = 7;
   google.protobuf.Timestamp CreatedAt = 8;
   google.protobuf.Timestamp UpdatedAt = 9;
+  iunite.club.srv.user.User Handler = 10;
 }
 
 message ListResponse {

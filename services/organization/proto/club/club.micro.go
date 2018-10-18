@@ -8,6 +8,10 @@ It is generated from these files:
 	proto/club/club.proto
 
 It has these top-level messages:
+	ByUserClubProfileIDRequest
+	AcceptResponse
+	UserClubProfilesResponse
+	FindUserClubProfilesRequest
 	RemoveUserFromClubRequest
 	GetUserClubProfileDetailsByIDRequest
 	UserClubProfileResponse
@@ -78,6 +82,8 @@ type ClubService interface {
 	GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error)
 	// rcp GetOrganizationDetails()
 	RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, opts ...client.CallOption) (*Response, error)
+	FindUserClubProfiles(ctx context.Context, in *FindUserClubProfilesRequest, opts ...client.CallOption) (*UserClubProfilesResponse, error)
+	FindAcceptByUserClubProfileID(ctx context.Context, in *ByUserClubProfileIDRequest, opts ...client.CallOption) (*AcceptResponse, error)
 }
 
 type clubService struct {
@@ -228,6 +234,26 @@ func (c *clubService) RemoveUserFromClub(ctx context.Context, in *RemoveUserFrom
 	return out, nil
 }
 
+func (c *clubService) FindUserClubProfiles(ctx context.Context, in *FindUserClubProfilesRequest, opts ...client.CallOption) (*UserClubProfilesResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.FindUserClubProfiles", in)
+	out := new(UserClubProfilesResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clubService) FindAcceptByUserClubProfileID(ctx context.Context, in *ByUserClubProfileIDRequest, opts ...client.CallOption) (*AcceptResponse, error) {
+	req := c.c.NewRequest(c.name, "Club.FindAcceptByUserClubProfileID", in)
+	out := new(AcceptResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Club service
 
 type ClubHandler interface {
@@ -246,6 +272,8 @@ type ClubHandler interface {
 	GetUserClubProfileDetailsByID(context.Context, *GetUserClubProfileDetailsByIDRequest, *UserClubProfileResponse) error
 	// rcp GetOrganizationDetails()
 	RemoveUserFromClub(context.Context, *RemoveUserFromClubRequest, *Response) error
+	FindUserClubProfiles(context.Context, *FindUserClubProfilesRequest, *UserClubProfilesResponse) error
+	FindAcceptByUserClubProfileID(context.Context, *ByUserClubProfileIDRequest, *AcceptResponse) error
 }
 
 func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.HandlerOption) {
@@ -263,6 +291,8 @@ func RegisterClubHandler(s server.Server, hdlr ClubHandler, opts ...server.Handl
 		GetUserClubProfilesByUserID(ctx context.Context, in *GetUserClubProfilesByUserIDRequest, out *UserClubProfilesListResponse) error
 		GetUserClubProfileDetailsByID(ctx context.Context, in *GetUserClubProfileDetailsByIDRequest, out *UserClubProfileResponse) error
 		RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, out *Response) error
+		FindUserClubProfiles(ctx context.Context, in *FindUserClubProfilesRequest, out *UserClubProfilesResponse) error
+		FindAcceptByUserClubProfileID(ctx context.Context, in *ByUserClubProfileIDRequest, out *AcceptResponse) error
 	}
 	type Club struct {
 		club
@@ -325,4 +355,12 @@ func (h *clubHandler) GetUserClubProfileDetailsByID(ctx context.Context, in *Get
 
 func (h *clubHandler) RemoveUserFromClub(ctx context.Context, in *RemoveUserFromClubRequest, out *Response) error {
 	return h.ClubHandler.RemoveUserFromClub(ctx, in, out)
+}
+
+func (h *clubHandler) FindUserClubProfiles(ctx context.Context, in *FindUserClubProfilesRequest, out *UserClubProfilesResponse) error {
+	return h.ClubHandler.FindUserClubProfiles(ctx, in, out)
+}
+
+func (h *clubHandler) FindAcceptByUserClubProfileID(ctx context.Context, in *ByUserClubProfileIDRequest, out *AcceptResponse) error {
+	return h.ClubHandler.FindAcceptByUserClubProfileID(ctx, in, out)
 }

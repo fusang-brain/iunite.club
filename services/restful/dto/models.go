@@ -17,6 +17,8 @@ type Activity struct {
 	IsUndo            bool          `json:"IsUndo,omitempty"`     // 是否已经撤销
 	IsPublish         bool          `json:"IsPublish,omitempty"`
 	Approved          *ApprovedTask `json:"Approved,omitempty"`
+	Pictures          []*File       `json:"Pictures,omitempty"`
+	Attach            []*File       `json:"Attach,omitempty"`
 }
 
 type ApprovedTask struct {
@@ -139,32 +141,32 @@ type Funding struct {
 	ApplyDept      *Department   `json:"ApplyDept,omitempty"`
 	ApplyPurpose   string        `json:"ApplyPurpose,omitempty"`   // 申请目的
 	AmountApplyFee int64         `json:"AmountApplyFee,omitempty"` // 申请费用
-	Pictures       []File        `json:"Pictures,omitempty"`       // 图片
-	Attach         []File        `json:"Attach,omitempty"`         // 附件
 	ApprovedID     string        `json:"ApprovedID,omitempty"`     // 审批关联
 	Approved       *ApprovedTask `json:"Approved,omitempty"`
 	IsUndo         bool          `json:"IsUndo,omitempty"` // 是否已经撤销
+	Pictures       []*File       `json:"Pictures,omitempty"`
+	Attach         []*File       `json:"Attach,omitempty"`
 }
 
 // GoodsBorrow Object 活动
 type GoodsBorrow struct {
-	ID          string            `json:"ID,omitempty"`
-	CreatedAt   int64             `json:"CreatedAt,omitempty"`
-	UpdatedAt   int64             `json:"UpdatedAt,omitempty"`
-	Subject     string            `json:"Subject,omitempty"`     // 借用主题
-	Description string            `json:"Description,omitempty"` // 借用说明
-	Goods       []GoodsBorrowItem `json:"Goods,omitempty"`       // 物品详情
-	ApplicantID string            `json:"ApplicantID,omitempty"` // 申请人
-	Applicant   *User             `json:"Applicant,omitempty"`
-	ApplyDeptID string            `json:"ApplyDeptID,omitempty"` // 申请部门
-	ApplyDept   *Department       `json:"ApplyDept,omitempty"`
-	StartTime   int64             `json:"StartTime,omitempty"` // 借用时间
-	EndTime     int64             `json:"EndTime,omitempty"`
-	Pictures    []File            `json:"Pictures,omitempty"`   // 图片
-	Attach      []File            `json:"Attach,omitempty"`     // 附件
-	ApprovedID  string            `json:"ApprovedID,omitempty"` // 审批关联
-	Approved    *ApprovedTask     `json:"Approved,omitempty"`
-	IsUndo      bool              `json:"IsUndo,omitempty"` // 是否已经撤销
+	ID          string             `json:"ID,omitempty"`
+	CreatedAt   int64              `json:"CreatedAt,omitempty"`
+	UpdatedAt   int64              `json:"UpdatedAt,omitempty"`
+	Subject     string             `json:"Subject,omitempty"`     // 借用主题
+	Description string             `json:"Description,omitempty"` // 借用说明
+	Goods       []*GoodsBorrowItem `json:"Goods,omitempty"`       // 物品详情
+	ApplicantID string             `json:"ApplicantID,omitempty"` // 申请人
+	Applicant   *User              `json:"Applicant,omitempty"`
+	ApplyDeptID string             `json:"ApplyDeptID,omitempty"` // 申请部门
+	ApplyDept   *Department        `json:"ApplyDept,omitempty"`
+	StartTime   int64              `json:"StartTime,omitempty"` // 借用时间
+	EndTime     int64              `json:"EndTime,omitempty"`
+	ApprovedID  string             `json:"ApprovedID,omitempty"` // 审批关联
+	Approved    *ApprovedTask      `json:"Approved,omitempty"`
+	IsUndo      bool               `json:"IsUndo,omitempty"` // 是否已经撤销
+	Pictures    []*File            `json:"Pictures,omitempty"`
+	Attach      []*File            `json:"Attach,omitempty"`
 }
 
 // GoodsBorrowItem 借用物品项目Model
@@ -204,17 +206,19 @@ type OrganizationUser struct {
 	ID               string        `json:"ID,omitempty"`
 	CreatedAt        int64         `json:"CreatedAt,omitempty"`
 	UpdatedAt        int64         `json:"UpdatedAt,omitempty"`
-	Kind             int           `json:"Kind,omitempty"`
-	AcceptState      int           `json:"AcceptState,omitempty"`
-	State            int           `json:"State,omitempty"` // 用户在社团的状态 (0: 未知, 1: 在职, 2: 离职)
+	Kind             int           `json:"Kind"`
+	AcceptState      int           `json:"AcceptState"`
+	State            int           `json:"State"` // 用户在社团的状态 (0: 未知, 1: 在职, 2: 离职)
 	OrganizationInfo *Organization `json:"OrganizationInfo,omitempty"`
 	UserInfo         *User         `json:"UserInfo,omitempty"`
-	IsCreator        bool          `json:"IsCreator,omitempty"`
-	IsSuperManager   bool          `json:"IsSuperManager,omitempty"`
+	IsCreator        bool          `json:"IsCreator"`
+	IsSuperManager   bool          `json:"IsSuperManager"`
 	JoinTime         int64         `json:"JoinTime,omitempty"`
 	LeaveTime        int64         `json:"LeaveTime,omitempty"`
 	DepartmentID     string        `json:"DepartmentID,omitempty"`
+	Department       *Department   `json:"Department,omitempty"`
 	JobID            string        `json:"JobID,omitempty"`
+	Job              *Job          `json:"UserJob,omitempty"`
 }
 
 type OrganizationPaperwork struct {

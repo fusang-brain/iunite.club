@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-log/log"
 	"github.com/iron-kit/go-ironic"
 	smsPB "iunite.club/services/message/proto/sms"
@@ -21,7 +22,12 @@ func (a *Secruity) SignupWithMobile(ctx context.Context, req *auth.SignupWithMob
 	log.Log("Received Auth.Signup request")
 	userService := newUserService(ctx)
 	// validate code
-	smsSrv, _ := client.SMSServerFromContext(ctx)
+	smsSrv, ok := client.SMSServerFromContext(ctx)
+	if !ok {
+		return a.Error(ctx).NotFound("Not found sms service")
+	}
+	fmt.Println(req.ValidateCode)
+	fmt.Println(req.Mobile)
 	if resp, err := smsSrv.ValidateMobileCode(ctx, &smsPB.ValidateMobileCodeRequest{
 		Mobile: req.Mobile,
 		Code:   req.ValidateCode,

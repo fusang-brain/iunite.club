@@ -6,12 +6,21 @@ import (
 	"strconv"
 	"time"
 
+	"iunite.club/services/restful/file"
+	storagePB "iunite.club/services/storage/proto"
+
+	"github.com/iron-kit/go-ironic/protobuf/hptypes"
+
+	"github.com/iron-kit/go-ironic/utils"
+
 	"github.com/micro/go-micro/client"
 
 	go_api "github.com/emicklei/go-restful"
 
 	smsPB "iunite.club/services/message/proto/sms"
+	orgPB "iunite.club/services/organization/proto"
 	clubPB "iunite.club/services/organization/proto/club"
+	schoolPB "iunite.club/services/organization/proto/school"
 	"iunite.club/services/restful/dto"
 	userPB "iunite.club/services/user/proto"
 )
@@ -19,16 +28,20 @@ import (
 type UserHandler struct {
 	BaseHandler
 
-	userService userPB.UserSrvService
-	clubService clubPB.ClubService
-	smsService  smsPB.SMSService
+	userService   userPB.UserSrvService
+	clubService   clubPB.ClubService
+	smsService    smsPB.SMSService
+	schoolService schoolPB.SchoolSrvService
+	fileService   storagePB.StorageService
 }
 
 func NewUserHandler(c client.Client) *UserHandler {
 	return &UserHandler{
-		userService: userPB.NewUserSrvService(UserSerivce, c),
-		clubService: clubPB.NewClubService(OrganizationService, c),
-		smsService:  smsPB.NewSMSService(SMSService, c),
+		userService:   userPB.NewUserSrvService(UserSerivce, c),
+		clubService:   clubPB.NewClubService(OrganizationService, c),
+		smsService:    smsPB.NewSMSService(SMSService, c),
+		schoolService: schoolPB.NewSchoolSrvService(OrganizationService, c),
+		fileService:   storagePB.NewStorageService(StorageService, c),
 	}
 }
 
@@ -67,11 +80,83 @@ func (u *UserHandler) Info(req *go_api.Request, rsp *go_api.Response) {
 		ErrorResponse(rsp, err)
 		return
 	}
-	isMaster := false
 
-	// TODO find organization user info
+	// find organization user info
+	clubProfileResp, err := u.clubService.GetUserClubProfilesByUserID(ctx, &clubPB.GetUserClubProfilesByUserIDRequest{UserID: userResp.User.ID})
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+	currentUserClubProfile := new(orgPB.UserClubProfile)
+
+	userClubProfiles := clubProfileResp.UserClubProfiles
+	for _, v := range userClubProfiles {
+		if v.OrganizationID == userResp.User.DefaultClubID {
+			currentUserClubProfile = v
+		}
+	}
+
+	isMaster := currentUserClubProfile.IsMaster
+	uR := userResp
+	// find school
+	schoolService := u.schoolService
+	var schoolResp *schoolPB.SchoolResponse
+	if sR, e := schoolService.GetSchoolByID(ctx, &schoolPB.GetSchoolRequest{ID: uR.User.SchoolID}); e == nil {
+		schoolResp = sR
+	} else {
+		sR := new(schoolPB.SchoolResponse)
+		schoolResp = sR
+	}
+
+	// find organization
+	clubsResp, err := u.clubService.GetClubsByUserID(ctx, &clubPB.GetClubsByUserIDRequest{UserID: uR.User.ID})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+	org := new(dto.Organization)
+	orgs := make([]*dto.Organization, 0)
+	for _, v := range clubsResp.Organizations {
+		if v.ID == uR.User.DefaultClubID {
+			org = dto.PBToOrganization(v)
+		}
+		orgs = append(orgs, dto.PBToOrganization(v))
+	}
+
 	SuccessResponse(rsp, D{
-		"info":     dto.PBToUser(userResp.User),
+		"OrganizationUserInfo": dto.PBToOrganizationUser(currentUserClubProfile),
+		"info": dto.User{
+			ID:            uR.User.ID,
+			Username:      uR.User.Username,
+			CreatedAt:     utils.ISOTime2MicroUnix(uR.User.CreatedAt),
+			UpdatedAt:     utils.ISOTime2MicroUnix(uR.User.UpdatedAt),
+			IsTeacher:     false,
+			IsAdmin:       false,
+			Mobile:        uR.User.Profile.Mobile,
+			AreaCode:      "+86",
+			Organizations: orgs,
+
+			CurrentOrganization: org,
+			Profile: &dto.Profile{
+				ID:        uR.User.Profile.ID,
+				CreatedAt: utils.Time2MicroUnix(hptypes.Timestamp(uR.User.Profile.CreatedAt)),
+				UpdatedAt: utils.Time2MicroUnix(hptypes.Timestamp(uR.User.Profile.UpdatedAt)),
+				// CreatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.CreatedAt),
+				// UpdatedAt: utils.ISOTime2MicroUnix(uR.User.Profile.UpdatedAt),
+				UserNO:    "-",
+				Avatar:    uR.User.Profile.Avatar,
+				FirstName: uR.User.Profile.Firstname,
+				LastName:  uR.User.Profile.Lastname,
+				Gender:    uR.User.Profile.Gender,
+			},
+			School: &dto.School{
+				Name:       schoolResp.School.Name,
+				SlugName:   schoolResp.School.SlugName,
+				SchoolCode: schoolResp.School.SchoolCode,
+				ID:         schoolResp.School.ID,
+			},
+		},
 		"IsMaster": isMaster,
 	})
 	// panic("not implemented")
@@ -92,6 +177,10 @@ func (u *UserHandler) UpdateCurrentOrg(req *go_api.Request, rsp *go_api.Response
 	if err := u.Validate(&params); err != nil {
 		ErrorResponse(rsp, u.Error().BadRequest(err.Error()))
 		return
+	}
+
+	if params.UserID == "" {
+		params.UserID = u.GetUserIDFromRequest(req)
 	}
 
 	userSrv := u.userService
@@ -260,7 +349,52 @@ func (u *UserHandler) GetCurrentOrganization(req *go_api.Request, rsp *go_api.Re
 }
 
 func (u *UserHandler) GetAllMembers(req *go_api.Request, rsp *go_api.Response) {
-	panic("not implemented")
+	params := struct {
+		Page           int64  `query:"page"`
+		Limit          int64  `query:"limit"`
+		Department     string `json:"department" query:"department"`
+		Job            string `json:"job" query:"job"`
+		OrganizationID string `json:"organization" query:"organization"`
+		Category       string `json:"category" query:"category"`
+		Search         string `json:"search" query:"search"`
+	}{}
+
+	ctx := context.Background()
+
+	if err := u.Bind(req, &params); err != nil {
+		ErrorResponse(rsp, u.Error().BadRequest(err.Error()))
+		return
+	}
+
+	if err := u.Validate(&params); err != nil {
+		ErrorResponse(rsp, u.Error().BadRequest(err.Error()))
+		return
+	}
+
+	if params.OrganizationID == "" {
+		params.OrganizationID = u.GetCurrentClubIDFromRequest(req)
+	}
+
+	reply, err := u.clubService.FindUserClubProfiles(ctx, &clubPB.FindUserClubProfilesRequest{
+		ClubID:       params.OrganizationID,
+		Page:         params.Page,
+		Limit:        params.Limit,
+		DepartmentID: params.Department,
+		JobID:        params.Job,
+		Category:     params.Category,
+	})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	// for reply.UserClubProfiles.
+	ucps := make([]*dto.OrganizationUser, 0)
+	for _, v := range reply.UserClubProfiles {
+		ucps = append(ucps, dto.PBToOrganizationUser(v))
+	}
+	SuccessResponseWithPage(rsp, params.Page, params.Limit, int64(reply.Total), ucps)
 }
 
 func (u *UserHandler) CreateMember(req *go_api.Request, rsp *go_api.Response) {
@@ -386,6 +520,14 @@ func (u *UserHandler) GetMemberDetails(req *go_api.Request, rsp *go_api.Response
 
 	clubSrv := u.clubService
 
+	if params.ID == "" {
+		params.ID = u.GetUserIDFromRequest(req)
+	}
+
+	if params.ClubID == "" {
+		params.ClubID = u.GetCurrentClubIDFromRequest(req)
+	}
+
 	ucpResp, err := clubSrv.GetUserClubProfileDetailsByID(ctx, &clubPB.GetUserClubProfileDetailsByIDRequest{
 		OrganizationID: params.ClubID,
 		UserID:         params.ID,
@@ -445,8 +587,10 @@ func (u *UserHandler) UpdateUserInfo(req *go_api.Request, rsp *go_api.Response) 
 	if params.Nickname != nil {
 		fieldsMap["nickname"] = *params.Nickname
 	}
+
 	if params.Birthday != nil {
-		fieldsMap["birthday"] = time.Unix(*params.Birthday/1e3, 0)
+		bir := time.Unix(*params.Birthday/1e3, 0)
+		fieldsMap["birthday"] = bir.Local().Format(time.RFC1123Z)
 	}
 	if params.Email != nil {
 		fieldsMap["email"] = *params.Email
@@ -455,25 +599,25 @@ func (u *UserHandler) UpdateUserInfo(req *go_api.Request, rsp *go_api.Response) 
 		fieldsMap["gender"] = *params.Gender
 	}
 	if params.SchoolDepartment != nil {
-		fieldsMap["SchoolDepartment"] = *params.SchoolDepartment
+		fieldsMap["school_department"] = *params.SchoolDepartment
 	}
 	if params.SchoolClass != nil {
-		fieldsMap["SchoolClass"] = *params.SchoolClass
+		fieldsMap["school_class"] = *params.SchoolClass
 	}
 	if params.Major != nil {
-		fieldsMap["Major"] = *params.Major
+		fieldsMap["major"] = *params.Major
 	}
 	if params.RoomNumber != nil {
-		fieldsMap["RoomNumber"] = *params.RoomNumber
+		fieldsMap["room_number"] = *params.RoomNumber
 	}
 	if params.AdvisorMobile != nil {
-		fieldsMap["AdvisorMobile"] = *params.AdvisorMobile
+		fieldsMap["advisor_mobile"] = *params.AdvisorMobile
 	}
 	if params.AdvisorName != nil {
-		fieldsMap["AdvisorName"] = *params.AdvisorName
+		fieldsMap["advisor_name"] = *params.AdvisorName
 	}
 	if params.StudentID != nil {
-		fieldsMap["StudentID"] = *params.StudentID
+		fieldsMap["student_id"] = *params.StudentID
 	}
 
 	profile, err := json.Marshal(fieldsMap)
@@ -511,8 +655,52 @@ func (u *UserHandler) GetHotUsers(*go_api.Request, *go_api.Response) {
 	panic("not implemented")
 }
 
-func (u *UserHandler) UploadAvatar(*go_api.Request, *go_api.Response) {
-	panic("not implemented")
+func (u *UserHandler) UploadAvatar(req *go_api.Request, rsp *go_api.Response) {
+	ctx := context.Background()
+
+	request := req.Request
+
+	_, fh, err := request.FormFile("file")
+	if err != nil {
+		ErrorResponse(rsp, u.Error().BadRequest(err.Error()))
+		return
+	}
+
+	// type savedResp struct {
+	// 	filePB *iunite_club_srv_storage.FilePB
+	// 	err    error
+	// }
+
+	// saveCh := make(chan savedResp, 1)
+
+	filePB, err := file.SaveFile(fh)
+
+	if err != nil {
+		ErrorResponse(rsp, u.Error().BadRequest(err.Error()))
+		return
+	}
+
+	fileResp, err := u.fileService.SaveFileInfo(ctx, &storagePB.FileInfoRequest{
+		File: filePB,
+	})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	// Update Avatar
+	// fileResp.File.ID
+	_, err = u.userService.UpdateAvatar(ctx, &userPB.UpdateAvatarRequest{
+		ID:     u.GetUserIDFromRequest(req),
+		Avatar: fileResp.File.ID,
+	})
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	SuccessResponse(rsp, D{})
 }
 
 func (u *UserHandler) ExportList(*go_api.Request, *go_api.Response) {

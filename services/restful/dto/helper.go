@@ -1,22 +1,61 @@
 package dto
 
 import (
+	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"github.com/iron-kit/go-ironic/utils"
+	"gopkg.in/mgo.v2/bson"
 	approvedPB "iunite.club/services/core/proto/approved"
 	orgPB "iunite.club/services/organization/proto"
 	schoolPB "iunite.club/services/organization/proto/school"
 	storagePB "iunite.club/services/storage/proto"
+	cloudPB "iunite.club/services/storage/proto/cloud"
 	userPB "iunite.club/services/user/proto"
 )
+
+func PBToCloudDisk(pb *cloudPB.CloudPB) *CloudDisk {
+	if pb == nil {
+		return nil
+	}
+	res := &CloudDisk{
+		ID:           pb.ID,
+		CreatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		Organization: pb.ClubID,
+		Name:         pb.Name,
+		OriginalName: pb.OriginalName,
+		ParentID:     pb.ParentID,
+		Kind:         int(pb.Kind),
+		OwnerID:      pb.OwnerID,
+		FileID:       pb.FileID,
+		EnabledToAll: pb.EnabledToAll,
+		// Departments: pb.DepartmentIDS,
+		// Users:
+	}
+
+	if pb.File != nil {
+		res.File = PBToFile(pb.File)
+	}
+
+	if pb.Owner != nil {
+		res.Owner = PBToUser(pb.Owner)
+	}
+
+	return res
+}
 
 func PBToUser(pb *userPB.User) *User {
 	if pb == nil {
 		return &User{}
 	}
 	mobile := ""
+	email := ""
 	if pb.Profile != nil {
 		mobile = pb.Profile.Mobile
+		email = pb.Profile.Email
 	}
 	return &User{
 		ID:        pb.ID,
@@ -29,6 +68,7 @@ func PBToUser(pb *userPB.User) *User {
 		AreaCode:  "+86",
 		Enabled:   pb.Enabled,
 		Profile:   PBToProfile(pb.Profile),
+		Email:     email,
 	}
 }
 
@@ -44,12 +84,22 @@ func PBToProfile(pb *userPB.Profile) *Profile {
 		ID:        pb.ID,
 		CreatedAt: utils.Time2MicroUnix(createdAt),
 		// CreatedAt: utils.ISOTime2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
-		UpdatedAt: utils.Time2MicroUnix(updatedAt),
-		Avatar:    pb.Avatar,
-		Gender:    pb.Gender,
-		Birthday:  utils.Time2MicroUnix(birthday),
-		Nickname:  pb.Nickname,
-		UserID:    pb.UserID,
+		UpdatedAt:        utils.Time2MicroUnix(updatedAt),
+		Avatar:           pb.Avatar,
+		Gender:           pb.Gender,
+		Birthday:         utils.Time2MicroUnix(birthday),
+		Nickname:         pb.Nickname,
+		UserID:           pb.UserID,
+		FirstName:        pb.Firstname,
+		LastName:         pb.Lastname,
+		UserNO:           "-",
+		SchoolClass:      pb.SchoolClass,
+		AdvisorMobile:    pb.AdvisorMobile,
+		AdvisorName:      pb.AdvisorName,
+		StudentID:        pb.StudentID,
+		RoomNumber:       pb.RoomNumber,
+		Major:            pb.Major,
+		SchoolDepartment: pb.SchoolDepartment,
 	}
 }
 
@@ -119,8 +169,8 @@ func PBToJob(pb *orgPB.Job) *Job {
 }
 
 func PBToOrganizationUser(pb *orgPB.UserClubProfile) *OrganizationUser {
-	if pb == nil {
-		return new(OrganizationUser)
+	if pb == nil || pb.ID == "" {
+		return nil
 	}
 	rs := &OrganizationUser{
 		ID:        pb.ID,
@@ -137,6 +187,13 @@ func PBToOrganizationUser(pb *orgPB.UserClubProfile) *OrganizationUser {
 		LeaveTime:        utils.ISOTime2MicroUnix(pb.LeaveTime),
 		DepartmentID:     pb.DepartmentID,
 		JobID:            pb.JobID,
+	}
+	if pb.Department != nil {
+		// rs.Depart
+		rs.Department = PBToDepartment(pb.Department)
+	}
+	if pb.Job != nil {
+		rs.Job = PBToJob(pb.Job)
 	}
 	if pb.State == 1 || pb.State == 2 {
 		rs.Kind = 1
@@ -174,7 +231,293 @@ func PBToApprovedProcess(pb *approvedPB.ApprovedFlowPB) *ApprovedProcess {
 		Status:      int(pb.Status),
 	}
 
+	if pb.Handler != nil {
+		ap.Handler = PBToUser(pb.Handler)
+	}
+
 	return ap
+}
+
+func GetApprovedContent(pb *approvedPB.ApprovedPB) interface{} {
+	if pb == nil {
+		return nil
+	}
+	content := hptypes.DecodeToMap(pb.Content)
+	switch pb.Kind {
+	case "borrow":
+		borrow := new(GoodsBorrow)
+		if pb.Pusher != nil {
+			borrow.Applicant = PBToUser(pb.Pusher)
+			borrow.ApplicantID = pb.Pusher.ID
+		}
+
+		for k, val := range content {
+			switch k {
+			case "goods":
+				goods := make([]interface{}, 0)
+				goodItems := make([]*GoodsBorrowItem, 0)
+				if v, ok := val.([]interface{}); ok {
+					goods = v
+				}
+				for _, g := range goods {
+					item := func() *GoodsBorrowItem {
+						bitem := new(GoodsBorrowItem)
+						gi := g.(map[string]interface{})
+						for gk, gv := range gi {
+							if gk == "Name" {
+								bitem.Name = gv.(string)
+							}
+
+							if gk == "Count" {
+								c := fmt.Sprintf("%v", gv)
+								ci, _ := strconv.Atoi(c)
+								bitem.Count = ci
+							}
+						}
+
+						return bitem
+					}()
+
+					goodItems = append(goodItems, item)
+				}
+				borrow.Goods = goodItems
+			case "description":
+				borrow.Description = val.(string)
+			case "subject":
+				borrow.Subject = val.(string)
+			case "start_time":
+				borrow.StartTime = utils.Time2MicroUnix(val.(time.Time))
+			case "end_time":
+				borrow.EndTime = utils.Time2MicroUnix(val.(time.Time))
+			case "created_at":
+				borrow.CreatedAt = utils.Time2MicroUnix(val.(time.Time))
+			case "updated_at":
+				borrow.UpdatedAt = utils.Time2MicroUnix(val.(time.Time))
+			case "_id":
+				id := val.(bson.ObjectId)
+				borrow.ID = id.Hex()
+			case "pictureObjects", "attachObjects":
+				pics := make([]interface{}, 0)
+				files := make([]*File, 0)
+				if v, ok := val.([]interface{}); ok {
+					pics = v
+				}
+
+				for _, vi := range pics {
+					v := vi.(map[string]interface{})
+					file := func() *File {
+						f := new(File)
+						for k, pic := range v {
+							if k == "original_filename" {
+								f.OriginalFilename = pic.(string)
+							}
+
+							if k == "_id" {
+								id := pic.(bson.ObjectId)
+								f.ID = id.Hex()
+								f.Filename = f.ID
+							}
+							if k == "path" {
+								path := pic.(string)
+								f.Path = path
+								f.AbstractPath = path
+							}
+							if k == "ext" {
+								f.Ext = pic.(string)
+							}
+							if k == "file_key" {
+								path := pic.(string)
+								f.Path = path
+								f.AbstractPath = path
+
+							}
+							if k == "size" {
+								s, _ := strconv.Atoi(pic.(string))
+								f.Size = int64(s)
+							}
+
+						}
+						return f
+					}()
+
+					files = append(files, file)
+				}
+				// activity.Pictures = files
+
+				if k == "pictureObjects" {
+					borrow.Pictures = files
+				} else {
+					borrow.Attach = files
+				}
+			}
+		}
+
+		return borrow
+	case "funding":
+		funding := new(Funding)
+		if pb.Pusher != nil {
+			funding.Applicant = PBToUser(pb.Pusher)
+			funding.ApplicantID = pb.Pusher.ID
+		}
+
+		for k, val := range content {
+			switch k {
+			case "apply_purpose":
+				funding.ApplyPurpose = val.(string)
+			case "amount_apply_fee":
+				funding.AmountApplyFee = int64(val.(float64))
+			case "created_at":
+				funding.CreatedAt = utils.Time2MicroUnix(val.(time.Time))
+			case "updated_at":
+				funding.UpdatedAt = utils.Time2MicroUnix(val.(time.Time))
+			case "_id":
+				id := val.(bson.ObjectId)
+				funding.ID = id.Hex()
+			case "pictureObjects", "attachObjects":
+				pics := make([]interface{}, 0)
+				files := make([]*File, 0)
+				if v, ok := val.([]interface{}); ok {
+					pics = v
+				}
+
+				for _, vi := range pics {
+					v := vi.(map[string]interface{})
+					file := func() *File {
+						f := new(File)
+						for k, pic := range v {
+							if k == "original_filename" {
+								f.OriginalFilename = pic.(string)
+							}
+
+							if k == "_id" {
+								id := pic.(bson.ObjectId)
+								f.ID = id.Hex()
+								f.Filename = f.ID
+							}
+							if k == "path" {
+								path := pic.(string)
+								f.Path = path
+								f.AbstractPath = path
+							}
+							if k == "ext" {
+								f.Ext = pic.(string)
+							}
+							if k == "file_key" {
+								path := pic.(string)
+								f.Path = path
+								f.AbstractPath = path
+
+							}
+							if k == "size" {
+								s, _ := strconv.Atoi(pic.(string))
+								f.Size = int64(s)
+							}
+
+						}
+						return f
+					}()
+
+					files = append(files, file)
+				}
+				// activity.Pictures = files
+
+				if k == "pictureObjects" {
+					funding.Pictures = files
+				} else {
+					funding.Attach = files
+				}
+			}
+		}
+		return funding
+	case "activity":
+		activity := new(Activity)
+		if pb.Pusher != nil {
+			activity.Applicant = PBToUser(pb.Pusher)
+			activity.ApplicantID = pb.Pusher.ID
+		}
+
+		for k, val := range content {
+			switch k {
+			case "subject":
+				activity.Subject = val.(string)
+			case "location":
+				activity.Location = val.(string)
+			case "start_time":
+				activity.StartTime = utils.Time2MicroUnix(val.(time.Time))
+			case "end_time":
+				activity.EndTime = utils.Time2MicroUnix(val.(time.Time))
+			case "created_at":
+				activity.CreatedAt = utils.Time2MicroUnix(val.(time.Time))
+			case "updated_at":
+				activity.UpdatedAt = utils.Time2MicroUnix(val.(time.Time))
+			case "_id":
+				id := val.(bson.ObjectId)
+				activity.ID = id.Hex()
+			case "amount_funding":
+				activity.AmountFunding = int64(val.(float64))
+			case "is_publish":
+				activity.IsPublish = val.(bool)
+			case "participants_total":
+				activity.ParticipantsTotal = int(val.(float64))
+			case "pictureObjects", "attachObjects":
+				pics := make([]interface{}, 0)
+				files := make([]*File, 0)
+				if v, ok := val.([]interface{}); ok {
+					pics = v
+				}
+
+				for _, vi := range pics {
+					v := vi.(map[string]interface{})
+					file := func() *File {
+						f := new(File)
+						for k, pic := range v {
+							if k == "original_filename" {
+								f.OriginalFilename = pic.(string)
+							}
+
+							if k == "_id" {
+								id := pic.(bson.ObjectId)
+								f.ID = id.Hex()
+								f.Filename = f.ID
+							}
+							if k == "path" {
+								path := pic.(string)
+								f.Path = path
+								f.AbstractPath = path
+							}
+							if k == "ext" {
+								f.Ext = pic.(string)
+							}
+							if k == "file_key" {
+								path := pic.(string)
+								f.Path = path
+								f.AbstractPath = path
+
+							}
+							if k == "size" {
+								s, _ := strconv.Atoi(pic.(string))
+								f.Size = int64(s)
+							}
+
+						}
+						return f
+					}()
+
+					files = append(files, file)
+				}
+				// activity.Pictures = files
+
+				if k == "pictureObjects" {
+					activity.Pictures = files
+				} else {
+					activity.Attach = files
+				}
+			}
+		}
+		return activity
+	default:
+		return nil
+	}
 }
 
 // func GetApprovedContent(pb *approvedPB.ApprovedPB) interface{} {
@@ -244,6 +587,8 @@ func PBToApprovedTask(pb *approvedPB.ApprovedPB) *ApprovedTask {
 		}
 		at.ApprovedProcesses = flows
 	}
+
+	// if pb.Pusher != nil
 
 	return at
 }

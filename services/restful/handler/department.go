@@ -7,7 +7,7 @@ import (
 
 	go_api "github.com/emicklei/go-restful"
 
-	"iunite.club/services/navo/dto"
+	"iunite.club/services/restful/dto"
 
 	deptPB "iunite.club/services/organization/proto/department"
 )
@@ -30,7 +30,7 @@ func (d *DepartmentHandler) getDepartmentService() deptPB.DepartmentService {
 func (d *DepartmentHandler) AddDept(req *go_api.Request, rsp *go_api.Response) {
 	ctx := context.Background()
 	params := struct {
-		Organization string `json:"organization" validate:"nonzero,objectid"`
+		Organization string `json:"organization" validate:"objectid"`
 		Name         string `json:"name"`
 		Parent       string `json:"parent" validate:"objectid"`
 		Description  string `json:"description"`
@@ -49,6 +49,10 @@ func (d *DepartmentHandler) AddDept(req *go_api.Request, rsp *go_api.Response) {
 	deptSrv := d.getDepartmentService()
 
 	parentID := params.Parent
+
+	if params.Organization == "" {
+		params.Organization = d.GetCurrentClubIDFromRequest(req)
+	}
 
 	if parentID == "" {
 		parentID = params.Organization
@@ -70,7 +74,9 @@ func (d *DepartmentHandler) AddDept(req *go_api.Request, rsp *go_api.Response) {
 		return
 	}
 
-	SuccessResponse(rsp, D{})
+	SuccessResponse(rsp, D{
+		"Department": dto.PBToDepartment(createResp.Department),
+	})
 }
 
 func (d *DepartmentHandler) GetDepartmentByOrg(req *go_api.Request, rsp *go_api.Response) {

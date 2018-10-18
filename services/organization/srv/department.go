@@ -129,7 +129,7 @@ func (d *DepartmentService) UpdateDepartment(in *UpdateDepartmentBundle) error {
 		// 	Sort: len(foundParentOrg.PathIndexs),
 		// })
 	}
-
+	foundOrg.Init(foundOrg)
 	if err := OrgModel.Update(bson.M{"_id": foundOrg.ID}, &foundOrg); err != nil {
 		return d.Error().InternalServerError(err.Error())
 	}
@@ -162,18 +162,19 @@ func (d *DepartmentService) GetDepartmentListByParentID(in *GetDepartmentListBun
 	departments := []models.Organization{}
 
 	condition := bson.M{}
-
-	if in.Spread {
-		condition["$or"] = []bson.M{
-			{
-				"parent_id": bson.ObjectIdHex(in.ParentID),
-			},
-			{
-				"pathindexs._id": bson.ObjectIdHex(in.ParentID),
-			},
+	if bson.IsObjectIdHex(in.ParentID) {
+		if in.Spread {
+			condition["$or"] = []bson.M{
+				{
+					"parent_id": bson.ObjectIdHex(in.ParentID),
+				},
+				{
+					"pathindexs._id": bson.ObjectIdHex(in.ParentID),
+				},
+			}
+		} else {
+			condition["parent_id"] = bson.ObjectIdHex(in.ParentID)
 		}
-	} else {
-		condition["parent_id"] = bson.ObjectIdHex(in.ParentID)
 	}
 
 	// total := OrgModel.Where(condition).Count()
@@ -204,6 +205,7 @@ func (d *DepartmentService) GetDepartmentListByParentID(in *GetDepartmentListBun
 			"$limit": int(in.Limit),
 		},
 	}).Pipe().All(&departments)
+	// OrgModel.Aggregate([]bson.M{}).
 	pipes := []bson.M{
 		{
 			"$graphLookup": bson.M{

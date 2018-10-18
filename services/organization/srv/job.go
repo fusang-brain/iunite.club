@@ -100,6 +100,7 @@ func (j *JobService) UpdateJob(in *UpdateJobBundle) error {
 	}
 	// fmt.Println(in.ID)
 	// return j.Error.TemplateBadRequest()
+	willUpdateJob.Init(&willUpdateJob)
 	if err := JobModel.Update(bson.M{"_id": bson.ObjectIdHex(in.ID)}, &willUpdateJob); err != nil {
 		return j.Error().InternalServerError(err.Error())
 	}

@@ -8,6 +8,9 @@ It is generated from these files:
 	proto/approved/approved.proto
 
 It has these top-level messages:
+	PublishActivityRequest
+	DismissActivityRequest
+	ListActivityRequest
 	CreateRequest
 	ApprovedResponse
 	Response
@@ -28,6 +31,7 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/golang/protobuf/ptypes/timestamp"
 import _ "github.com/golang/protobuf/ptypes/struct"
+import _ "iunite.club/services/user/proto"
 
 import (
 	client "github.com/micro/go-micro/client"
@@ -59,8 +63,12 @@ type ApprovedService interface {
 	ListByPusher(ctx context.Context, in *ListByPusherRequest, opts ...client.CallOption) (*ListResponse, error)
 	WaitingExecuteList(ctx context.Context, in *ListByCountRequest, opts ...client.CallOption) (*ListResponse, error)
 	Details(ctx context.Context, in *DetailsRequest, opts ...client.CallOption) (*ApprovedResponse, error)
+	DetailsByContentID(ctx context.Context, in *DetailsRequest, opts ...client.CallOption) (*ApprovedResponse, error)
 	Execute(ctx context.Context, in *ExecuteRequest, opts ...client.CallOption) (*Response, error)
 	Create(ctx context.Context, in *CreateRequest, opts ...client.CallOption) (*ApprovedResponse, error)
+	ListActivity(ctx context.Context, in *ListActivityRequest, opts ...client.CallOption) (*ListResponse, error)
+	PublishActivity(ctx context.Context, in *PublishActivityRequest, opts ...client.CallOption) (*Response, error)
+	DismissActivity(ctx context.Context, in *DismissActivityRequest, opts ...client.CallOption) (*Response, error)
 }
 
 type approvedService struct {
@@ -131,6 +139,16 @@ func (c *approvedService) Details(ctx context.Context, in *DetailsRequest, opts 
 	return out, nil
 }
 
+func (c *approvedService) DetailsByContentID(ctx context.Context, in *DetailsRequest, opts ...client.CallOption) (*ApprovedResponse, error) {
+	req := c.c.NewRequest(c.name, "Approved.DetailsByContentID", in)
+	out := new(ApprovedResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *approvedService) Execute(ctx context.Context, in *ExecuteRequest, opts ...client.CallOption) (*Response, error) {
 	req := c.c.NewRequest(c.name, "Approved.Execute", in)
 	out := new(Response)
@@ -151,6 +169,36 @@ func (c *approvedService) Create(ctx context.Context, in *CreateRequest, opts ..
 	return out, nil
 }
 
+func (c *approvedService) ListActivity(ctx context.Context, in *ListActivityRequest, opts ...client.CallOption) (*ListResponse, error) {
+	req := c.c.NewRequest(c.name, "Approved.ListActivity", in)
+	out := new(ListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *approvedService) PublishActivity(ctx context.Context, in *PublishActivityRequest, opts ...client.CallOption) (*Response, error) {
+	req := c.c.NewRequest(c.name, "Approved.PublishActivity", in)
+	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *approvedService) DismissActivity(ctx context.Context, in *DismissActivityRequest, opts ...client.CallOption) (*Response, error) {
+	req := c.c.NewRequest(c.name, "Approved.DismissActivity", in)
+	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Approved service
 
 type ApprovedHandler interface {
@@ -159,8 +207,12 @@ type ApprovedHandler interface {
 	ListByPusher(context.Context, *ListByPusherRequest, *ListResponse) error
 	WaitingExecuteList(context.Context, *ListByCountRequest, *ListResponse) error
 	Details(context.Context, *DetailsRequest, *ApprovedResponse) error
+	DetailsByContentID(context.Context, *DetailsRequest, *ApprovedResponse) error
 	Execute(context.Context, *ExecuteRequest, *Response) error
 	Create(context.Context, *CreateRequest, *ApprovedResponse) error
+	ListActivity(context.Context, *ListActivityRequest, *ListResponse) error
+	PublishActivity(context.Context, *PublishActivityRequest, *Response) error
+	DismissActivity(context.Context, *DismissActivityRequest, *Response) error
 }
 
 func RegisterApprovedHandler(s server.Server, hdlr ApprovedHandler, opts ...server.HandlerOption) {
@@ -170,8 +222,12 @@ func RegisterApprovedHandler(s server.Server, hdlr ApprovedHandler, opts ...serv
 		ListByPusher(ctx context.Context, in *ListByPusherRequest, out *ListResponse) error
 		WaitingExecuteList(ctx context.Context, in *ListByCountRequest, out *ListResponse) error
 		Details(ctx context.Context, in *DetailsRequest, out *ApprovedResponse) error
+		DetailsByContentID(ctx context.Context, in *DetailsRequest, out *ApprovedResponse) error
 		Execute(ctx context.Context, in *ExecuteRequest, out *Response) error
 		Create(ctx context.Context, in *CreateRequest, out *ApprovedResponse) error
+		ListActivity(ctx context.Context, in *ListActivityRequest, out *ListResponse) error
+		PublishActivity(ctx context.Context, in *PublishActivityRequest, out *Response) error
+		DismissActivity(ctx context.Context, in *DismissActivityRequest, out *Response) error
 	}
 	type Approved struct {
 		approved
@@ -204,10 +260,26 @@ func (h *approvedHandler) Details(ctx context.Context, in *DetailsRequest, out *
 	return h.ApprovedHandler.Details(ctx, in, out)
 }
 
+func (h *approvedHandler) DetailsByContentID(ctx context.Context, in *DetailsRequest, out *ApprovedResponse) error {
+	return h.ApprovedHandler.DetailsByContentID(ctx, in, out)
+}
+
 func (h *approvedHandler) Execute(ctx context.Context, in *ExecuteRequest, out *Response) error {
 	return h.ApprovedHandler.Execute(ctx, in, out)
 }
 
 func (h *approvedHandler) Create(ctx context.Context, in *CreateRequest, out *ApprovedResponse) error {
 	return h.ApprovedHandler.Create(ctx, in, out)
+}
+
+func (h *approvedHandler) ListActivity(ctx context.Context, in *ListActivityRequest, out *ListResponse) error {
+	return h.ApprovedHandler.ListActivity(ctx, in, out)
+}
+
+func (h *approvedHandler) PublishActivity(ctx context.Context, in *PublishActivityRequest, out *Response) error {
+	return h.ApprovedHandler.PublishActivity(ctx, in, out)
+}
+
+func (h *approvedHandler) DismissActivity(ctx context.Context, in *DismissActivityRequest, out *Response) error {
+	return h.ApprovedHandler.DismissActivity(ctx, in, out)
 }

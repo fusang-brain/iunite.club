@@ -8,12 +8,15 @@ It is generated from these files:
 	proto/user.proto
 
 It has these top-level messages:
+	UpdateAvatarRequest
+	ByOrganizationIDRequest
 	FindUserClubProfileByIDRequest
 	UserClubProfileResponse
 	CreateMemberRequest
 	FindUsersByClubIDRequest
 	ResetPasswordResponse
 	UserClubProfile
+	Department
 	User
 	Profile
 	ResetPasswordRequest
@@ -76,6 +79,8 @@ type UserSrvService interface {
 	FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, opts ...client.CallOption) (*UserListResponse, error)
 	CreateMember(ctx context.Context, in *CreateMemberRequest, opts ...client.CallOption) (*Response, error)
 	FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, opts ...client.CallOption) (*UserClubProfileResponse, error)
+	FindUsersByOrganizationID(ctx context.Context, in *ByOrganizationIDRequest, opts ...client.CallOption) (*UserListResponse, error)
+	UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...client.CallOption) (*Response, error)
 }
 
 type userSrvService struct {
@@ -216,6 +221,26 @@ func (c *userSrvService) FindUserClubProfileByID(ctx context.Context, in *FindUs
 	return out, nil
 }
 
+func (c *userSrvService) FindUsersByOrganizationID(ctx context.Context, in *ByOrganizationIDRequest, opts ...client.CallOption) (*UserListResponse, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.FindUsersByOrganizationID", in)
+	out := new(UserListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userSrvService) UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, opts ...client.CallOption) (*Response, error) {
+	req := c.c.NewRequest(c.name, "UserSrv.UpdateAvatar", in)
+	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserSrv service
 
 type UserSrvHandler interface {
@@ -234,6 +259,8 @@ type UserSrvHandler interface {
 	FindUsersByClubID(context.Context, *FindUsersByClubIDRequest, *UserListResponse) error
 	CreateMember(context.Context, *CreateMemberRequest, *Response) error
 	FindUserClubProfileByID(context.Context, *FindUserClubProfileByIDRequest, *UserClubProfileResponse) error
+	FindUsersByOrganizationID(context.Context, *ByOrganizationIDRequest, *UserListResponse) error
+	UpdateAvatar(context.Context, *UpdateAvatarRequest, *Response) error
 }
 
 func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server.HandlerOption) {
@@ -250,6 +277,8 @@ func RegisterUserSrvHandler(s server.Server, hdlr UserSrvHandler, opts ...server
 		FindUsersByClubID(ctx context.Context, in *FindUsersByClubIDRequest, out *UserListResponse) error
 		CreateMember(ctx context.Context, in *CreateMemberRequest, out *Response) error
 		FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, out *UserClubProfileResponse) error
+		FindUsersByOrganizationID(ctx context.Context, in *ByOrganizationIDRequest, out *UserListResponse) error
+		UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, out *Response) error
 	}
 	type UserSrv struct {
 		userSrv
@@ -308,4 +337,12 @@ func (h *userSrvHandler) CreateMember(ctx context.Context, in *CreateMemberReque
 
 func (h *userSrvHandler) FindUserClubProfileByID(ctx context.Context, in *FindUserClubProfileByIDRequest, out *UserClubProfileResponse) error {
 	return h.UserSrvHandler.FindUserClubProfileByID(ctx, in, out)
+}
+
+func (h *userSrvHandler) FindUsersByOrganizationID(ctx context.Context, in *ByOrganizationIDRequest, out *UserListResponse) error {
+	return h.UserSrvHandler.FindUsersByOrganizationID(ctx, in, out)
+}
+
+func (h *userSrvHandler) UpdateAvatar(ctx context.Context, in *UpdateAvatarRequest, out *Response) error {
+	return h.UserSrvHandler.UpdateAvatar(ctx, in, out)
 }

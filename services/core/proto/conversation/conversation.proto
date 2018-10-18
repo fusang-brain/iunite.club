@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package iunite.club.srv.core.conversation;
+
+import "google/protobuf/timestamp.proto";
+import "iunite.club/services/user/proto/user.proto";
+
+service Conversation {
+  rpc CreateConversation(WithConversationBundle) returns(CreatedOK) {}
+  rpc GetConversationsByMemberID(ByUserID) returns(ConversationsResponse) {}
+  rpc FindConversationDetails(ByID) returns(ConversationDetails) {}
+  rpc ExitGroup(ByIDWithUserID) returns(IsOK) {}
+  rpc DismissGroup(ByID) returns(IsOK) {}
+  rpc UpdateGroupConversation(WithUpdateBundle) returns(IsOK) {}
+  rpc GetAllMembersOfConversation(ByID) returns(MembersResponse) {}
+  rpc RemoveConversationNotice(ByNoticeID) returns(IsOK) {}
+  rpc GetNoticeList(ByIDWithPager) returns(NoticesResponse) {}
+  rpc CreateNotice(WithNoticeBundle) returns(CreatedOK) {}
+  rpc MarkedNoticeToHasRead(WithMarkedBundle) returns(UpdatedOK) {}
+  rpc AddGroupMember(WithIDAndMembers) returns(UpdatedOK) {}
+  rpc RemoveGroupMember(WithIDAndMembers) returns(UpdatedOK) {}
+  rpc JoinInGroup(WithIDAndUserID) returns(IsOK) {}
+}
+
+message WithIDAndMembers {
+  string ID = 1;
+  repeated string Members = 2;
+}
+
+message WithIDAndUserID {
+  string ID = 1;
+  string UserID = 2;
+}
+
+message WithID {
+  string ID = 1;
+}
+
+message UpdatedOK {
+  bool OK = 1;
+}
+
+message WithMarkedBundle {
+  string NoticeID = 1;
+  string UserID = 2; 
+}
+
+message CreatedOK {
+  bool OK = 1;
+}
+
+message WithNoticeBundle {
+  string ConversationID = 1;
+  string Title = 2;
+  string Body = 3;
+}
+
+message NoticePB {
+  string ConversationID = 1;
+  string Title = 2;
+  string Body = 3;
+}
+
+message NoticesResponse {
+  repeated NoticePB Notices = 1; 
+  int64 Total = 2;
+}
+
+message ByIDWithPager {
+  string ID = 1;
+  int64 Page = 2;
+  int64 Limit = 3;
+}
+
+message ByNoticeID {
+  string ID = 1;
+}
+
+message MembersResponse {
+  repeated iunite.club.srv.user.User Members = 1;
+  int64 Total = 2;
+}
+
+message WithUpdateBundle {
+  string ID = 1;
+  string Nickname = 2;
+  string GroupName = 3;
+  string IsTop = 4;
+  string IsStartValidate = 5;
+  string Master = 6;
+  string Avatar = 7;
+}
+
+message IsOK {
+  bool OK = 1;
+}
+
+message ConversationDetails {
+  ConversationPB Conversation = 1;
+}
+
+message ByID {
+  string ID = 1;
+}
+
+message ByIDWithUserID {
+  string ID = 1;
+  string UserID = 2;
+}
+
+message ConversationsResponse {
+  repeated ConversationPB Conversations = 1;
+  int64 Total = 2;
+}
+
+message ByUserID {
+  string ID = 1;
+}
+
+
+message ConversationPB {
+  string ID = 1;
+  string Kind = 2;
+  string Name = 3;
+  string Avatar = 4;
+  repeated ConversationMember Members = 5;
+  string Master = 6;
+  bool IsStartValidate = 7;
+  bool IsTop = 8;
+  google.protobuf.Timestamp CreatedAt = 9;
+  google.protobuf.Timestamp UpdatedAt = 10;
+}
+
+message ConversationMember {
+  string UserID = 1;
+  string Nickname = 2;
+  bool IsTop = 3;
+}
+
+message WithConversationBundle {
+  string Kind = 1;
+  string Name = 2;
+  string Avatar = 3;
+  repeated string Members = 4;
+  string Master = 5;
+  bool IsStartValidate = 6;
+  bool IsTop = 7;
+}

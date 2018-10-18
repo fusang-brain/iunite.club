@@ -24,7 +24,9 @@ type Approved struct {
 	monger.Schema `json:",inline" bson:",inline"`
 
 	DepartmentID bson.ObjectId          `json:"department_id,omitempty" bson:"department_id,omitempty"`
+	Department   *Organization          `json:"department,omitempty" bson:"department,omitempty" monger:"belongTo,foreignKey=department_id"`
 	PusherID     bson.ObjectId          `json:"pusher_id,omitempty" bson:"pusher_id,omitempty"`
+	Pusher       *User                  `json:"pusher,omitempty" bson:"pusher,omitempty" monger:"belongTo,foreignKey=pusher_id"`
 	ClubID       bson.ObjectId          `json:"club_id,omitempty" bson:"club_id,omitempty"`
 	Title        string                 `json:"title,omitempty" bson:"title,omitempty"`                                         // 审批主题
 	Kind         string                 `json:"kind,omitempty" bson:"kind,omitempty"`                                           // 审批类型 ['activity': 活动, 'funding': 经费, 'borrow': 物品]
@@ -47,6 +49,9 @@ func (af *ApprovedFlow) ToPB() *approvedPB.ApprovedFlowPB {
 	pb.Sort = int32(af.Sort)
 	pb.ApprovedID = af.ApprovedID.Hex()
 
+	if af.Handler != nil {
+		pb.Handler = af.Handler.ToPB()
+	}
 	return pb
 }
 
@@ -73,5 +78,9 @@ func (a *Approved) ToPB() *approvedPB.ApprovedPB {
 		}
 		pb.Flows = flows
 	}
+	if a.Pusher != nil {
+		pb.Pusher = a.Pusher.ToPB()
+	}
+
 	return pb
 }

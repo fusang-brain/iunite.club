@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/micro/go-micro/client"
 
 	go_api "github.com/emicklei/go-restful"
-
-	"github.com/go-log/log"
 
 	"iunite.club/services/restful/dto"
 
@@ -39,7 +39,7 @@ func (o *OrganizationHandler) CreateOrganization(req *go_api.Request, rsp *go_ap
 		Name      string   `json:"name,omitempty" validate:"nonzero"`
 		Scale     int32    `json:"scale,omitempty" validate:"nonzero"`
 		Paperwork []string `json:"paperwork,omitempty" validate:"nonzero"`
-		Logo      string   `json:"logo,omitempty" validate:"nonzero"`
+		Logo      string   `json:"logo,omitempty"`
 	}{}
 
 	if err := o.Bind(req, &params); err != nil {
@@ -107,10 +107,11 @@ func (o *OrganizationHandler) GetAllOrgByUserID(req *go_api.Request, rsp *go_api
 
 	if params.ID == "" {
 		// tokens := o.GetTokenFromRequest(req)
-		if token, err := o.GetTokenCliamsFromRequest(req); err == nil {
-			log.Logf("UserID is %v", token.UserID)
-			params.ID = token.UserID
-		}
+		// if token, err := o.GetTokenCliamsFromRequest(req); err == nil {
+		// 	log.Logf("UserID is %v", token.UserID)
+		// 	params.ID = token.UserID
+		// }
+		params.ID = o.GetUserIDFromRequest(req)
 	}
 
 	orgService := o.clubService
@@ -124,7 +125,7 @@ func (o *OrganizationHandler) GetAllOrgByUserID(req *go_api.Request, rsp *go_api
 		return
 	}
 
-	resultClubs := make([]dto.Organization, 0, 1)
+	resultClubs := make([]dto.Organization, 0)
 
 	for _, val := range clubListResp.Organizations {
 		resultClubs = append(resultClubs, dto.Organization{
@@ -160,9 +161,10 @@ func (o *OrganizationHandler) GetAllOrgUsersByUserID(req *go_api.Request, rsp *g
 	}
 
 	if params.ID == "" {
-		if token, err := o.GetTokenCliamsFromRequest(req); err != nil {
-			params.ID = token.UserID
-		}
+		// if token, err := o.GetTokenCliamsFromRequest(req); err != nil {
+		// 	params.ID = token.UserID
+		// }
+		params.ID = o.GetUserIDFromRequest(req)
 	}
 
 	clubSrv := o.clubService
@@ -299,9 +301,24 @@ func (o *OrganizationHandler) AgreeJoin(req *go_api.Request, rsp *go_api.Respons
 
 	orgService := o.clubService
 
+	acceptResp, err := orgService.FindAcceptByUserClubProfileID(ctx, &clubPB.ByUserClubProfileIDRequest{
+		ID: params.ID,
+	})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	// orgService.FindAcceptBy(ctx, &clubPB.)
+	// ucpResp.UserClubProfile.JobID
+	// ucpResp.UserClubProfile
+
+	// ucpResp.UserClubProfile.JobID
+
 	resp, err := orgService.ExecuteJoinClubAccept(ctx, &clubPB.ExecuteJoinClubAcceptRequest{
 		IsPassed: true,
-		AcceptID: params.ID,
+		AcceptID: acceptResp.ID,
 	})
 
 	if err != nil {
@@ -335,9 +352,18 @@ func (o *OrganizationHandler) RefuseJoin(req *go_api.Request, rsp *go_api.Respon
 
 	orgService := o.clubService
 
+	acceptResp, err := orgService.FindAcceptByUserClubProfileID(ctx, &clubPB.ByUserClubProfileIDRequest{
+		ID: params.ID,
+	})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
 	resp, err := orgService.ExecuteJoinClubAccept(ctx, &clubPB.ExecuteJoinClubAcceptRequest{
 		IsPassed: false,
-		AcceptID: params.ID,
+		AcceptID: acceptResp.ID,
 	})
 
 	if err != nil {
@@ -413,7 +439,7 @@ func (o *OrganizationHandler) GetDepartmentDetails(req *go_api.Request, rsp *go_
 	departmentSrv := o.departmentService
 
 	params := struct {
-		ID string `json:"departmentID,omitempty" query:"departmentID" validate:"nonzero,objectid"`
+		ID string `json:"departmentID,omitempty" query:"departmentID"`
 	}{}
 
 	if err := o.Bind(req, &params); err != nil {
@@ -438,6 +464,49 @@ func (o *OrganizationHandler) GetDepartmentDetails(req *go_api.Request, rsp *go_
 		"Details": dto.PBToDepartment(deptResp.Department),
 	})
 
+}
+
+func (o *OrganizationHandler) GetDepartmentsAndUsers(req *go_api.Request, rsp *go_api.Response) {
+	ctx := context.Background()
+	clubID := req.QueryParameter("departmentID")
+	kind := "department"
+	if !bson.IsObjectIdHex(clubID) {
+		kind = "club"
+		clubID = o.GetCurrentClubIDFromRequest(req)
+	}
+
+	// o.departmentService.GetUsersByDepartmentID()
+	usersResp, err := o.userService.FindUsersByOrganizationID(ctx, &userPB.ByOrganizationIDRequest{
+		Kind: kind,
+		ID:   clubID,
+	})
+
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+
+	deptListResp, err := o.departmentService.GetDepartmentListByParentID(ctx, &deptPB.DepartmentListByParentIDRequest{ParentID: clubID, Page: 1, Limit: 999})
+	if err != nil {
+		ErrorResponse(rsp, err)
+		return
+	}
+	depts := make([]*dto.Department, 0)
+	users := make([]*dto.User, 0)
+	for _, v := range deptListResp.Departments {
+		depts = append(depts, dto.PBToDepartment(v))
+	}
+
+	for _, v := range usersResp.Users {
+		users = append(users, dto.PBToUser(v))
+	}
+
+	SuccessResponse(rsp, D{
+		"Details": bson.M{
+			"Departments": depts,
+			"Users":       users,
+		},
+	})
 }
 
 func (o *OrganizationHandler) Info(req *go_api.Request, rsp *go_api.Response) {
