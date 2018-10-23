@@ -106,7 +106,6 @@ func (a *ApprovedHandler) ListV2(ctx context.Context, req *iunite_club_srv_core.
 		},
 	}
 
-	fmt.Println(condition, "查询条件")
 	if req.Search != "" {
 		condition["title"] = bson.RegEx{Pattern: req.Search, Options: "i"}
 	}
@@ -448,12 +447,16 @@ func (self *ApprovedHandler) ListActivity(ctx context.Context, req *iunite_club_
 
 	condition := bson.M{
 		"club_id": req.ClubID, // 当前社团的
+		"content.is_hidden": bson.M{
+			"$ne": true,
+		},
 	}
 
 	switch req.Kind {
 	case "all":
 		// 所有已经发布的活动
 		condition["content.is_publish"] = true
+
 	case "other":
 		fallthrough
 	case "mine":
@@ -568,5 +571,85 @@ func (self *ApprovedHandler) DismissActivity(ctx context.Context, req *iunite_cl
 	}
 
 	rsp.OK = true
+	return nil
+}
+
+func (self *ApprovedHandler) GetPendingApprovedCountByUserID(ctx context.Context, req *iunite_club_srv_core.GetPendingApprovedCountRequest, rsp *iunite_club_srv_core.PendingApprovedCountResponse) error {
+	ApprovedModel := self.Model(ctx, "Approved")
+
+	flowElemMatch := bson.M{
+		"handler_id": req.UserID,
+		"kind":       "approved",
+		"status":     1,
+	}
+
+	condition := bson.M{
+		"flows": bson.M{
+			"$elemMatch": flowElemMatch,
+		},
+	}
+	fmt.Println(condition, "condition")
+	type CountScan struct {
+		Count int64         `bson:"count"`
+		ID    bson.ObjectId `bson:"_id"`
+	}
+
+	scan := make([]CountScan, 0)
+	// scan := make(map[string]interface{})
+
+	err := ApprovedModel.
+		Aggregate([]bson.M{}).
+		Populate("Flows").
+		Where(bson.M{
+			"$or": []bson.M{
+				{
+					"flows": bson.M{
+						"$elemMatch": bson.M{
+							"handler_id": bson.ObjectIdHex(req.UserID),
+							"kind":       "approved",
+							"status":     1,
+						},
+					},
+				},
+				{
+					"flows": bson.M{
+						"$elemMatch": bson.M{
+							"handler_id": req.UserID,
+							"kind":       "copy",
+							"status":     0,
+						},
+					},
+				},
+			},
+		}).
+		Pipe(
+			bson.M{
+				"$group": bson.M{
+					"_id": "$club_id",
+					"count": bson.M{
+						"$sum": 1,
+					},
+				},
+			},
+		).
+		All(&scan)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return self.Error(ctx).BadRequest(err.Error())
+	}
+
+	fmt.Println(scan, "scan")
+
+	counts := make([]*iunite_club_srv_core.ApprovedCountObject, 0)
+	for _, v := range scan {
+		counts = append(counts, &iunite_club_srv_core.ApprovedCountObject{
+			Count:  v.Count,
+			ClubID: v.ID.Hex(),
+		})
+	}
+
+	rsp.Counts = counts
+
 	return nil
 }

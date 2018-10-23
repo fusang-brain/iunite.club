@@ -8,6 +8,9 @@ It is generated from these files:
 	proto/approved/approved.proto
 
 It has these top-level messages:
+	GetPendingApprovedCountRequest
+	ApprovedCountObject
+	PendingApprovedCountResponse
 	PublishActivityRequest
 	DismissActivityRequest
 	ListActivityRequest
@@ -69,6 +72,7 @@ type ApprovedService interface {
 	ListActivity(ctx context.Context, in *ListActivityRequest, opts ...client.CallOption) (*ListResponse, error)
 	PublishActivity(ctx context.Context, in *PublishActivityRequest, opts ...client.CallOption) (*Response, error)
 	DismissActivity(ctx context.Context, in *DismissActivityRequest, opts ...client.CallOption) (*Response, error)
+	GetPendingApprovedCountByUserID(ctx context.Context, in *GetPendingApprovedCountRequest, opts ...client.CallOption) (*PendingApprovedCountResponse, error)
 }
 
 type approvedService struct {
@@ -199,6 +203,16 @@ func (c *approvedService) DismissActivity(ctx context.Context, in *DismissActivi
 	return out, nil
 }
 
+func (c *approvedService) GetPendingApprovedCountByUserID(ctx context.Context, in *GetPendingApprovedCountRequest, opts ...client.CallOption) (*PendingApprovedCountResponse, error) {
+	req := c.c.NewRequest(c.name, "Approved.GetPendingApprovedCountByUserID", in)
+	out := new(PendingApprovedCountResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Approved service
 
 type ApprovedHandler interface {
@@ -213,6 +227,7 @@ type ApprovedHandler interface {
 	ListActivity(context.Context, *ListActivityRequest, *ListResponse) error
 	PublishActivity(context.Context, *PublishActivityRequest, *Response) error
 	DismissActivity(context.Context, *DismissActivityRequest, *Response) error
+	GetPendingApprovedCountByUserID(context.Context, *GetPendingApprovedCountRequest, *PendingApprovedCountResponse) error
 }
 
 func RegisterApprovedHandler(s server.Server, hdlr ApprovedHandler, opts ...server.HandlerOption) {
@@ -228,6 +243,7 @@ func RegisterApprovedHandler(s server.Server, hdlr ApprovedHandler, opts ...serv
 		ListActivity(ctx context.Context, in *ListActivityRequest, out *ListResponse) error
 		PublishActivity(ctx context.Context, in *PublishActivityRequest, out *Response) error
 		DismissActivity(ctx context.Context, in *DismissActivityRequest, out *Response) error
+		GetPendingApprovedCountByUserID(ctx context.Context, in *GetPendingApprovedCountRequest, out *PendingApprovedCountResponse) error
 	}
 	type Approved struct {
 		approved
@@ -282,4 +298,8 @@ func (h *approvedHandler) PublishActivity(ctx context.Context, in *PublishActivi
 
 func (h *approvedHandler) DismissActivity(ctx context.Context, in *DismissActivityRequest, out *Response) error {
 	return h.ApprovedHandler.DismissActivity(ctx, in, out)
+}
+
+func (h *approvedHandler) GetPendingApprovedCountByUserID(ctx context.Context, in *GetPendingApprovedCountRequest, out *PendingApprovedCountResponse) error {
+	return h.ApprovedHandler.GetPendingApprovedCountByUserID(ctx, in, out)
 }

@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package iunite.club.srv.core.recruitment;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+service Recruitment {
+  rpc AdjustOnePost(AdjustOnePostRequest) returns(Response) {} // 调剂一次申请
+  rpc PassedOnePost(PassedOnePostRequest) returns(Response) {} // 通过一个申请
+  rpc RefusedOnePost(RefusedOnePostRequest) returns(Response) {} // 拒绝一个申请
+  rpc FindLatestRecruitmentRecord(ByClubIDRequest) returns(RecruitmentRecordResponse) {} // 找到时间纬度上最近的一个招新记录
+  rpc AddRecruitmentRecord(ByRecruitmentRecordBundle) returns(Response) {} // 添加招新记录
+  rpc AddRecruitmentForm(ByRecruitmentFormBundle) returns(Response) {} // 添加招新表单
+  rpc FindRecruitmentFormDetails(ByRecruitmentFormID) returns(RecruitmentRecordFromResponse) {} // 发现一个招新表详情
+  rpc AddRecruitmentFormRecord(ByRecruitmentFormRecord) returns(Response) {} // 添加报名记录
+  rpc EndRecruitment(ByRecruitmentID) returns(Response) {} // 结束招新记录
+  rpc FindRecruitmentRecordDetails(ByRecruitmentID) returns(RecruitmentRecordResponse) {} 
+  rpc FindRecruitmentsFormRecordList(FindRecruitmentFormRecordRequest) returns(RecruitmentFormRecordsResponse) {}
+}
+
+message FindRecruitmentFormRecordRequest {
+  int32 Page = 1;
+  int32 Limit = 2;
+  string Department = 3;
+  int32 State = 4;
+  string RecordID = 5;
+}
+
+message RecruitmentFormRecordsResponse {
+  repeated RecruitmentFormRecord Records = 1;
+  int32 Total = 2;
+}
+
+message Response {
+  bool OK = 1;
+}
+
+message AdjustOnePostRequest {
+  string ID = 1;
+  string DepartmentID = 2;
+}
+
+message PassedOnePostRequest {
+  string ID = 1;
+
+}
+
+message RefusedOnePostRequest {
+  string ID = 1;
+}
+
+message ByClubIDRequest {
+  string ClubID = 1;
+}
+
+message RecruitmentForm {
+  string ID = 1;
+  google.protobuf.Timestamp CreatedAt = 2;
+  google.protobuf.Timestamp UpdatedAt = 3;
+  string Name = 4;
+  string RecordID = 5;
+  repeated RecruitmentFormField Fields = 6;
+}
+
+message RecruitmentAnswer {
+  string ID = 1;
+  string FormID = 2;
+  string ItemKey = 3;
+  string Answer = 4;
+}
+
+message RecruitmentFormRecord {
+  string ID = 1;
+  google.protobuf.Timestamp CreatedAt = 2;
+  google.protobuf.Timestamp UpdatedAt = 3;
+  string Mobile = 4;
+  string Name = 5;
+  string Major = 6;
+  int32 Age = 7;
+  string SchoolStudentID = 8;
+  string DepartmentID = 9;
+  string RecordID = 10;
+  int32 Status = 11;
+  repeated RecruitmentAnswer Answers = 12;
+}
+
+message RecruitmentFormField {
+  string ID = 1;
+  string Subject = 2;
+  string Kind = 3;
+  google.protobuf.Struct Options = 4;
+  string Key = 5;
+  int32 Sort = 7;
+}
+
+message RecruitmentRecord {
+  string ID = 1;
+  google.protobuf.Timestamp CreatedAt = 2;
+  google.protobuf.Timestamp UpdatedAt = 3;
+  string ClubID = 4;
+  string CreateUserID = 5;
+  RecruitmentForm Form = 6;
+  bool HasStart = 7;
+  bool HasEnd = 8;
+}
+
+message RecruitmentRecordResponse {
+  RecruitmentRecord Record = 1;
+}
+
+message RecruitmentRecordFromResponse {
+  RecruitmentForm Form = 2;
+}
+
+message ByRecruitmentRecordBundle {
+  // RecruitmentRecord Record = 1;
+  string UserID = 1;
+  // string FormID = 2;
+  string ClubID = 3;
+}
+
+message ByRecruitmentFormBundle {
+  RecruitmentForm RecordForm = 1;
+  string UserID = 2;
+  string ClubID = 3;
+  string RecordID = 4;
+}
+
+message ByRecruitmentFormID {
+  string ID = 1;
+}
+
+message ByRecruitmentID {
+  string ID = 1;
+}
+
+message ByRecruitmentFormRecord {
+  RecruitmentFormRecord RecordFormRecord = 1;
+}
+
+

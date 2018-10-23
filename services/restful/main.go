@@ -49,6 +49,8 @@ func getWebContainer() *restful.Container {
 	borrowHandler := handler.NewBorrowHandler(c)
 	cloudHandler := handler.NewCloudService(c)
 	otherHandler := new(handler.OtherHandler)
+	todoHandler := handler.NewTodoHandler(c)
+	recruitmentHandler := handler.NewRecruitmentHandler(c)
 
 	rc := restful.NewContainer()
 
@@ -222,6 +224,23 @@ func getWebContainer() *restful.Container {
 	setRoute(approvedV2, approvedHandler.ListV2, "GET", "/list", "approved")
 	setRoute(approvedV2, approvedHandler.ListByPusher, "GET", "/listByPusher", "approved")
 
+	todo := getWebService("/v1/todo", "Todo service")
+	setRoute(todo, todoHandler.GetTaskCount, "GET", "/taskCount", "todo")
+
+	recruitment := getWebService("/v1/recruitment", "Recruitment service")
+	setRoute(recruitment, recruitmentHandler.GetLastestRecruitmentRecord, "GET", "/latestRecruitmentRecord", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.AddRecruitmentRecord, "POST", "/addRecruitmentRecord", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.AddRecruitmentForm, "POST", "/addRecruitmentForm", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.GetRecruitmentFormDetails, "GET", "/getRecruitmentFormDetails", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.GetRecruitmentRecordDetails, "GET", "/getRecruitmentRecordDetails", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.AddRecruitmentFormRecord, "POST", "/addRecruitmentFormRecord", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.GetRecruitmentFormRecordList, "GET", "/getRecruitmentFormRecordList", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.DownloadQRCode, "GET", "/downloadQRCode", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.RefusedOnePost, "POST", "/refusedOnePost", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.PassedOnePost, "POST", "/passedOnePost", "Recruitment")
+	setRoute(recruitment, recruitmentHandler.AdjustOnePost, "POST", "/adjustOnePost", "Recruitment")
+
+
 	rc.Add(file)
 	rc.Add(school)
 	rc.Add(base)
@@ -237,6 +256,8 @@ func getWebContainer() *restful.Container {
 	rc.Add(approved)
 	rc.Add(approvedV2)
 	rc.Add(res)
+	rc.Add(todo)
+	rc.Add(recruitment)
 
 	config := restfulApi.Config{
 		WebServices: rc.RegisteredWebServices(),

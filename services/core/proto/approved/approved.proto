@@ -18,6 +18,20 @@ service Approved {
   rpc ListActivity(ListActivityRequest) returns(ListResponse) {}
   rpc PublishActivity(PublishActivityRequest) returns(Response) {}
   rpc DismissActivity(DismissActivityRequest) returns(Response) {}
+  rpc GetPendingApprovedCountByUserID(GetPendingApprovedCountRequest) returns(PendingApprovedCountResponse) {}
+}
+
+message GetPendingApprovedCountRequest {
+  string UserID = 1;
+}
+
+message ApprovedCountObject {
+  int64 Count = 1;
+  string ClubID = 3;
+}
+
+message PendingApprovedCountResponse {
+  repeated ApprovedCountObject Counts = 1;
 }
 
 message PublishActivityRequest {

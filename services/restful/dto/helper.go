@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -9,12 +10,118 @@ import (
 	"github.com/iron-kit/go-ironic/utils"
 	"gopkg.in/mgo.v2/bson"
 	approvedPB "iunite.club/services/core/proto/approved"
+	recruitmentPB "iunite.club/services/core/proto/recruitment"
 	orgPB "iunite.club/services/organization/proto"
 	schoolPB "iunite.club/services/organization/proto/school"
 	storagePB "iunite.club/services/storage/proto"
 	cloudPB "iunite.club/services/storage/proto/cloud"
 	userPB "iunite.club/services/user/proto"
 )
+
+func PBToRecruitmentFormRecords(pb *recruitmentPB.RecruitmentFormRecord) *RecruitmentFormRecords {
+	result := &RecruitmentFormRecords{
+		ID: pb.ID,
+		Mobile: pb.Mobile,
+		Name: pb.Name,
+		Major: pb.Major,
+		Age: int(pb.Age),
+		SchoolStudentID: pb.SchoolStudentID,
+		// AcceptDepartment: pb.DepartmentID
+		DepartmentRefer: pb.DepartmentID,
+		RecordID: pb.RecordID,
+		Status: int(pb.Status),
+	}
+
+	if len(pb.Answers) > 0 {
+		answers := make([]RecruitmentFormAnswer, 0, len(pb.Answers))
+		for _, ans := range pb.Answers {
+			answers = append(answers, RecruitmentFormAnswer{
+				ID: ans.ID,
+				Answer: ans.Answer,
+				ItemRefer: ans.FormID,
+			})
+		}
+		result.Answers = answers
+	}
+
+	return result
+}
+
+func PBToRecruitmentFormItem(pb *recruitmentPB.RecruitmentFormField) *RecruitmentFormItem {
+	if pb == nil {
+		return nil
+	}
+
+	result := &RecruitmentFormItem{
+		ID:      pb.ID,
+		Key:     pb.Key,
+		Subject: pb.Subject,
+		// Options: hptypes.DecodeToMap(pb.Options),
+		Kind:    pb.Kind,
+		// Organization: pb.
+	}
+
+	options := hptypes.DecodeToMap(pb.Options)
+
+	if opts, ok := options["Opts"]; ok {
+		if optsb, err := json.Marshal(opts); err == nil {
+			result.Options = string(optsb)
+
+			if result.Options == "null" {
+				result.Options = ""
+			}
+		}
+	} else {
+		result.Options = ""
+	}
+
+	return result
+}
+
+func PBToRecruitmentForm(pb *recruitmentPB.RecruitmentForm) *RecruitmentForm {
+	if pb == nil {
+		return nil
+	}
+
+	result := &RecruitmentForm{
+		ID:        pb.ID,
+		CreatedAt: utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt: utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		FormName:  pb.Name,
+	}
+
+	if len(pb.Fields) > 0 {
+		items := make([]*RecruitmentFormItem, 0)
+		for _, v := range pb.Fields {
+			items = append(items, PBToRecruitmentFormItem(v))
+		}
+		result.Items = items
+	}
+
+	return result
+}
+
+func PBToRecruitmentRecord(pb *recruitmentPB.RecruitmentRecord) *RecruitmentRecord {
+	if pb == nil {
+		return nil
+	}
+
+	result := &RecruitmentRecord{
+		ID:           pb.ID,
+		CreatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		Organization: pb.ClubID,
+		CreateUser:   pb.CreateUserID,
+		HasStart:     pb.HasStart,
+		HasEnd:       pb.HasEnd,
+	}
+
+	if pb.Form != nil {
+		result.RecruitmentForm = PBToRecruitmentForm(pb.Form)
+	}
+
+	return result
+}
 
 func PBToCloudDisk(pb *cloudPB.CloudPB) *CloudDisk {
 	if pb == nil {

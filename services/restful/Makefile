@@ -6,7 +6,7 @@ GOPATH:=$(shell go env GOPATH)
 
 build:
 
-	GOOS=linux GOARCH=amd64 go build -o restful-web main.go plugin.go
+	GOOS=linux GOARCH=amd64 go build -o restful-web -gcflags "all=-N -l" main.go plugin.go
 	go build -o restful-web-local main.go plugin.go
 
 test:

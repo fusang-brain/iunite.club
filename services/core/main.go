@@ -1,6 +1,7 @@
 package main
 
 import (
+	recruitment "iunite.club/services/core/proto/recruitment"
 	"os"
 	"time"
 
@@ -42,6 +43,9 @@ func main() {
 						&models.Approved{},
 						&models.ApprovedFlow{},
 						&models.User{},
+						&models.RecruitmentForm{},
+						&models.RecruitmentFormRecord{},
+						&models.RecruitmentRecord{},
 						// &models.User{},
 						// &models.Profile{},
 						// &models.Organization{},
@@ -70,6 +74,10 @@ func main() {
 		service.Server(),
 		new(handler.ApprovedHandler),
 	)
+	recruitment.RegisterRecruitmentHandler(service.Server(), new(handler.Recruitment))
+
+
+
 	// Register Struct as Subscriber
 	micro.RegisterSubscriber("iunite.club.srv.core", service.Server(), new(subscriber.Example))
 

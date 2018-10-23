@@ -96,3 +96,15 @@ func (h *BaseHandler) GetPlatformFromRequest(req *restful.Request) string {
 
 	return PlatformWEB
 }
+
+func (self *BaseHandler) BindAndValidate(req *restful.Request, in interface{}) error {
+	if err := self.Bind(req, in); err != nil {
+		return self.Error().BadRequest(err.Error())
+	}
+
+	if err := self.Validate(in); err != nil {
+		return self.Error().BadRequest(err.Error())
+	}
+
+	return nil
+}

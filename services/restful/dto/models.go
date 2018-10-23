@@ -252,24 +252,24 @@ type Notification struct {
 
 // RecruitmentForm 招新表单
 type RecruitmentForm struct {
-	ID        string                `json:"ID,omitempty"`
-	CreatedAt int64                 `json:"CreatedAt,omitempty"`
-	UpdatedAt int64                 `json:"UpdatedAt,omitempty"`
-	FormName  string                `json:"FormName,omitempty"` // 招新表名称
-	Items     []RecruitmentFormItem `json:"Items,omitempty"`    // 表单的项目
+	ID        string                 `json:"ID,omitempty"`
+	CreatedAt int64                  `json:"CreatedAt,omitempty"`
+	UpdatedAt int64                  `json:"UpdatedAt,omitempty"`
+	FormName  string                 `json:"FormName,omitempty"` // 招新表名称
+	Items     []*RecruitmentFormItem `json:"Items,omitempty"`    // 表单的项目
 }
 
 // RecruitmentFormItem 招新表单项目model
 type RecruitmentFormItem struct {
-	ID           string `json:"ID,omitempty"`
-	CreatedAt    int64  `json:"CreatedAt,omitempty"`
-	UpdatedAt    int64  `json:"UpdatedAt,omitempty"`
-	Key          string `json:"Key,omitempty"` // 题目的标识，由前端生成
-	Organization string `json:"Organization,omitempty"`
-	Subject      string `json:"Subject,omitempty"`
-	Options      string `json:"Options,omitempty"`
-	Kind         string `json:"Kind,omitempty"`      // 种类 单选：radio 多选: checkbox 填空: words
-	FormRefer    string `json:"FormRefer,omitempty"` // 所属表单的关联字段
+	ID           string                 `json:"ID,omitempty"`
+	CreatedAt    int64                  `json:"CreatedAt,omitempty"`
+	UpdatedAt    int64                  `json:"UpdatedAt,omitempty"`
+	Key          string                 `json:"Key,omitempty"` // 题目的标识，由前端生成
+	Organization string                 `json:"Organization,omitempty"`
+	Subject      string                 `json:"Subject,omitempty"`
+	Options      string `json:"Options,omitempty"` // json object string
+	Kind         string                 `json:"Kind,omitempty"`      // 种类 单选：radio 多选: checkbox 填空: words
+	FormRefer    string                 `json:"FormRefer,omitempty"` // 所属表单的关联字段
 }
 
 // RecruitmentFormRecords 招新表单提交记录表
@@ -292,15 +292,15 @@ type RecruitmentFormRecords struct {
 
 // RecruitmentRecord 招新记录表
 type RecruitmentRecord struct {
-	ID                   string          `json:"ID,omitempty"`
-	CreatedAt            int64           `json:"CreatedAt,omitempty"`
-	UpdatedAt            int64           `json:"UpdatedAt,omitempty"`
-	Organization         string          `json:"Organization,omitempty"`         // 关联的组织
-	CreateUser           string          `json:"CreateUser,omitempty"`           // 招新开启人
-	RecruitmentForm      RecruitmentForm `json:"RecruitmentForm,omitempty"`      // 本次招新的招新表
-	RecruitmentFormRefer string          `json:"RecruitmentFormRefer,omitempty"` // 招新报名表的ID
-	HasStart             bool            `json:"HasStart,omitempty"`             // 招新是否已经开始，一般在招新表提交后就正式开始
-	HasEnd               bool            `json:"HasEnd,omitempty"`               // 招新是否已经结束
+	ID                   string           `json:"ID,omitempty"`
+	CreatedAt            int64            `json:"CreatedAt,omitempty"`
+	UpdatedAt            int64            `json:"UpdatedAt,omitempty"`
+	Organization         string           `json:"Organization,omitempty"`         // 关联的组织
+	CreateUser           string           `json:"CreateUser,omitempty"`           // 招新开启人
+	RecruitmentForm      *RecruitmentForm `json:"RecruitmentForm,omitempty"`      // 本次招新的招新表
+	RecruitmentFormRefer string           `json:"RecruitmentFormRefer,omitempty"` // 招新报名表的ID
+	HasStart             bool             `json:"HasStart,omitempty"`             // 招新是否已经开始，一般在招新表提交后就正式开始
+	HasEnd               bool             `json:"HasEnd,omitempty"`               // 招新是否已经结束
 }
 
 // RecruitmentFormAnswer 招新表单答案记录表
