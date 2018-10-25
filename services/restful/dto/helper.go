@@ -9,6 +9,7 @@ import (
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"github.com/iron-kit/go-ironic/utils"
 	"gopkg.in/mgo.v2/bson"
+	announcePB "iunite.club/services/core/proto/announce"
 	approvedPB "iunite.club/services/core/proto/approved"
 	recruitmentPB "iunite.club/services/core/proto/recruitment"
 	orgPB "iunite.club/services/organization/proto"
@@ -18,26 +19,54 @@ import (
 	userPB "iunite.club/services/user/proto"
 )
 
+func PBToAnnounce(pb *announcePB.AnnouncePB) *Announce {
+	result := &Announce{
+		ID:        pb.ID,
+		CreatedAt: utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt: utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		Name:      pb.Name,
+		Body:      pb.Body,
+		Kind:      pb.Kind,
+		Org:       pb.ClubID,
+	}
+
+	if pb.Options != nil {
+		options := hptypes.DecodeToMap(pb.Options)
+		if reminderTime, ok := options["ReminderTime"]; ok {
+			t := reminderTime.(time.Time)
+
+			result.ReminderTime = utils.Time2MicroUnix(t)
+		}
+
+		if reminderTime, ok := options["StartTime"]; ok {
+			t := reminderTime.(time.Time)
+			result.ReminderTime = utils.Time2MicroUnix(t)
+		}
+	}
+
+	return result
+}
+
 func PBToRecruitmentFormRecords(pb *recruitmentPB.RecruitmentFormRecord) *RecruitmentFormRecords {
 	result := &RecruitmentFormRecords{
-		ID: pb.ID,
-		Mobile: pb.Mobile,
-		Name: pb.Name,
-		Major: pb.Major,
-		Age: int(pb.Age),
+		ID:              pb.ID,
+		Mobile:          pb.Mobile,
+		Name:            pb.Name,
+		Major:           pb.Major,
+		Age:             int(pb.Age),
 		SchoolStudentID: pb.SchoolStudentID,
 		// AcceptDepartment: pb.DepartmentID
 		DepartmentRefer: pb.DepartmentID,
-		RecordID: pb.RecordID,
-		Status: int(pb.Status),
+		RecordID:        pb.RecordID,
+		Status:          int(pb.Status),
 	}
 
 	if len(pb.Answers) > 0 {
 		answers := make([]RecruitmentFormAnswer, 0, len(pb.Answers))
 		for _, ans := range pb.Answers {
 			answers = append(answers, RecruitmentFormAnswer{
-				ID: ans.ID,
-				Answer: ans.Answer,
+				ID:        ans.ID,
+				Answer:    ans.Answer,
 				ItemRefer: ans.FormID,
 			})
 		}
@@ -57,7 +86,7 @@ func PBToRecruitmentFormItem(pb *recruitmentPB.RecruitmentFormField) *Recruitmen
 		Key:     pb.Key,
 		Subject: pb.Subject,
 		// Options: hptypes.DecodeToMap(pb.Options),
-		Kind:    pb.Kind,
+		Kind: pb.Kind,
 		// Organization: pb.
 	}
 

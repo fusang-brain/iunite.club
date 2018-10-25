@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package iunite.club.srv.core.announce;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+service Announce {
+    rpc CreateInstructions(CreateInstructionsRequest) returns(CreatedResponse) {}
+    rpc CreateTask(CreateTaskRequest) returns(CreatedResponse) {}
+    rpc CreateReminder(CreateReminderRequest) returns(CreatedResponse) {}
+    rpc GetAnnounces(GetAnnouncesRequest) returns(AnnounceResponse) {}
+    rpc GetUnreadCountByUserID(ByUserID) returns(UnreadCountResponse) {}
+    rpc MarkedOneToRead(MarkedOneToReadRequest) returns(Response) {}
+}
+
+message MarkedOneToReadRequest {
+    string ID = 1;
+    string UserID = 2;
+}
+
+message Response {
+    bool OK = 1;
+}
+
+message ByUserID {
+    string UserID = 1;
+    string ClubID = 2;
+}
+
+message UnreadCountResponse {
+    int32 Count = 1;
+}
+
+message AnnounceReceiverPB {
+    string UserID = 1;
+    bool HasRead = 2;
+}
+
+message AnnouncePB {
+    string ID = 1;
+    string Name = 2;
+    string Body = 3;
+    string Kind = 4;
+    string ClubID = 5;
+    repeated AnnounceReceiverPB Receivers = 6;
+    google.protobuf.Struct Options = 7;
+    google.protobuf.Timestamp CreatedAt = 8;
+    google.protobuf.Timestamp UpdatedAt = 9;
+}
+
+message GetAnnouncesRequest {
+    int32 Page = 1;
+    int32 Limit = 2;
+    string Kind = 3;
+    string ClubID = 4;
+    string UserID = 5;
+}
+
+message AnnounceResponse {
+    int32 Total = 1;
+    repeated AnnouncePB Announces = 2;
+}
+
+message CreateInstructionsRequest {
+    string Name = 1;
+    string Body = 2;
+    string ClubID = 3;
+    string UserID = 4;
+}
+
+message CreateReminderRequest {
+    string Name = 1;
+    string Body = 2;
+    google.protobuf.Timestamp ReminderTime = 3;
+    repeated string Users = 4;
+    string ClubID = 5;
+    string UserID = 6;
+}
+
+message CreateTaskRequest {
+    string Name = 1;
+    string Body = 2;
+    google.protobuf.Timestamp StartTime = 3;
+    google.protobuf.Timestamp EndTime = 4;
+    repeated string Users = 5;
+    string ClubID = 6;
+    string UserID = 7;
+}
+
+
+
+message CreatedResponse {
+    bool OK = 1;
+    AnnouncePB Announce = 2;
+}

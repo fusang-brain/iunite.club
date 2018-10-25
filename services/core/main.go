@@ -1,6 +1,7 @@
 package main
 
 import (
+	announce "iunite.club/services/core/proto/announce"
 	recruitment "iunite.club/services/core/proto/recruitment"
 	"os"
 	"time"
@@ -35,6 +36,7 @@ func main() {
 	service := ironic.NewService(
 		micro.Name("iunite.club.srv.core"),
 		micro.Version("latest"),
+		// micro.WrapHandler
 		micro.WrapHandler(
 			ratelimit.NewHandlerWrapper(rl.NewBucket(time.Second, 50), true),
 			ironic.MongerWrapper(
@@ -46,6 +48,7 @@ func main() {
 						&models.RecruitmentForm{},
 						&models.RecruitmentFormRecord{},
 						&models.RecruitmentRecord{},
+						&models.Announce{},
 						// &models.User{},
 						// &models.Profile{},
 						// &models.Organization{},
@@ -75,7 +78,7 @@ func main() {
 		new(handler.ApprovedHandler),
 	)
 	recruitment.RegisterRecruitmentHandler(service.Server(), new(handler.Recruitment))
-
+	announce.RegisterAnnounceHandler(service.Server(), new(handler.Announce))
 
 
 	// Register Struct as Subscriber

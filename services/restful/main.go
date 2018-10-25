@@ -51,6 +51,7 @@ func getWebContainer() *restful.Container {
 	otherHandler := new(handler.OtherHandler)
 	todoHandler := handler.NewTodoHandler(c)
 	recruitmentHandler := handler.NewRecruitmentHandler(c)
+	announceHandler := handler.NewAnnounceHandler(c)
 
 	rc := restful.NewContainer()
 
@@ -240,6 +241,13 @@ func getWebContainer() *restful.Container {
 	setRoute(recruitment, recruitmentHandler.PassedOnePost, "POST", "/passedOnePost", "Recruitment")
 	setRoute(recruitment, recruitmentHandler.AdjustOnePost, "POST", "/adjustOnePost", "Recruitment")
 
+	announce := getWebService("/v1/announce", "Announce service")
+	setRoute(announce, announceHandler.CreateInstructions, "POST", "/createInstructions", "announce")
+	setRoute(announce, announceHandler.CreateReminder, "POST", "/createReminderAnnounce", "announce")
+	setRoute(announce, announceHandler.CreateTask, "POST", "/createTaskAnnounce", "announce")
+	setRoute(announce, announceHandler.GetAnnounces, "GET", "/getAnnounces", "announce")
+	setRoute(announce, announceHandler.MarkedToRead, "POST", "/markedToRead", "announce")
+
 
 	rc.Add(file)
 	rc.Add(school)
@@ -258,6 +266,7 @@ func getWebContainer() *restful.Container {
 	rc.Add(res)
 	rc.Add(todo)
 	rc.Add(recruitment)
+	rc.Add(announce)
 
 	config := restfulApi.Config{
 		WebServices: rc.RegisteredWebServices(),
@@ -267,6 +276,14 @@ func getWebContainer() *restful.Container {
 
 	rc.Add(restfulApi.NewOpenAPIService(config))
 	// rc.Se
+	cors := restful.CrossOriginResourceSharing{
+		AllowedHeaders: []string{"Content-Type", "Accept"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		CookiesAllowed: false,
+		Container: rc,
+	}
+
+	rc.Filter(cors.Filter)
 
 	return rc
 }
@@ -274,7 +291,7 @@ func getWebContainer() *restful.Container {
 func enrichSwaggerObject(swo *spec.Swagger) {
 	swo.Info = &spec.Info{
 		InfoProps: spec.InfoProps{
-			Title:       "Unite - Navo",
+			Title:       "Unite - Lite",
 			Description: "Unite API 服务",
 			Contact: &spec.ContactInfo{
 				Name:  "alixe",
@@ -285,7 +302,7 @@ func enrichSwaggerObject(swo *spec.Swagger) {
 				Name: "MIT",
 				URL:  "http://mit.org",
 			},
-			Version: "Navo v1.0.0",
+			Version: "Lite v1.0.0",
 		},
 	}
 	swo.Tags = []spec.Tag{

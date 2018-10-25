@@ -66,7 +66,7 @@ require (
 	github.com/hashicorp/vault v0.11.3 // indirect
 	github.com/hashicorp/vault-plugin-secrets-kv v0.0.0-20180825215324-5a464a61f7de // indirect
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
-	github.com/iron-kit/go-ironic v0.0.0-20181023064619-fb67033d5b8c
+	github.com/iron-kit/go-ironic v0.0.1
 	github.com/iron-kit/monger v0.2.1-0.20181023061233-7d13491afa18
 	github.com/jefferai/jsonx v0.0.0-20160721235117-9cc31c3135ee // indirect
 	github.com/juju/ratelimit v1.0.1
@@ -74,6 +74,7 @@ require (
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/lyft/protoc-gen-validate v0.0.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/micro/examples v0.0.0-20180925151614-058c4ce6ea27
 	github.com/micro/go-log v0.0.0-20170512141327-cbfa9447f9b6
 	github.com/micro/go-micro v0.12.0
 	github.com/micro/go-plugins v0.14.1
@@ -106,6 +107,8 @@ require (
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277
 	golang.org/x/crypto v0.0.0-20181015023909-0c41d7ab0a0e
+	google.golang.org/api v0.0.0-20180829000535-087779f1d2c9
+	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
 	google.golang.org/grpc v1.15.0 // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20170511165959-379148ca0225 // indirect
 	gopkg.in/ldap.v2 v2.5.1 // indirect
@@ -116,7 +119,7 @@ require (
 )
 
 replace (
-	github.com/iron-kit/go-ironic v0.0.1 => ../iron-kit/go-ironic
+	github.com/iron-kit/go-ironic v0.0.1 => ../github.com/iron-kit/go-ironic
 	github.com/micro/go-api v0.3.2 => github.com/iron-kit/go-api v0.3.2
 	go.uber.org/ratelimit v0.0.0-20180316092928-c15da0234277 => github.com/uber-go/ratelimit v0.0.0-20180316092928-c15da0234277
 )

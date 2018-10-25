@@ -140,6 +140,24 @@ services:
       - "seccomp:unconfined"
     depends_on:
       - consul
+  navo-web:
+    # command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/navo
+    links:
+      - consul
+    ports:
+      - 50058:50051
+      - 8086:8086
+      - 2346:2345
+    environment:
+      MICRO_SERVER_ADDRESS: 0.0.0.0:8086
+      MICRO_REGISTER_INTERVAL: 5
+      MICRO_REGISTER_TTL: 10
+      MICRO_REGISTRY_ADDRESS: consul:8500
+    security_opt:
+      - "seccomp:unconfined"
+    depends_on:
+      - consul
   mongodb:
     image: mongo
     ports:
