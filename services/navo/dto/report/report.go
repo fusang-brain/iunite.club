@@ -5,4 +5,5 @@ type SimpleReportBundle struct {
 	Description string   `json:"description,omitempty" description:"description"`
 	Receivers   []string `json:"receivers,omitempty" description:"receivers"`
 	Body        string   `json:"body,omitempty" description:"body"`
+	ClubID      string   `json:"club_id,omitempty" description:"club_id"`
 }

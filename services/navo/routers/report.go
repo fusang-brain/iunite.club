@@ -32,6 +32,7 @@ func ReportRoute(r *router.Router) {
 		router.RouteDoc("获取汇报列表"),
 		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteParams(paganizationParams...),
+		router.RouteParam(reports.WS().QueryParameter("club_id", "社团ID")),
 	)
 
 	reports.GET(
@@ -40,6 +41,7 @@ func ReportRoute(r *router.Router) {
 		router.RouteDoc("获取待我汇报的模板列表"),
 		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteParams(paganizationParams...),
+		router.RouteParam(reports.WS().QueryParameter("club_id", "社团ID")),
 	)
 
 	reports.POST(
@@ -51,15 +53,23 @@ func ReportRoute(r *router.Router) {
 	)
 
 	reports.POST(
-		"/template/{id}",
-		reportsHandler.PostReport,
+		"/templates/{id}",
+		reportsHandler.PostTemplateReport,
+		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteDoc("发布模板汇报"),
+		router.RouteParams(
+			reports.WS().PathParameter("id", "模板ID"),
+		),
 		router.RouteReads(dto_report.ReportTemplateBundle{}),
 	)
 
 	reports.GET(
 		"/{id}/download",
 		reportsHandler.DownloadReport,
+		// router.RouteParam(getAuthHeaderParam(r)),
+		router.RouteParams(
+			reports.WS().PathParameter("id", "汇报ID"),
+		),
 		router.RouteDoc("下载汇报"),
 	)
 
@@ -67,18 +77,27 @@ func ReportRoute(r *router.Router) {
 		"/batch_download/{start_time}/{end_time}",
 		reportsHandler.BatchDownload,
 		router.RouteDoc("批量下载"),
+		// router.RouteParam(getAuthHeaderParam(r)),
+		router.RouteParams(
+			reports.WS().PathParameter("start_time", "开始时间"),
+			reports.WS().PathParameter("end_time", "结束时间"),
+		),
 		router.RouteParam(reports.WS().QueryParameter("ids", "要下载的报告ID")),
 	)
 
 	reports.GET(
 		"/{id}",
 		reportsHandler.Details,
+		router.RouteParam(getAuthHeaderParam(r)),
+		router.RouteParam(reports.WS().PathParameter("id", "汇报ID")),
 		router.RouteDoc("获取汇报详情"),
 	)
 
 	reports.GET(
 		"/templates/{id}",
 		reportsHandler.GetReportTemplate,
+		router.RouteParam(getAuthHeaderParam(r)),
+		router.RouteParam(reports.WS().PathParameter("id", "汇报模板ID")),
 		router.RouteDoc("获取汇报模板详情"),
 	)
 
@@ -86,8 +105,40 @@ func ReportRoute(r *router.Router) {
 		"/templates",
 		reportsHandler.PostTemplate,
 		router.RouteDoc("发布一个新的汇报模板"),
+		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteReads(dto_report.TemplateBundle{}),
 	)
 
+	reports.PUT(
+		"/templates/{id}",
+		reportsHandler.UpdateTemplate,
+		router.RouteDoc("修改一个模板"),
+		router.RouteParams(getAuthHeaderParam(r)),
+		router.RouteReads(dto_report.TemplateBundle{}),
+		router.RouteParam(reports.WS().PathParameter("id", "汇报模板ID")),
+	)
 
+	reports.PUT(
+		"/templates/{id}/disable",
+		reportsHandler.DisableTemplate,
+		router.RouteDoc("禁用一个模板"),
+		router.RouteParams(getAuthHeaderParam(r)),
+		router.RouteParam(reports.WS().PathParameter("id", "汇报模板ID")),
+	)
+
+	reports.PUT(
+		"/templates/{id}/enable",
+		reportsHandler.EnableTemplate,
+		router.RouteDoc("启用一个模板"),
+		router.RouteParams(getAuthHeaderParam(r)),
+		router.RouteParam(reports.WS().PathParameter("id", "汇报模板ID")),
+	)
+
+	reports.DELETE(
+		"/templates/{id}",
+		reportsHandler.DeleteTemplate,
+		router.RouteDoc("删除一个模板"),
+		router.RouteParams(getAuthHeaderParam(r)),
+		router.RouteParam(reports.WS().PathParameter("id", "汇报模板ID")),
+	)
 }

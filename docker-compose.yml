@@ -3,10 +3,17 @@ version: '3.1'
 services:
   
   consul:
-    command: -server -bootstrap -rejoin
+    # command: -server -advertise 7.7.1.140 -join 7.7.1.226
+    # image: consul:latest
+    # network_mode: host
+    command: -server -advertise 7.7.1.140 -join 7.7.1.226
     image: progrium/consul:latest
     ports:
       - "8300:8300"
+      - "8301:8301"
+      - "8301:8301/udp"
+      - "8302:8302"
+      - "8302:8302/udp"
       - "8400:8400"
       - "8500:8500"
       - "8600:53/udp"
@@ -156,6 +163,34 @@ services:
       MICRO_REGISTRY_ADDRESS: consul:8500
     security_opt:
       - "seccomp:unconfined"
+    depends_on:
+      - consul
+  report-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/report
+    links:
+      - consul
+    ports:
+      - 50059:50051
+    environment:
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  approved-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/approved
+    links:
+      - consul
+    ports:
+      - 50060:50051
+    environment:
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
     depends_on:
       - consul
   mongodb:

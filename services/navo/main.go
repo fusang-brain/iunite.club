@@ -38,7 +38,7 @@ func getRouter() *router.Router {
 	// 通告
 	routers.AnnounceRoute(r)
 	routers.ReportRoute(r)
-
+	routers.ApprovedRoute(r)
 	return r
 }
 
@@ -74,6 +74,7 @@ func main() {
 	service.HandleFunc("/example/call", handler.ExampleCall)
 
 	// run service
+	// service.Init(web.DefaultAddress)
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}

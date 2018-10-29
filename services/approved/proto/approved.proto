@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package iunite.club.srv.approved;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+service Approved {
+  rpc FindTemplates (FindTemplatesRequest) returns (TemplatesResponse);
+  rpc PostTemplate (PostTemplateRequest) returns (PostedResponse);
+  rpc UpdateTemplate (UpdateTemplateRequest) returns (UpdatedResponse);
+  rpc DeleteTemplate (DeleteTemplateRequest) returns (DeletedResponse);
+  rpc ToggleTemplateEnableState (ToggleEnableStateReq) returns (UpdatedResponse);
+}
+
+message TemplateApprovedFlowPB {
+  string UserID = 1;
+  int32 Sort = 2;
+}
+
+message TemplateCustomFieldPB {
+  string Key = 1;
+  string Kind = 2;
+  string Label = 3;
+  google.protobuf.Struct Options = 4;
+  int32 Sort = 5;
+}
+
+message TemplateApprovedFlowConfigPB {
+  int32 Kind = 1;
+  repeated TemplateApprovedFlowPB Flows = 2;
+}
+
+message ApprovedTemplatePB {
+  string ID = 1;
+  google.protobuf.Timestamp CreatedAt = 2;
+  google.protobuf.Timestamp UpdatedAt = 3;
+  string UserID = 4;
+  string ClubID = 5;
+  string Title = 6;
+  string Description = 7;
+  string Body = 8;
+  repeated string AvailableOrganizations = 9;
+  repeated TemplateCustomFieldPB CustomFields = 10;
+  TemplateApprovedFlowConfigPB FlowsConfig = 11;
+  bool Enabled = 12;
+}
+
+message FindTemplatesRequest {
+  int32 Page = 1;
+  int32 Limit = 2;
+  repeated string Populate = 3;
+  string ClubID = 4;
+}
+
+message TemplatesResponse {
+  repeated ApprovedTemplatePB Templates = 1;
+  int32 Total = 2;
+}
+
+message PostTemplateRequest {
+  ApprovedTemplatePB Template = 1;
+}
+
+message UpdateTemplateRequest {
+  string ID = 1;
+  google.protobuf.Struct Fields = 2;
+}
+
+message PostedResponse {
+  bool OK = 1;
+  ApprovedTemplatePB Template = 2;
+}
+
+message UpdatedResponse {
+  bool OK = 1;
+}
+
+message DeleteTemplateRequest {
+  string ID = 1;
+}
+
+message DeletedResponse {
+  bool OK = 1;
+}
+
+message ToggleEnableStateReq {
+  string ID = 1;
+  bool IsEnabled = 2;
+}

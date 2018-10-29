@@ -1,5 +1,6 @@
 package dto_report
 
 type ReportTemplateBundle struct {
-	Options map[string]interface{} `json:"options,omitempty"` // 模版汇报表单
+	Results map[string]interface{} `json:"results,omitempty"` // 模版汇报表单
+	ClubID  string                 `json:"club_id,omitempty"`
 }

@@ -70,6 +70,7 @@ require (
 	github.com/iron-kit/monger v0.2.1-0.20181023061233-7d13491afa18
 	github.com/jefferai/jsonx v0.0.0-20160721235117-9cc31c3135ee // indirect
 	github.com/juju/ratelimit v1.0.1
+	github.com/jung-kurt/gofpdf v1.0.0
 	github.com/keybase/go-crypto v0.0.0-20181017165231-e696c8039bba // indirect
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/lyft/protoc-gen-validate v0.0.7 // indirect
@@ -96,6 +97,7 @@ require (
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
 	github.com/qiniu/api.v7 v7.2.4+incompatible
 	github.com/qiniu/x v7.0.8+incompatible // indirect
+	github.com/rakyll/statik v0.1.5
 	github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil v2.17.12+incompatible // indirect

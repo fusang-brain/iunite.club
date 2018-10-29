@@ -1,0 +1,215 @@
+version: '3.1'
+
+services:
+  
+  consul:
+    command: -server -advertise 7.7.1.226 -bootstrap
+    # command: agent -server -bind 7.7.1.226 -advertise 7.7.1.226 -client 7.7.1.226 -bootstrap 
+    image: progrium/consul:latest
+    # image: consul:latest
+    # network_mode: host
+    ports:
+      - "7.7.1.226:8300:8300"
+      - "7.7.1.226:8301:8301"
+      - "7.7.1.226:8301:8301/udp"
+      - "7.7.1.226:8302:8302"
+      - "7.7.1.226:8302:8302/udp"
+      - "7.7.1.226:8400:8400"
+      - "7.7.1.226:8500:8500"
+      - "172.17.0.1:53:53/udp"
+  # srv-api:
+  #   command: --client_retries=0 --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10 api --namespace=iunite.club.srv --address=:8081
+  #   image: ironkit/micro
+  #   links:
+  #     - consul
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     - consul
+  # api:
+  #   command: --client_retries="0" --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10 api --namespace=iunite.club.api --address=:8080
+  #   image: ironkit/micro
+  #   links:
+  #     - consul
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - consul
+  web:
+    command: --client_retries="0" --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10 web
+    image: ironkit/micro
+    links:
+      - consul
+    ports:
+      - "8082:8082"
+  message-srv:
+    command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/message
+    links:
+      - consul
+      - mongodb
+    ports:
+      - 50051:50051
+      - 23420:23420
+    environment:
+      MICRO_SERVER_ADDRESS: ":23420"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23420"
+      MICRO_ADDRESS: ":50051"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+       - mongodb
+       - consul
+  user-srv:
+    command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/user
+    links:
+      - consul
+      - mongodb
+    ports:
+      - 50052:50051
+      - 23421:23421
+    environment:
+      MICRO_ADDRESS: ":50051"
+      MICRO_SERVER_ADDRESS: ":23421"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23421"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+       - mongodb
+       - consul
+  organization-srv:
+    command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/organization
+    links:
+      - consul
+      - mongodb
+    ports:
+      - 50053:50051
+      - 23422:23422
+    environment:
+      MICRO_SERVER_ADDRESS: ":23422"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23422"
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+       - mongodb
+       - consul
+  core-srv:
+    command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/core
+    # network_mode: host
+    links:
+      - consul
+    ports:
+      - 50055:50051
+      - 23423:23423
+    environment:
+      MICRO_ADDRESS: ":50051"
+      MICRO_SERVER_ADDRESS: ":23423"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23423"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  storage-srv:
+    command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/storage
+    links:
+      - consul
+    ports:
+      - 50056:50051
+      - 23424:23424
+    environment:
+      MICRO_SERVER_ADDRESS: ":23424"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23424"
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  restful-web:
+    # command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/restful
+    links:
+      - consul
+    ports:
+      - 50057:50051
+      - 8085:8085
+      - 2345:2345
+    environment:
+      MICRO_SERVER_ADDRESS: 0.0.0.0:8085
+      MICRO_REGISTER_INTERVAL: 5
+      MICRO_REGISTER_TTL: 10
+      MICRO_REGISTRY_ADDRESS: 7.7.1.226:8500
+    security_opt:
+      - "seccomp:unconfined"
+    depends_on:
+      - consul
+  navo-web:
+    # command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/navo
+    links:
+      - consul
+    ports:
+      - 50058:50051
+      - 8086:8086
+      - 2346:2345
+    environment:
+      MICRO_SERVER_ADDRESS: 0.0.0.0:8086
+      MICRO_REGISTER_INTERVAL: 5
+      MICRO_REGISTER_TTL: 10
+      MICRO_REGISTRY_ADDRESS: 7.7.1.226:8500
+
+    security_opt:
+      - "seccomp:unconfined"
+    depends_on:
+      - consul
+  report-srv:
+    command: --registry_address=7.7.1.226:8500 --register_interval=5 --register_ttl=10
+    build: ./services/report
+    links:
+      - consul
+    ports:
+      - 50059:50051
+      - 23425:23425
+    environment:
+      MICRO_SERVER_ADDRESS: ":23425"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23425"
+      MICRO_ADDRESS: ":50051"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  approved-srv:
+    command: --registry_address=consul:8500 --register_interval=5 --register_ttl=10
+    build: ./services/approved
+    links:
+      - consul
+    ports:
+      - 50060:50051
+      - 23426:23426
+    environment:
+      MICRO_ADDRESS: ":50051"
+      MICRO_SERVER_ADDRESS: ":23426"
+      MICRO_SERVER_ADVERTISE: "7.7.1.226:23426"
+      DISABLE_AUTH: "true"
+      DB_HOST: "mongodb:27017"
+      DB_NAME: "unite"
+    depends_on:
+      - consul
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data/db:/data/db
+
+  
+  

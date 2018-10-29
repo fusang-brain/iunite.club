@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package iunite.club.srv.report;
+
+import "google/protobuf/timestamp.proto";
+import "iunite.club/services/user/proto/user.proto";
+import "google/protobuf/struct.proto";
+
+service Report {
+  rpc FindReports(FindReportsRequest) returns(ReportsResponse) {}
+  rpc PostReport(PostReportBundle) returns(PostReportResponse) {}
+  rpc PostTemplate(PostTemplateBundle) returns(PostTemplateResponse) {}
+  rpc FindTemplates(FindTemplatesRequest) returns(TemplatesResponse) {}
+  rpc FindOneReport(ByIDRequest) returns(ReportResponse) {}
+  rpc FindOneTemplate(ByTemplateIDRequest) returns(TemplateResponse) {}
+  rpc UpdateTemplate(UpdateTemplateBundle) returns(UpdatedTemplateResponse) {}
+  rpc DeleteTemplate(DeleteTemplateRequest) returns(DeletedResponse) {}
+  rpc ToggleTemplateEnableState(ToggleTemplateEnableReq) returns(UpdatedTemplateResponse) {}
+}
+
+message ToggleTemplateEnableReq {
+  string ID = 1;
+  bool IsEnabled = 2;
+}
+
+message DeleteTemplateRequest {
+  string ID = 1;
+}
+
+message DeletedResponse {
+  bool OK = 1;
+}
+
+message UpdateTemplateBundle {
+  string ID = 1;
+  google.protobuf.Struct Fields = 2;
+}
+
+message UpdatedTemplateResponse {
+  bool OK = 1;
+}
+
+message ByTemplateIDRequest {
+  string ID = 1;
+  repeated string Populates = 2;
+}
+
+message TemplateResponse {
+  ReportTemplatePB Template = 1;
+}
+
+message FindTemplatesRequest {
+  
+  string UserID = 1;
+  int32 Page = 2;
+  int32 Limit = 3;
+  string ClubID = 4;
+}
+
+message TemplatesResponse {
+  repeated ReportTemplatePB Templates = 1;
+  int32 Total = 2;
+}
+
+message ByIDRequest {
+  string ID = 1;
+}
+
+message ReportPB {
+  string ID = 1;
+  google.protobuf.Timestamp CreatedAt = 2;
+  google.protobuf.Timestamp UpdatedAt = 3;
+  string Title = 4;
+  string Description = 5;
+  string Body = 6;
+  repeated string Receivers = 7;
+  google.protobuf.Struct Results = 8;
+  string UserID = 9;
+  string ClubID = 10;
+  iunite.club.srv.user.User User = 11;
+}
+
+message TemplateConfigPB {
+  string Kind = 1;
+  repeated int32 Weeks = 2;
+  google.protobuf.Timestamp StartTime = 3;
+  google.protobuf.Timestamp EndTime = 4;
+}
+
+message TemplateCustomFieldPB {
+  string Key = 1;
+  string Kind = 2;
+  string Label = 3;
+  google.protobuf.Struct Options = 4;
+  int32 Sort = 5;
+}
+
+message ReportTemplatePB {
+  string ID = 1;
+  google.protobuf.Timestamp CreatedAt = 2;
+  google.protobuf.Timestamp UpdatedAt = 3;
+  string Title = 4;
+  string Description = 5;
+  string Body = 6;
+  repeated string Receivers = 7;
+  repeated TemplateCustomFieldPB CustomFields = 8;
+  TemplateConfigPB Config = 9;
+  string ClubID = 10;
+}
+
+message PostTemplateBundle {
+  string Title = 1;
+  string Description = 2;
+  repeated string Receivers = 4;
+  repeated TemplateCustomFieldPB CustomFields = 5;
+  TemplateConfigPB Config = 6;
+  string ClubID = 7;
+  string UserID = 8;
+}
+
+message PostTemplateResponse {
+  ReportTemplatePB ReportTemplate = 1;
+  bool OK = 2;
+}
+
+message PostReportBundle {
+  string Title = 1;
+  string Description = 2;
+  string Body = 3;
+  repeated string Receivers = 4;
+  google.protobuf.Struct Results = 5;
+  enum KindEnum {
+    Default = 0;
+    Template = 1;
+  }
+  KindEnum Kind = 6;
+  string TemplateID = 7;
+  string ClubID = 8;
+  string UserID = 9;
+}
+
+message PostReportResponse {
+  ReportPB Report = 1;
+  bool OK = 2;
+}
+
+message FindReportsRequest {
+  int32 Page = 1;
+  int32 Limit = 2;
+  string ClubID = 3;
+  string UserID = 4;
+}
+
+message ReportsResponse {
+  repeated ReportPB Reports = 1;
+  int32 Total = 2;
+}
+
+message ReportResponse {
+  ReportPB Report = 1;
+}
+
