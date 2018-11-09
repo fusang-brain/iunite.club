@@ -6,11 +6,11 @@ import "google/protobuf/timestamp.proto";
 import "iunite.club/services/user/proto/user.proto";
 
 service Conversation {
-  rpc CreateConversation(WithConversationBundle) returns(CreatedOK) {}
+  rpc CreateConversation(WithConversationBundle) returns(CreatedConversationOK) {}
   rpc GetConversationsByMemberID(ByUserID) returns(ConversationsResponse) {}
   rpc FindConversationDetails(ByID) returns(ConversationDetails) {}
   rpc ExitGroup(ByIDWithUserID) returns(IsOK) {}
-  rpc DismissGroup(ByID) returns(IsOK) {}
+  rpc DismissGroup(ByIDWithUserID) returns(IsOK) {}
   rpc UpdateGroupConversation(WithUpdateBundle) returns(IsOK) {}
   rpc GetAllMembersOfConversation(ByID) returns(MembersResponse) {}
   rpc RemoveConversationNotice(ByNoticeID) returns(IsOK) {}
@@ -45,8 +45,15 @@ message WithMarkedBundle {
   string UserID = 2; 
 }
 
+message CreatedConversationOK {
+  bool OK = 1;
+  string ID = 2;
+  bool IsExists = 3;
+}
+
 message CreatedOK {
   bool OK = 1;
+  string ID = 2;
 }
 
 message WithNoticeBundle {
@@ -56,9 +63,11 @@ message WithNoticeBundle {
 }
 
 message NoticePB {
+  
   string ConversationID = 1;
   string Title = 2;
   string Body = 3;
+  string ID = 4;
 }
 
 message NoticesResponse {
@@ -101,6 +110,7 @@ message ConversationDetails {
 
 message ByID {
   string ID = 1;
+  bool put = 2;
 }
 
 message ByIDWithUserID {
@@ -145,4 +155,5 @@ message WithConversationBundle {
   string Master = 5;
   bool IsStartValidate = 6;
   bool IsTop = 7;
+  string ConversationID = 8;
 }

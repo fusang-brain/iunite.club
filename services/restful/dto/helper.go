@@ -3,6 +3,7 @@ package dto
 import (
 	"encoding/json"
 	"fmt"
+	conversationPB "iunite.club/services/core/proto/conversation"
 	"strconv"
 	"time"
 
@@ -18,6 +19,51 @@ import (
 	cloudPB "iunite.club/services/storage/proto/cloud"
 	userPB "iunite.club/services/user/proto"
 )
+
+func PBToConversationNotice(pb *conversationPB.NoticePB) *ConversationNotice {
+	if pb == nil {
+		return nil
+	}
+	result := &ConversationNotice{
+		ID:                pb.ID,
+		ConversationRefer: pb.ConversationID,
+		Title:             pb.Title,
+		Body:              pb.Body,
+	}
+
+	return result
+}
+
+func PBToConversation(pb *conversationPB.ConversationPB) *Conversation {
+	if pb == nil {
+		return nil
+	}
+	result := &Conversation{
+		ID:              pb.ID,
+		Kind:            pb.Kind,
+		Name:            pb.Name,
+		Avatar:          pb.Avatar,
+		IsStartValidate: pb.IsStartValidate,
+		IsTop:           pb.IsTop,
+	}
+
+	if len(pb.Members) > 0 {
+		members := make([]ConversationUser, 0, len(pb.Members))
+
+		for _, val := range pb.Members {
+			members = append(members, ConversationUser{
+				UserRefer:         val.UserID,
+				ConversationRefer: pb.ID,
+				Nickname:          val.Nickname,
+				IsTop:             val.IsTop,
+			})
+		}
+
+		result.Users = members
+	}
+
+	return result
+}
 
 func PBToAnnounce(pb *announcePB.AnnouncePB) *Announce {
 	result := &Announce{

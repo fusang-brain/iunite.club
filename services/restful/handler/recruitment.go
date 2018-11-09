@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"github.com/iron-kit/go-ironic"
 	"context"
 	"fmt"
+
+	"github.com/iron-kit/go-ironic"
 
 	restful "github.com/emicklei/go-restful"
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
@@ -225,8 +226,8 @@ func (self *RecruitmentHandler) AddRecruitmentForm(req *restful.Request, rsp *re
 
 	_, err := self.recruitmentService.AddRecruitmentForm(ctx, &recruitmentPB.ByRecruitmentFormBundle{
 		RecordID: params.RecordID,
-		ClubID: params.Organization,
-		UserID: self.GetUserIDFromRequest(req),
+		ClubID:   params.Organization,
+		UserID:   self.GetUserIDFromRequest(req),
 		RecordForm: &recruitmentPB.RecruitmentForm{
 			Fields: fields,
 		},

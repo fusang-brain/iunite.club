@@ -1,10 +1,12 @@
 package main
 
 import (
-	announce "iunite.club/services/core/proto/announce"
-	recruitment "iunite.club/services/core/proto/recruitment"
 	"os"
 	"time"
+
+	announce "iunite.club/services/core/proto/announce"
+	"iunite.club/services/core/proto/conversation"
+	recruitment "iunite.club/services/core/proto/recruitment"
 
 	rl "github.com/juju/ratelimit"
 	"github.com/micro/go-plugins/wrapper/ratelimiter/ratelimit"
@@ -49,6 +51,8 @@ func main() {
 						&models.RecruitmentFormRecord{},
 						&models.RecruitmentRecord{},
 						&models.Announce{},
+						&models.Conversation{},
+						&models.ConversationNotice{},
 						// &models.User{},
 						// &models.Profile{},
 						// &models.Organization{},
@@ -79,7 +83,7 @@ func main() {
 	)
 	recruitment.RegisterRecruitmentHandler(service.Server(), new(handler.Recruitment))
 	announce.RegisterAnnounceHandler(service.Server(), new(handler.Announce))
-
+	iunite_club_srv_core_conversation.RegisterConversationHandler(service.Server(), new(handler.ConversationHandler))
 
 	// Register Struct as Subscriber
 	micro.RegisterSubscriber("iunite.club.srv.core", service.Server(), new(subscriber.Example))

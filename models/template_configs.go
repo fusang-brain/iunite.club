@@ -52,8 +52,6 @@ func (tc *TemplateConfig) ToPB() *pb.TemplateConfigPB {
 	}
 }
 
-
-
 func (tcf *TemplateCustomField) ToPB() *pb.TemplateCustomFieldPB {
 	return &pb.TemplateCustomFieldPB{
 		Key:     tcf.Key,
@@ -93,7 +91,7 @@ func (tcf *TemplateCustomField) ToApprovedPB() *approvedPB.TemplateCustomFieldPB
 func (taf *TemplateApprovedFlow) ToPB() *approvedPB.TemplateApprovedFlowPB {
 	return &approvedPB.TemplateApprovedFlowPB{
 		UserID: taf.UserID.Hex(),
-		Sort: taf.Sort,
+		Sort:   taf.Sort,
 	}
 }
 
@@ -121,7 +119,7 @@ func (tafc *TemplateApprovedFlowConfig) SetByPB(pb *approvedPB.TemplateApprovedF
 		for _, v := range pb.Flows {
 			flows = append(flows, TemplateApprovedFlow{
 				UserID: bson.ObjectIdHex(v.UserID),
-				Sort: v.Sort,
+				Sort:   v.Sort,
 			})
 		}
 		tafc.Flows = flows

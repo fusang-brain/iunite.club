@@ -28,7 +28,7 @@ const (
 	SMSService          = "iunite.club.srv.message"
 	StorageService      = "iunite.club.srv.storage"
 	CoreService         = "iunite.club.srv.core"
-	ReportService 			= "iunite.club.srv.report"
+	ReportService       = "iunite.club.srv.report"
 	ApprovedService     = "iunite.club.srv.approved"
 )
 

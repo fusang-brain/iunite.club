@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"iunite.club/services/navo/dto/report"
 	"github.com/emicklei/go-restful"
 	"github.com/micro/go-micro/client"
+	"iunite.club/services/navo/dto/report"
 	"iunite.club/services/navo/handler"
 	"iunite.club/services/navo/router"
 )
@@ -17,7 +17,7 @@ func getPaganizationParams(route *router.Route) []*restful.Parameter {
 
 func ReportRoute(r *router.Router) {
 	reportsHandler := handler.NewReportsHandler(client.DefaultClient)
-	
+
 	reports := r.Group(
 		"Report",
 		"/reports",

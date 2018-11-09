@@ -52,6 +52,7 @@ func getWebContainer() *restful.Container {
 	todoHandler := handler.NewTodoHandler(c)
 	recruitmentHandler := handler.NewRecruitmentHandler(c)
 	announceHandler := handler.NewAnnounceHandler(c)
+	conversationHandler := handler.NewConversationHandler(c)
 
 	rc := restful.NewContainer()
 
@@ -248,6 +249,21 @@ func getWebContainer() *restful.Container {
 	setRoute(announce, announceHandler.GetAnnounces, "GET", "/getAnnounces", "announce")
 	setRoute(announce, announceHandler.MarkedToRead, "POST", "/markedToRead", "announce")
 
+	conversation := getWebService("/v1/conversation", "Conversation service")
+	setRoute(conversation, conversationHandler.CreateConversation, "POST", "/createConversation", "conversation")
+	setRoute(conversation, conversationHandler.GetConversationsByMemberID, "GET", "/getConversationsByMemberID", "conversation")
+	setRoute(conversation, conversationHandler.GetConversationDetails, "GET", "/getConversationDetails", "conversation")
+	setRoute(conversation, conversationHandler.ExitGroup, "POST", "/exitGroup", "conversation")
+	setRoute(conversation, conversationHandler.DismissGroup, "POST", "/dismissGroup", "conversation")
+	setRoute(conversation, conversationHandler.UpdateGroupConversation, "POST", "/updateGroupConversation", "conversation")
+	setRoute(conversation, conversationHandler.CreateGroupNotice, "POST", "/createGroupNotice", "conversation")
+	setRoute(conversation, conversationHandler.MarkNoticeToHasRead, "POST", "/markNoticeToHasRead", "conversation")
+	setRoute(conversation, conversationHandler.GetNoticeList, "GET", "/getNoticeList", "conversation")
+	setRoute(conversation, conversationHandler.RemoveConversationNotice, "POST", "/removeConversationNotice", "conversation")
+	setRoute(conversation, conversationHandler.RemoveGroupMember, "POST", "/removeGroupMember", "conversation")
+	setRoute(conversation, conversationHandler.AddGroupMember, "POST", "/addGroupMember", "conversation")
+	setRoute(conversation, conversationHandler.GetAllMembersOfConversation, "GET", "/getAllMembersOfConversation", "conversation")
+	setRoute(conversation, conversationHandler.JoinGroup, "POST", "/joinGroup", "conversation")
 
 	rc.Add(file)
 	rc.Add(school)
@@ -267,10 +283,11 @@ func getWebContainer() *restful.Container {
 	rc.Add(todo)
 	rc.Add(recruitment)
 	rc.Add(announce)
+	rc.Add(conversation)
 
 	config := restfulApi.Config{
-		WebServices: rc.RegisteredWebServices(),
-		APIPath:     "/apidocs.json",
+		WebServices:                   rc.RegisteredWebServices(),
+		APIPath:                       "/apidocs.json",
 		PostBuildSwaggerObjectHandler: enrichSwaggerObject,
 	}
 
@@ -280,7 +297,7 @@ func getWebContainer() *restful.Container {
 		AllowedHeaders: []string{"Content-Type", "Accept"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		CookiesAllowed: false,
-		Container: rc,
+		Container:      rc,
 	}
 
 	rc.Filter(cors.Filter)
@@ -384,6 +401,18 @@ func enrichSwaggerObject(swo *spec.Swagger) {
 				Description: "审批服务",
 			},
 		},
+		{
+			TagProps: spec.TagProps{
+				Name:        "conversation",
+				Description: "会话",
+			},
+		},
+		{
+			TagProps: spec.TagProps{
+				Name:        "announce",
+				Description: "通告",
+			},
+		},
 	}
 }
 
@@ -444,7 +473,6 @@ func main() {
 	service.Handle("/apidoc/", http.StripPrefix("/apidoc/", http.FileServer(http.Dir("swigger"))))
 
 	service.Handle("/", getWebContainer())
-
 	// service.Client().
 	// service.Ha
 

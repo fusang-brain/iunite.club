@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/iron-kit/go-ironic/utils/agent"
 
 	"iunite.club/services/user/proto"
 
@@ -20,6 +21,16 @@ type ConversationHandler struct {
 	connection monger.Connection
 }
 
+type LCMetaData struct {
+	UniteConversationID string
+	Kind                string
+	Name                string
+	Avatar              string
+	ID                  string
+	IsTop               bool
+	TopMembers          []string
+}
+
 func (self *ConversationHandler) model(ctx context.Context, name string) monger.Model {
 	if self.connection == nil {
 		conn, err := ironic.MongerConnectionFromContext(ctx)
@@ -33,16 +44,109 @@ func (self *ConversationHandler) model(ctx context.Context, name string) monger.
 	return self.connection.M(name)
 }
 
-func (self *ConversationHandler) CreateConversation(ctx context.Context, req *pb.WithConversationBundle, rsp *pb.CreatedOK) error {
+func (self *ConversationHandler) updateConversationMetaDataByID(ctx context.Context, id bson.ObjectId) (bool, *models.ConversationMetaData) {
+	ConversationModel := self.model(ctx, "Conversation")
+	conversation := new(models.Conversation)
+	ConversationModel.
+		Where(bson.M{"_id": id}).
+		Populate("Members", "Members.User", "User.Profile").
+		FindOne(conversation)
+	if conversation.IsEmpty() {
+		return false, nil
+	}
+	metaUsers := make([]*models.UserMetaData, 0)
+	topMembers := make([]string, 0)
+
+	metaData := LCMetaData{
+		UniteConversationID: conversation.ID.Hex(),
+		Kind:                conversation.Kind,
+		Name:                conversation.Name,
+		Avatar:              conversation.Avatar,
+		ID:                  conversation.ID.Hex(),
+	}
+
+	for _, val := range conversation.Members {
+		umd := new(models.UserMetaData)
+		if conversation.Kind != "group" {
+			if val.User != nil {
+				umd.InitByUser(val.User, "", val.Nickname)
+				metaUsers = append(metaUsers, umd)
+			}
+		}
+
+		if val.IsTop {
+			topMembers = append(topMembers, val.UserID.Hex())
+		}
+	}
+
+	metaData.TopMembers = topMembers
+
+	return self.updateConversationMetaData(&metaData, metaUsers)
+}
+
+func (self *ConversationHandler) updateConversationMetaData(metaData *LCMetaData, members []*models.UserMetaData) (bool, *models.ConversationMetaData) {
+	cmd := &models.ConversationMetaData{
+		UniteConversationID: metaData.UniteConversationID,
+		ConversationName:    metaData.Name,
+		ConversationAvatar:  metaData.Avatar,
+		Kind:                metaData.Kind,
+		IsTop:               metaData.IsTop,
+		TopMembers:          metaData.TopMembers,
+	}
+	if members != nil {
+		userMap := map[string]models.UserMetaData{}
+		for _, v := range members {
+			userMap[v.ID] = *v
+		}
+
+		cmd.MemberMapper = userMap
+	}
+
+	headers := map[string]string{
+		"X-LC-Id":      "gS4uGBBo0mqYzrU9nqlOOxGC-gzGzoHsz",
+		"X-LC-Key":     "iuhkU6AQpA4OuF9ft6WAsAsC",
+		"Content-Type": "application/json",
+	}
+
+	postData := struct {
+		Name          string
+		UniteMetaData *models.ConversationMetaData
+	}{
+		UniteMetaData: cmd,
+		Name:          cmd.ConversationName,
+	}
+
+	resp, data := agent.Put(fmt.Sprintf("%s/conversations/%s", "https://gs4ugbbo.api.lncld.net/1.2/rtm", metaData.ID), headers, &postData)
+	if resp == nil {
+		return false, nil
+	}
+
+	fmt.Println(string(data))
+
+	return true, cmd
+}
+
+func (self *ConversationHandler) CreateConversation(ctx context.Context, req *pb.WithConversationBundle, rsp *pb.CreatedConversationOK) error {
 	ConversationModel := self.model(ctx, "Conversation")
 
-	conversation := &models.Conversation{
-		Kind:            req.Kind,
-		Name:            req.Name,
-		Avatar:          req.Avatar,
-		Master:          bson.ObjectIdHex(req.Master),
-		IsStartValidate: false,
-		IsTop:           false,
+	if req.ConversationID == "" || !bson.IsObjectIdHex(req.ConversationID) {
+		return self.Error(ctx).BadRequest("Conversation can be empty")
+	}
+
+	conversation := new(models.Conversation)
+	ConversationModel.Where(bson.M{"_id": req.ConversationID}).FindOne(conversation)
+	conversation.Kind = req.Kind
+	conversation.Name = req.Name
+	conversation.Avatar = req.Avatar
+	conversation.Master = bson.ObjectIdHex(req.Master)
+	conversation.IsStartValidate = false
+	conversation.IsTop = false
+	isExist := false
+
+	if conversation.IsEmpty() {
+		conversation.ID = bson.ObjectIdHex(req.ConversationID)
+	} else {
+		isExist = true
 	}
 
 	if len(req.Members) > 0 {
@@ -55,11 +159,25 @@ func (self *ConversationHandler) CreateConversation(ctx context.Context, req *pb
 		conversation.Members = members
 	}
 
-	if err := ConversationModel.Create(conversation); err != nil {
-		return self.Error(ctx).BadRequest(err.Error())
+	if isExist {
+		if err := ConversationModel.Update(bson.M{"_id": conversation.ID}, conversation); err != nil {
+			fmt.Println(err.Error(), "FMT ERROR1")
+			return self.Error(ctx).BadRequest(err.Error())
+		}
+	} else {
+		if err := ConversationModel.Create(conversation); err != nil {
+			fmt.Println(err.Error(), "FMT ERROR2")
+			return self.Error(ctx).BadRequest(err.Error())
+		}
 	}
 
+	// TODO 更新会话云数据
+	self.updateConversationMetaDataByID(ctx, conversation.ID)
+
 	rsp.OK = true
+	rsp.ID = conversation.ID.Hex()
+	rsp.IsExists = isExist
+
 	return nil
 }
 
@@ -105,6 +223,9 @@ func (self *ConversationHandler) FindConversationDetails(ctx context.Context, re
 	}
 
 	rsp.Conversation = conversation.ToPB()
+	if req.GetPut() {
+		self.updateConversationMetaDataByID(ctx, conversation.ID)
+	}
 	return nil
 }
 
@@ -186,6 +307,7 @@ func (self *ConversationHandler) UpdateGroupConversation(ctx context.Context, re
 	if err != nil {
 		return self.Error(ctx).BadRequest(err.Error())
 	}
+	self.updateConversationMetaDataByID(ctx, foundConversation.ID)
 	return nil
 }
 
@@ -225,17 +347,39 @@ func (self *ConversationHandler) GetAllMembersOfConversation(ctx context.Context
 	return nil
 }
 
-func (self *ConversationHandler) RemoveConversationNotice(context.Context, *pb.ByNoticeID, *pb.IsOK) error {
+func (self *ConversationHandler) RemoveConversationNotice(ctx context.Context, req *pb.ByNoticeID, rsp *pb.IsOK) error {
+	// self.
+	ConversationNoticeModel := self.model(ctx, "ConversationNotice")
+	if err := ConversationNoticeModel.Where(bson.M{"_id": req.ID}).Delete(); err != nil {
+		return self.Error(ctx).InternalServerError(err.Error())
+	}
 
-	panic("not implemented")
+	return nil
 }
 
-func (self *ConversationHandler) GetNoticeList(context.Context, *pb.ByIDWithPager, *pb.NoticesResponse) error {
-	panic("not implemented")
+func (self *ConversationHandler) GetNoticeList(ctx context.Context, req *pb.ByIDWithPager, rsp *pb.NoticesResponse) error {
+	ConversationNoticeModel := self.model(ctx, "ConversationNotice")
+
+	notices := make([]models.ConversationNotice, 0, req.Limit)
+	ConversationNoticeModel.
+		Where(bson.M{"conversation_id": req.ID}).
+		Skip(int((req.Page - 1) * req.Limit)).
+		Limit(int((req.Page - 1) * req.Limit)).
+		FindAll(&notices)
+
+	count := ConversationNoticeModel.Where(bson.M{"conversation_id": req.ID}).Count()
+	rsp.Total = int64(count)
+	pbNotices := make([]*pb.NoticePB, 0, len(notices))
+	for _, val := range notices {
+		pbNotices = append(pbNotices, val.ToPB())
+	}
+	rsp.Notices = pbNotices
+
+	return nil
 }
 
 func (self *ConversationHandler) CreateNotice(ctx context.Context, req *pb.WithNoticeBundle, rsp *pb.CreatedOK) error {
-	ConversationNoticeModel := self.model(ctx, "Conversation")
+	ConversationNoticeModel := self.model(ctx, "ConversationNotice")
 	conversationNotice := new(models.ConversationNotice)
 
 	conversationNotice.ConversationID = bson.ObjectIdHex(req.ConversationID)
@@ -247,6 +391,7 @@ func (self *ConversationHandler) CreateNotice(ctx context.Context, req *pb.WithN
 	}
 
 	rsp.OK = true
+	rsp.ID = conversationNotice.ID.Hex()
 	return nil
 }
 

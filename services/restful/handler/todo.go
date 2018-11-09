@@ -15,7 +15,7 @@ type TodoHandler struct {
 
 func NewTodoHandler(c client.Client) *TodoHandler {
 	return &TodoHandler{
-		approvedService:approvedPB.NewApprovedService(CoreService, c),
+		approvedService: approvedPB.NewApprovedService(CoreService, c),
 	}
 }
 

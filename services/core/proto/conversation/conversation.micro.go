@@ -13,6 +13,7 @@ It has these top-level messages:
 	WithID
 	UpdatedOK
 	WithMarkedBundle
+	CreatedConversationOK
 	CreatedOK
 	WithNoticeBundle
 	NoticePB
@@ -64,11 +65,11 @@ var _ server.Option
 // Client API for Conversation service
 
 type ConversationService interface {
-	CreateConversation(ctx context.Context, in *WithConversationBundle, opts ...client.CallOption) (*CreatedOK, error)
+	CreateConversation(ctx context.Context, in *WithConversationBundle, opts ...client.CallOption) (*CreatedConversationOK, error)
 	GetConversationsByMemberID(ctx context.Context, in *ByUserID, opts ...client.CallOption) (*ConversationsResponse, error)
 	FindConversationDetails(ctx context.Context, in *ByID, opts ...client.CallOption) (*ConversationDetails, error)
 	ExitGroup(ctx context.Context, in *ByIDWithUserID, opts ...client.CallOption) (*IsOK, error)
-	DismissGroup(ctx context.Context, in *ByID, opts ...client.CallOption) (*IsOK, error)
+	DismissGroup(ctx context.Context, in *ByIDWithUserID, opts ...client.CallOption) (*IsOK, error)
 	UpdateGroupConversation(ctx context.Context, in *WithUpdateBundle, opts ...client.CallOption) (*IsOK, error)
 	GetAllMembersOfConversation(ctx context.Context, in *ByID, opts ...client.CallOption) (*MembersResponse, error)
 	RemoveConversationNotice(ctx context.Context, in *ByNoticeID, opts ...client.CallOption) (*IsOK, error)
@@ -98,9 +99,9 @@ func NewConversationService(name string, c client.Client) ConversationService {
 	}
 }
 
-func (c *conversationService) CreateConversation(ctx context.Context, in *WithConversationBundle, opts ...client.CallOption) (*CreatedOK, error) {
+func (c *conversationService) CreateConversation(ctx context.Context, in *WithConversationBundle, opts ...client.CallOption) (*CreatedConversationOK, error) {
 	req := c.c.NewRequest(c.name, "Conversation.CreateConversation", in)
-	out := new(CreatedOK)
+	out := new(CreatedConversationOK)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -138,7 +139,7 @@ func (c *conversationService) ExitGroup(ctx context.Context, in *ByIDWithUserID,
 	return out, nil
 }
 
-func (c *conversationService) DismissGroup(ctx context.Context, in *ByID, opts ...client.CallOption) (*IsOK, error) {
+func (c *conversationService) DismissGroup(ctx context.Context, in *ByIDWithUserID, opts ...client.CallOption) (*IsOK, error) {
 	req := c.c.NewRequest(c.name, "Conversation.DismissGroup", in)
 	out := new(IsOK)
 	err := c.c.Call(ctx, req, out, opts...)
@@ -241,11 +242,11 @@ func (c *conversationService) JoinInGroup(ctx context.Context, in *WithIDAndUser
 // Server API for Conversation service
 
 type ConversationHandler interface {
-	CreateConversation(context.Context, *WithConversationBundle, *CreatedOK) error
+	CreateConversation(context.Context, *WithConversationBundle, *CreatedConversationOK) error
 	GetConversationsByMemberID(context.Context, *ByUserID, *ConversationsResponse) error
 	FindConversationDetails(context.Context, *ByID, *ConversationDetails) error
 	ExitGroup(context.Context, *ByIDWithUserID, *IsOK) error
-	DismissGroup(context.Context, *ByID, *IsOK) error
+	DismissGroup(context.Context, *ByIDWithUserID, *IsOK) error
 	UpdateGroupConversation(context.Context, *WithUpdateBundle, *IsOK) error
 	GetAllMembersOfConversation(context.Context, *ByID, *MembersResponse) error
 	RemoveConversationNotice(context.Context, *ByNoticeID, *IsOK) error
@@ -259,11 +260,11 @@ type ConversationHandler interface {
 
 func RegisterConversationHandler(s server.Server, hdlr ConversationHandler, opts ...server.HandlerOption) {
 	type conversation interface {
-		CreateConversation(ctx context.Context, in *WithConversationBundle, out *CreatedOK) error
+		CreateConversation(ctx context.Context, in *WithConversationBundle, out *CreatedConversationOK) error
 		GetConversationsByMemberID(ctx context.Context, in *ByUserID, out *ConversationsResponse) error
 		FindConversationDetails(ctx context.Context, in *ByID, out *ConversationDetails) error
 		ExitGroup(ctx context.Context, in *ByIDWithUserID, out *IsOK) error
-		DismissGroup(ctx context.Context, in *ByID, out *IsOK) error
+		DismissGroup(ctx context.Context, in *ByIDWithUserID, out *IsOK) error
 		UpdateGroupConversation(ctx context.Context, in *WithUpdateBundle, out *IsOK) error
 		GetAllMembersOfConversation(ctx context.Context, in *ByID, out *MembersResponse) error
 		RemoveConversationNotice(ctx context.Context, in *ByNoticeID, out *IsOK) error
@@ -285,7 +286,7 @@ type conversationHandler struct {
 	ConversationHandler
 }
 
-func (h *conversationHandler) CreateConversation(ctx context.Context, in *WithConversationBundle, out *CreatedOK) error {
+func (h *conversationHandler) CreateConversation(ctx context.Context, in *WithConversationBundle, out *CreatedConversationOK) error {
 	return h.ConversationHandler.CreateConversation(ctx, in, out)
 }
 
@@ -301,7 +302,7 @@ func (h *conversationHandler) ExitGroup(ctx context.Context, in *ByIDWithUserID,
 	return h.ConversationHandler.ExitGroup(ctx, in, out)
 }
 
-func (h *conversationHandler) DismissGroup(ctx context.Context, in *ByID, out *IsOK) error {
+func (h *conversationHandler) DismissGroup(ctx context.Context, in *ByIDWithUserID, out *IsOK) error {
 	return h.ConversationHandler.DismissGroup(ctx, in, out)
 }
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-
 	"context"
 
 	ironic "github.com/iron-kit/go-ironic"
@@ -116,7 +115,7 @@ func (announce *Announce) GetAnnounces(ctx context.Context, req *pb.GetAnnounces
 
 	condition := bson.M{
 		"club_id": req.ClubID,
-		"kind": req.Kind,
+		"kind":    req.Kind,
 	}
 	announces := make([]models.Announce, 0, int(req.Limit))
 	if req.Kind != models.KindAnnounceInstructions {
@@ -135,7 +134,7 @@ func (announce *Announce) GetAnnounces(ctx context.Context, req *pb.GetAnnounces
 	for _, v := range announces {
 		pbAnnounces = append(pbAnnounces, v.ToPB())
 	}
-	
+
 	rsp.Announces = pbAnnounces
 
 	return nil
@@ -144,8 +143,8 @@ func (announce *Announce) GetAnnounces(ctx context.Context, req *pb.GetAnnounces
 func (announce *Announce) GetUnreadCountByUserID(ctx context.Context, req *pb.ByUserID, rsp *pb.UnreadCountResponse) error {
 	AnnounceModel := announce.model(ctx, "Announce")
 	condition := bson.M{
-		"club_id": req.ClubID,
-		"receivers.user_id": req.UserID,
+		"club_id":            req.ClubID,
+		"receivers.user_id":  req.UserID,
 		"receivers.has_read": false,
 	}
 
@@ -159,14 +158,14 @@ func (announce *Announce) MarkedOneToRead(ctx context.Context, req *pb.MarkedOne
 	AnnounceModel := announce.model(ctx, "Announce")
 
 	if err := AnnounceModel.Update(bson.M{
-		"_id": req.ID,
+		"_id":               req.ID,
 		"receivers.user_id": req.UserID,
 	}, bson.M{
 		"$set": bson.M{"receivers.$.has_read": true},
 	}); err != nil {
 		return announce.Error(ctx).InternalServerError(err.Error())
 	}
-	
+
 	rsp.OK = true
 
 	return nil

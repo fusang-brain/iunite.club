@@ -22,13 +22,13 @@ type Report struct {
 
 func (r *Report) ToPB() *pb.ReportPB {
 	result := &pb.ReportPB{
-		ID: r.ID.Hex(),
-		Title: r.Title,
+		ID:          r.ID.Hex(),
+		Title:       r.Title,
 		Description: r.Description,
-		Body: r.Body,
-		Results: hptypes.EncodeToStruct(r.Results),
+		Body:        r.Body,
+		Results:     hptypes.EncodeToStruct(r.Results),
 	}
-	
+
 	if len(r.Receivers) > 0 {
 		receivers := make([]string, 0)
 		for _, v := range r.Receivers {

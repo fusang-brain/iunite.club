@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"iunite.club/services/navo/dto/announce"
 	"github.com/emicklei/go-restful"
 	"github.com/micro/go-micro/client"
+	"iunite.club/services/navo/dto/announce"
 	"iunite.club/services/navo/handler"
 	"iunite.club/services/navo/router"
 )
@@ -13,7 +13,7 @@ func getAuthHeaderParam(r *router.Router) *restful.Parameter {
 }
 
 func AnnounceRoute(r *router.Router) {
-	
+
 	announceHandler := handler.NewAnnounceHandler(client.DefaultClient)
 	authHeaderParam := getAuthHeaderParam(r)
 	announceRoute := r.Group(

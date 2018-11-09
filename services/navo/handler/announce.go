@@ -141,7 +141,7 @@ func (self *AnnounceHandler) GetAnnounces(req *restful.Request, rsp *restful.Res
 		WriteError(rsp, err)
 		return
 	}
-	
+
 	WriteJsonResponse(rsp, listResp)
 	return
 }

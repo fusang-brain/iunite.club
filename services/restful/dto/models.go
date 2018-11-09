@@ -261,15 +261,15 @@ type RecruitmentForm struct {
 
 // RecruitmentFormItem 招新表单项目model
 type RecruitmentFormItem struct {
-	ID           string                 `json:"ID,omitempty"`
-	CreatedAt    int64                  `json:"CreatedAt,omitempty"`
-	UpdatedAt    int64                  `json:"UpdatedAt,omitempty"`
-	Key          string                 `json:"Key,omitempty"` // 题目的标识，由前端生成
-	Organization string                 `json:"Organization,omitempty"`
-	Subject      string                 `json:"Subject,omitempty"`
-	Options      string `json:"Options,omitempty"` // json object string
-	Kind         string                 `json:"Kind,omitempty"`      // 种类 单选：radio 多选: checkbox 填空: words
-	FormRefer    string                 `json:"FormRefer,omitempty"` // 所属表单的关联字段
+	ID           string `json:"ID,omitempty"`
+	CreatedAt    int64  `json:"CreatedAt,omitempty"`
+	UpdatedAt    int64  `json:"UpdatedAt,omitempty"`
+	Key          string `json:"Key,omitempty"` // 题目的标识，由前端生成
+	Organization string `json:"Organization,omitempty"`
+	Subject      string `json:"Subject,omitempty"`
+	Options      string `json:"Options,omitempty"`   // json object string
+	Kind         string `json:"Kind,omitempty"`      // 种类 单选：radio 多选: checkbox 填空: words
+	FormRefer    string `json:"FormRefer,omitempty"` // 所属表单的关联字段
 }
 
 // RecruitmentFormRecords 招新表单提交记录表
@@ -353,4 +353,35 @@ type Upgrade struct {
 	Platform    string `json:"Platform,omitempty"`
 	Body        string `json:"Body,omitempty"`
 	URL         string `json:"URL,omitempty"`
+}
+
+type Conversation struct {
+	ID                  string             `json:"ID,omitempty"`
+	CreatedAt           int64              `json:"CreatedAt,omitempty"`
+	UpdatedAt           int64              `json:"UpdatedAt,omitempty"`
+	LCConversationRefer string             `json:"LCConversationRefer,omitempty"`
+	Kind                string             `json:"Kind,omitempty"`
+	Name                string             `json:"Name,omitempty"`
+	Avatar              string             `json:"Avatar,omitempty"`
+	IsStartValidate     bool               `json:"IsStartValidate,omitempty"`
+	IsTop               bool               `json:"IsTop,omitempty"`
+	Master              string             `json:"Master,omitempty"`
+	Users               []ConversationUser `json:"Users,omitempty"`
+}
+
+type ConversationUser struct {
+	ID                string `json:"ID,omitempty"`
+	CreatedAt         int64  `json:"CreatedAt,omitempty"`
+	UpdatedAt         int64  `json:"UpdatedAt,omitempty"`
+	UserRefer         string `json:"UserRefer,omitempty"`
+	ConversationRefer string `json:"ConversationRefer,omitempty"`
+	Nickname          string `json:"Nickname,omitempty"`
+	IsTop             bool   `json:"IsTop,omitempty"`
+}
+
+type ConversationNotice struct {
+	ID                string `json:"ID,omitempty"`
+	ConversationRefer string `json:"ConversationRefer,omitempty"`
+	Title             string `json:"Title,omitempty"`
+	Body              string `json:"Body,omitempty"`
 }

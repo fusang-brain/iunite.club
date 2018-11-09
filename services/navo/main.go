@@ -1,10 +1,10 @@
 package main
 
 import (
-	"iunite.club/services/navo/routers"
 	"github.com/emicklei/go-restful"
 	"github.com/go-openapi/spec"
 	"github.com/micro/go-log" // "net/http"
+	"iunite.club/services/navo/routers"
 	// "github.com/micro/go-micro/client"
 	"github.com/micro/go-web"
 	"iunite.club/services/navo/handler"
@@ -18,8 +18,8 @@ func getRouter() *router.Router {
 
 	r := router.NewRouter(
 		router.Name("Navo"),
-    router.Description("Navo API"),
-    router.Produces(restful.MIME_JSON),
+		router.Description("Navo API"),
+		router.Produces(restful.MIME_JSON),
 	)
 
 	r.Title("Unite - Navo").
@@ -33,7 +33,7 @@ func getRouter() *router.Router {
 			Name: "MIT",
 			URL:  "http://mit.org",
 		}).
-    Version("Navo v0.0.1")
+		Version("Navo v0.0.1")
 
 	// 通告
 	routers.AnnounceRoute(r)

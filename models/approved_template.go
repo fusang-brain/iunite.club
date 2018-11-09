@@ -2,9 +2,9 @@ package models
 
 import (
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
-	pb "iunite.club/services/approved/proto"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
+	pb "iunite.club/services/approved/proto"
 )
 
 type ApprovedTemplate struct {
@@ -23,16 +23,16 @@ type ApprovedTemplate struct {
 
 func (at *ApprovedTemplate) ToPB() *pb.ApprovedTemplatePB {
 	result := &pb.ApprovedTemplatePB{
-		ID: at.ID.Hex(),
-		CreatedAt: hptypes.TimestampProto(at.CreatedAt),
-		UpdatedAt: hptypes.TimestampProto(at.UpdatedAt),
-		UserID: at.UserID.Hex(),
-		ClubID: at.ClubID.Hex(),
-		Title: at.Title,
+		ID:          at.ID.Hex(),
+		CreatedAt:   hptypes.TimestampProto(at.CreatedAt),
+		UpdatedAt:   hptypes.TimestampProto(at.UpdatedAt),
+		UserID:      at.UserID.Hex(),
+		ClubID:      at.ClubID.Hex(),
+		Title:       at.Title,
 		Description: at.Description,
-		Body: at.Body,
+		Body:        at.Body,
 		FlowsConfig: at.FlowsConfig.ToPB(),
-		Enabled: at.Enabled,
+		Enabled:     at.Enabled,
 	}
 
 	if len(at.AvailableOrganizations) > 0 {
@@ -82,4 +82,4 @@ func (at *ApprovedTemplate) SetByPB(pb *pb.ApprovedTemplatePB) {
 		at.FlowsConfig = TemplateApprovedFlowConfig{}
 		at.FlowsConfig.SetByPB(pb.FlowsConfig)
 	}
-} 
+}

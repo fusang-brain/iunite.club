@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"fmt"
-	"github.com/iron-kit/go-ironic/protobuf/hptypes"
-	"iunite.club/models"
-	"gopkg.in/mgo.v2/bson"
-	"github.com/iron-kit/monger"
-	pb "iunite.club/services/approved/proto"
 	"context"
+	"fmt"
 	"github.com/iron-kit/go-ironic"
+	"github.com/iron-kit/go-ironic/protobuf/hptypes"
+	"github.com/iron-kit/monger"
+	"gopkg.in/mgo.v2/bson"
+	"iunite.club/models"
+	pb "iunite.club/services/approved/proto"
 )
 
 type Approved struct {
@@ -41,11 +41,9 @@ func (aprd *Approved) FindTemplates(ctx context.Context, req *pb.FindTemplatesRe
 
 	total := query.Query().Count()
 
-
 	templates := make([]models.ApprovedTemplate, 0, req.Limit)
 
 	query.Query().Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).FindAll(&templates)
-
 
 	rsp.Total = int32(total)
 	pbTemplates := make([]*pb.ApprovedTemplatePB, 0, len(templates))
@@ -61,7 +59,6 @@ func (aprd *Approved) PostTemplate(ctx context.Context, req *pb.PostTemplateRequ
 	ApprovedTemplateModel := aprd.model(ctx, "ApprovedTemplate")
 	newTemplate := new(models.ApprovedTemplate)
 	newTemplate.SetByPB(req.Template)
-
 
 	if err := ApprovedTemplateModel.Create(newTemplate); err != nil {
 		return aprd.Error(ctx).InternalServerError(err.Error())
@@ -104,4 +101,3 @@ func (aprd *Approved) ToggleTemplateEnableState(ctx context.Context, req *pb.Tog
 	rsp.OK = true
 	return nil
 }
-

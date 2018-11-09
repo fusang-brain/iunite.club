@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"context"
+	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
+	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
-	"github.com/iron-kit/monger"
-	"context"
 	pb "iunite.club/services/report/proto"
-	"github.com/iron-kit/go-ironic"
 )
 
 type Report struct {
@@ -49,7 +49,7 @@ func (r *Report) FindReports(ctx context.Context, req *pb.FindReportsRequest, rs
 		Skip(int((req.Page - 1) * req.Limit)).
 		Limit(int(req.Limit)).
 		FindAll(&reports); err != nil {
-			return r.Error(ctx).InternalServerError(err.Error())
+		return r.Error(ctx).InternalServerError(err.Error())
 	}
 
 	pbReports := make([]*pb.ReportPB, 0)
@@ -78,9 +78,9 @@ func (r *Report) PostReport(ctx context.Context, req *pb.PostReportBundle, rsp *
 			for _, v := range req.Receivers {
 				receivers = append(receivers, bson.ObjectIdHex(v))
 			}
-			newReport.Receivers	= receivers
+			newReport.Receivers = receivers
 		}
-		
+
 		newReport.Title = req.Title
 		newReport.Description = req.Description
 	}
@@ -115,10 +115,10 @@ func (r *Report) PostReport(ctx context.Context, req *pb.PostReportBundle, rsp *
 func (r *Report) PostTemplate(ctx context.Context, req *pb.PostTemplateBundle, rsp *pb.PostTemplateResponse) error {
 	ReportTemplateModel := r.model(ctx, "ReportTemplate")
 	newReportTemplate := &models.ReportTemplate{
-		Title: req.Title,
+		Title:       req.Title,
 		Description: req.Description,
-		ClubID: bson.ObjectIdHex(req.ClubID),
-		UserID: bson.ObjectIdHex(req.UserID),
+		ClubID:      bson.ObjectIdHex(req.ClubID),
+		UserID:      bson.ObjectIdHex(req.UserID),
 	}
 
 	if len(req.Receivers) > 0 {
@@ -126,7 +126,7 @@ func (r *Report) PostTemplate(ctx context.Context, req *pb.PostTemplateBundle, r
 		for _, v := range req.Receivers {
 			receivers = append(receivers, bson.ObjectIdHex(v))
 		}
-		newReportTemplate.Receivers	= receivers
+		newReportTemplate.Receivers = receivers
 	}
 
 	if len(req.CustomFields) > 0 {
@@ -134,11 +134,11 @@ func (r *Report) PostTemplate(ctx context.Context, req *pb.PostTemplateBundle, r
 
 		for _, v := range req.CustomFields {
 			fields = append(fields, models.TemplateCustomField{
-				Key: v.Key,
-				Kind: v.Kind,
-				Label: v.Label,
+				Key:     v.Key,
+				Kind:    v.Kind,
+				Label:   v.Label,
 				Options: hptypes.DecodeToMap(v.Options),
-				Sort: v.Sort,
+				Sort:    v.Sort,
 			})
 		}
 
@@ -159,7 +159,7 @@ func (r *Report) PostTemplate(ctx context.Context, req *pb.PostTemplateBundle, r
 
 		newReportTemplate.Config = config
 	}
-	
+
 	if err := ReportTemplateModel.Create(newReportTemplate); err != nil {
 		return r.Error(ctx).InternalServerError(err.Error())
 	}
@@ -205,11 +205,10 @@ func (r *Report) FindOneReport(ctx context.Context, req *pb.ByIDRequest, rsp *pb
 	}).FindOne(foundReport); err != nil {
 		return r.Error(ctx).InternalServerError(err.Error())
 	}
-	
+
 	rsp.Report = foundReport.ToPB()
 	return nil
 }
-
 
 func (r *Report) FindOneTemplate(ctx context.Context, req *pb.ByTemplateIDRequest, rsp *pb.TemplateResponse) error {
 	ReportTemplateModel := r.model(ctx, "ReportTemplate")
@@ -219,7 +218,7 @@ func (r *Report) FindOneTemplate(ctx context.Context, req *pb.ByTemplateIDReques
 	}).FindOne(foundReport); err != nil {
 		return r.Error(ctx).InternalServerError(err.Error())
 	}
-	
+
 	rsp.Template = foundReport.ToPB()
 	return nil
 }
@@ -259,4 +258,3 @@ func (r *Report) ToggleTemplateEnableState(ctx context.Context, req *pb.ToggleTe
 	rsp.OK = true
 	return nil
 }
-

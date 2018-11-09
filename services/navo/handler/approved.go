@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"strings"
+	"context"
 	"encoding/json"
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
-	"context"
+	"strings"
 
 	"github.com/emicklei/go-restful"
 	"github.com/micro/go-micro/client"
@@ -48,7 +48,7 @@ func (a *ApprovedHandler) PostTemplate(req *restful.Request, rsp *restful.Respon
 	}
 
 	WriteJsonResponse(rsp, D{
-		"ID": postedResp.Template.ID,
+		"ID":        postedResp.Template.ID,
 		"CreatedAt": hptypes.Timestamp(postedResp.Template.CreatedAt),
 	})
 }
@@ -58,7 +58,7 @@ func (a *ApprovedHandler) FindTemplates(req *restful.Request, rsp *restful.Respo
 	params := struct {
 		Page      int32  `json:"page,omitempty" query:"page"`
 		Limit     int32  `json:"limit,omitempty" query:"limit"`
-		ClubID 		string `json:"club_id,omitempty" query:"club_id"`
+		ClubID    string `json:"club_id,omitempty" query:"club_id"`
 		Populates string `json:"populates,omitempty" query:"populates"`
 	}{}
 
@@ -69,9 +69,9 @@ func (a *ApprovedHandler) FindTemplates(req *restful.Request, rsp *restful.Respo
 
 	populates := strings.Split(params.Populates, ",")
 	templatesResp, err := a.approvedService.FindTemplates(ctx, &pb.FindTemplatesRequest{
-		Page: params.Page,
-		Limit: params.Limit,
-		ClubID: params.ClubID,
+		Page:     params.Page,
+		Limit:    params.Limit,
+		ClubID:   params.ClubID,
 		Populate: populates,
 	})
 
@@ -117,7 +117,7 @@ func (a *ApprovedHandler) UpdateTemplate(req *restful.Request, rsp *restful.Resp
 	// }
 
 	reply, err := a.approvedService.UpdateTemplate(ctx, &pb.UpdateTemplateRequest{
-		ID: id,
+		ID:     id,
 		Fields: hptypes.EncodeToStruct(updateFields),
 	})
 
@@ -133,13 +133,13 @@ func (a *ApprovedHandler) EnableTemplate(req *restful.Request, rsp *restful.Resp
 	ctx := context.Background()
 	id := req.PathParameter("id")
 	reply, err := a.approvedService.ToggleTemplateEnableState(ctx, &pb.ToggleEnableStateReq{
-		ID: id,
+		ID:        id,
 		IsEnabled: true,
 	})
 
 	if err != nil {
 		WriteError(rsp, err)
-		return 
+		return
 	}
 
 	WriteJsonResponse(rsp, reply)
@@ -149,13 +149,13 @@ func (a *ApprovedHandler) DisableTemplate(req *restful.Request, rsp *restful.Res
 	ctx := context.Background()
 	id := req.PathParameter("id")
 	reply, err := a.approvedService.ToggleTemplateEnableState(ctx, &pb.ToggleEnableStateReq{
-		ID: id,
+		ID:        id,
 		IsEnabled: false,
 	})
 
 	if err != nil {
 		WriteError(rsp, err)
-		return 
+		return
 	}
 
 	WriteJsonResponse(rsp, reply)
