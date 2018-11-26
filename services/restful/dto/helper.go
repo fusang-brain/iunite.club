@@ -3,15 +3,17 @@ package dto
 import (
 	"encoding/json"
 	"fmt"
-	conversationPB "iunite.club/services/core/proto/conversation"
 	"strconv"
 	"time"
+
+	conversationPB "iunite.club/services/core/proto/conversation"
 
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"github.com/iron-kit/go-ironic/utils"
 	"gopkg.in/mgo.v2/bson"
 	announcePB "iunite.club/services/core/proto/announce"
 	approvedPB "iunite.club/services/core/proto/approved"
+	contactPB "iunite.club/services/core/proto/contacts"
 	recruitmentPB "iunite.club/services/core/proto/recruitment"
 	orgPB "iunite.club/services/organization/proto"
 	schoolPB "iunite.club/services/organization/proto/school"
@@ -19,6 +21,24 @@ import (
 	cloudPB "iunite.club/services/storage/proto/cloud"
 	userPB "iunite.club/services/user/proto"
 )
+
+func PBToFriendAccept(pb *contactPB.FriendAccept) *FriendAccept {
+	if pb == nil {
+		return nil
+	}
+
+	result := &FriendAccept{
+		ID:            pb.ID,
+		SenderRefer:   pb.SenderID,
+		ReceiverRefer: pb.ReceiverID,
+		Kind:          int(pb.Kind),
+		Body:          pb.Body,
+		GroupID:       pb.GroupID,
+		State:         int(pb.State),
+	}
+
+	return result
+}
 
 func PBToConversationNotice(pb *conversationPB.NoticePB) *ConversationNotice {
 	if pb == nil {
@@ -52,6 +72,7 @@ func PBToConversation(pb *conversationPB.ConversationPB) *Conversation {
 
 		for _, val := range pb.Members {
 			members = append(members, ConversationUser{
+
 				UserRefer:         val.UserID,
 				ConversationRefer: pb.ID,
 				Nickname:          val.Nickname,
@@ -773,4 +794,41 @@ func PBToApprovedTask(pb *approvedPB.ApprovedPB) *ApprovedTask {
 	// if pb.Pusher != nil
 
 	return at
+}
+
+func PBToUserMetaData(pb *conversationPB.UserMetaData) *UserMetaData {
+	return &UserMetaData{
+		ID: pb.ID,
+		RealName: pb.RealName,
+		Avatar: pb.Avatar,
+		Nickname: pb.Nickname,
+		RemarkName: pb.RemarkName,
+		GroupNickname: pb.GroupNickname,
+		Email: pb.Email,
+	}
+}
+
+func PBToConversatoinMetaData(pb *conversationPB.ConversationMetaData) *ConversationMetaData {
+	if pb == nil {
+		return new(ConversationMetaData)
+	}
+
+	res := &ConversationMetaData{
+		UniteConversationID: pb.UniteConversationID,
+		Kind: pb.Kind,
+		ConversationName: pb.ConversationName,
+		ConversationAvatar: pb.ConversationAvatar,
+		// MemberMapper: pb.MemberMapper,
+		TopMembers: pb.TopMembers,
+		IsTop: pb.IsTop,
+	}
+
+	if pb.MemberMapper != nil {
+		res.MemberMapper = make(map[string]*UserMetaData)
+		for key, value := range pb.MemberMapper {
+			res.MemberMapper[key] = PBToUserMetaData(value)
+		}
+	}
+
+	return res
 }

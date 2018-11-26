@@ -49,6 +49,7 @@ message CreatedConversationOK {
   bool OK = 1;
   string ID = 2;
   bool IsExists = 3;
+  ConversationMetaData MetaData = 4;
 }
 
 message CreatedOK {
@@ -145,6 +146,27 @@ message ConversationMember {
   string UserID = 1;
   string Nickname = 2;
   bool IsTop = 3;
+  iunite.club.srv.user.User User = 4;
+}
+
+message UserMetaData {
+  string ID = 1;
+  string RealName = 2;
+  string Avatar = 3;
+  string Nickname = 4;
+  string RemarkName = 5;
+  string GroupNickname = 6;
+  string Email = 7;
+}
+
+message ConversationMetaData {
+  string UniteConversationID = 1;
+  string Kind = 2;
+  string ConversationAvatar = 3;
+  string ConversationName = 4;
+  map<string, UserMetaData> MemberMapper = 5;
+  repeated string TopMembers = 6;
+  bool IsTop = 7;
 }
 
 message WithConversationBundle {

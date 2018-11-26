@@ -25,6 +25,7 @@ type User struct {
 	Username         string            `json:"username,omitempty" bson:"username,omitempty"`
 	Enabled          bool              `json:"enabled,omitempty" bson:"enabled"`
 	SchoolID         bson.ObjectId     `json:"schoolID,omitempty" bson:"school_id,omitempty"`
+	School           *School           `json:"school,omitempty" bson:"school" monger:"belongTo,foreignKey=school_id"`
 	Profile          *Profile          `json:"profile,omitempty" bson:"profile" monger:"hasOne,foreignKey=user_id"`
 	SecruityInfos    []SecruityInfo    `json:"-,omitempty" bson:"secruity_infos,omitempty"`
 	DefaultClubID    bson.ObjectId     `json:"defaultClubID,omitempty" bson:"defaultClubID,omitempty"`

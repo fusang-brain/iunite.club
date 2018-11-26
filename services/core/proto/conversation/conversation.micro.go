@@ -30,6 +30,8 @@ It has these top-level messages:
 	ByUserID
 	ConversationPB
 	ConversationMember
+	UserMetaData
+	ConversationMetaData
 	WithConversationBundle
 */
 package iunite_club_srv_core_conversation

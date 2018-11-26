@@ -4,6 +4,8 @@ import (
 	"os"
 	"time"
 
+	"iunite.club/services/core/proto/contacts"
+
 	announce "iunite.club/services/core/proto/announce"
 	"iunite.club/services/core/proto/conversation"
 	recruitment "iunite.club/services/core/proto/recruitment"
@@ -53,10 +55,12 @@ func main() {
 						&models.Announce{},
 						&models.Conversation{},
 						&models.ConversationNotice{},
+						&models.SocialApplication{},
+						&models.UserFriend{},
 						// &models.User{},
 						// &models.Profile{},
-						// &models.Organization{},
-						// &models.UserClubProfile{},
+						&models.Organization{},
+						&models.UserClubProfile{},
 						// &models.School{},
 						// &models.OrganizationJob{},
 						// &models.OrganizationAccept{},
@@ -84,6 +88,7 @@ func main() {
 	recruitment.RegisterRecruitmentHandler(service.Server(), new(handler.Recruitment))
 	announce.RegisterAnnounceHandler(service.Server(), new(handler.Announce))
 	iunite_club_srv_core_conversation.RegisterConversationHandler(service.Server(), new(handler.ConversationHandler))
+	iunite_club_srv_core_contacts.RegisterContactsHandler(service.Server(), new(handler.ContactsHandler))
 
 	// Register Struct as Subscriber
 	micro.RegisterSubscriber("iunite.club.srv.core", service.Server(), new(subscriber.Example))

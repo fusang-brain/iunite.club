@@ -92,7 +92,7 @@ func (conv *Conversation) CreateConversation(req *restful.Request, rsp *restful.
 		IsStartValidate: false,
 		IsTop:           false,
 		ConversationID:  params.ConversationID,
-		Master: 		 params.Master,
+		Master:          params.Master,
 	})
 
 	if err != nil {
@@ -109,13 +109,12 @@ func (conv *Conversation) CreateConversation(req *restful.Request, rsp *restful.
 		return
 	}
 
-	// TODO update conversation metadata
-
 	SuccessResponse(rsp, D{
 		// "Conversation":,
 		"Conversation": dto.PBToConversation(detailsReply.Conversation),
-		"Metadata":     "",
+		"Metadata":     dto.PBToConversatoinMetaData(reply.MetaData),
 		"IsExists":     reply.IsExists,
+
 	})
 }
 
@@ -143,6 +142,9 @@ func (conv *Conversation) GetConversationDetails(req *restful.Request, rsp *rest
 	urlQuery.Set("pg", "conversation.group.details")
 	urlQuery.Add("do", "showGroupDetails")
 	urlQuery.Add("id", reply.Conversation.ID)
+
+	// UpdateConversationMetaDataByID 更新leancloud远端元数据
+
 	SuccessResponse(rsp, D{
 		"Details":    dto.PBToConversation(reply.Conversation),
 		"QRCodeBody": "unite://client//action?" + urlQuery.Encode(),
@@ -188,7 +190,7 @@ func (conv *Conversation) DismissGroup(req *restful.Request, rsp *restful.Respon
 	}
 
 	_, err := conv.conversationService.DismissGroup(ctx, &pb.ByIDWithUserID{
-		ID: params.ID,
+		ID:     params.ID,
 		UserID: conv.GetUserIDFromRequest(req),
 	})
 
@@ -233,6 +235,7 @@ func (conv *Conversation) UpdateGroupConversation(req *restful.Request, rsp *res
 		ErrorResponse(rsp, err)
 		return
 	}
+	// UpdateConversationMetaDataByID 更新leancloud远端元数据
 
 	SuccessResponse(rsp, D{})
 	return

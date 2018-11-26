@@ -90,7 +90,11 @@ func (r *Recruitment) RefusedOnePost(ctx context.Context, req *pb.RefusedOnePost
 func (r *Recruitment) FindLatestRecruitmentRecord(ctx context.Context, req *pb.ByClubIDRequest, rsp *pb.RecruitmentRecordResponse) error {
 	RecruitmentRecordModel := r.model(ctx, "RecruitmentRecord")
 	record := new(models.RecruitmentRecord)
-	RecruitmentRecordModel.Where(bson.M{"has_end": false}).Sort("-updated_at").FindOne(record)
+	RecruitmentRecordModel.
+		Where(bson.M{"has_end": false}).
+		Populate("Form").
+		Sort("-updated_at").
+		FindOne(record)
 
 	if record.IsEmpty() {
 		return r.Error(ctx).NotFound("Not found record")

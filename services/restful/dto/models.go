@@ -385,3 +385,23 @@ type ConversationNotice struct {
 	Title             string `json:"Title,omitempty"`
 	Body              string `json:"Body,omitempty"`
 }
+
+type UserMetaData struct {
+	ID            string `json:"ID,omitempty"`
+	RealName      string `json:"RealName,omitempty"`
+	Avatar        string `json:"Avatar,omitempty"`
+	Nickname      string `json:"Nickname,omitempty"`
+	RemarkName    string `json:"RemarkName,omitempty"`
+	GroupNickname string `json:"GroupNickname,omitempty"`
+	Email         string `json:"Email,omitempty"`
+}
+
+type ConversationMetaData struct {
+	UniteConversationID string                  `json:"UniteConversationID"`
+	Kind                string                  `json:"Kind"`       // 会话类型
+	ConversationName    string                  `json:"Name"`       // 会话名称
+	ConversationAvatar  string                  `json:"Avatar"`     // 会话头像
+	MemberMapper        map[string]*UserMetaData `json:"UserMapper"` // 用户映射 id => conversation
+	TopMembers          []string                `json:"TopMembers"` // 置顶用户
+	IsTop               bool                    `json:"IsTop"`
+}

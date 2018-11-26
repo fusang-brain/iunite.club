@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package iunite.club.srv.core.contacts;
+
+import "iunite.club/services/user/proto/user.proto";
+import "iunite.club/services/organization/proto/organization.proto";
+import "iunite.club/services/core/proto/conversation/conversation.proto";
+import "google/protobuf/struct.proto";
+
+service Contacts {
+  rpc FindFriendList (FindFriendListRequest) returns (FriendListResponse);
+  rpc FindAllGroup (FindAllGroupRequest) returns (FindAllGroupResponse);
+  rpc FindContactsList (FindContactsRequest) returns (ContactsResponse);
+  rpc FindDepartmentGroupByUserID (UserIDRequest) returns (OrganizationsResponse);
+  rpc FindUsersByDepartment (DepartmentRequest) returns (UserJobListResponse);
+  rpc FindDepartmentsByOrganization (OrgRequest) returns (OrganizationsResponse);
+  rpc GetUserCardDetails (UserIDRequest) returns (UserCardResponse);
+  rpc SearchUsers (SearchUserRequest) returns (UsersResponse);
+  rpc AddFriend (AddFriendRequest) returns (CreatedResponse);
+  rpc RemoveFriend (RemoveFriendRequest) returns (RemovedResponse);
+  rpc FindFriendAcceptList (UserIDRequest) returns (FriendAcceptResponse);
+  rpc FindFrientAcceptCount (UserIDRequest) returns (CountResponse);
+  rpc AgreeFriendAccept (AgreeFriendAcceptRequest) returns (UpdatedResponse);
+}
+
+message UserJob {
+  iunite.club.srv.user.User User = 1;
+  iunite.club.srv.organization.Job Job = 2;
+}
+
+message UserJobListResponse {
+  repeated UserJob UserJobs = 1;
+}
+
+message AgreeFriendAcceptRequest {
+  string ID = 1;
+}
+
+message UpdatedResponse {
+  bool OK = 1;
+}
+
+message FriendAccept {
+  string ID = 1;
+  string SenderID = 2;
+  string ReceiverID = 3;
+  int32 Kind = 4;
+  string GroupID = 5;
+  string Body = 6;
+  int32 State = 7;
+}
+
+message CountResponse {
+  int32 Count = 1;
+}
+
+message FriendAcceptResponse {
+  repeated FriendAccept AcceptList = 1;
+}
+
+message AddFriendRequest {
+  string UserID = 1;
+  string FriendID = 2;
+}
+
+message RemoveFriendRequest {
+  string UserID = 1;
+  string FriendID = 2;
+}
+
+message RemovedResponse {
+  bool OK = 1;
+}
+
+message CreatedResponse {
+  bool OK = 1;
+}
+
+message DepartmentRequest {
+  string DepartmentID = 1;
+}
+
+message OrgRequest {
+  string OrgID = 1;
+}
+
+message UserCardResponse {
+  iunite.club.srv.user.User BaseInfo = 1;
+  repeated iunite.club.srv.organization.UserClubProfile OrganizationUserInfo = 2;
+  bool IsFriend = 3;
+  bool InSameOrganization = 4;
+}
+
+message SearchUserRequest {
+  string Mobile = 1;
+}
+
+message UsersResponse {
+  repeated iunite.club.srv.user.User Users = 1;
+}
+
+message OrganizationsResponse {
+  repeated iunite.club.srv.organization.Organization Organizations = 1;
+  int32 Counts = 2;
+}
+
+message FindFriendListRequest {
+  string UserID = 1;
+}
+
+message FriendListResponse {
+  repeated iunite.club.srv.user.User Users = 1;
+}
+
+message FindAllGroupRequest {
+  string UserID = 1;
+  bool WithUsers = 2;
+}
+
+message FindAllGroupResponse {
+  repeated iunite.club.srv.core.conversation.ConversationPB Conversations = 1;
+}
+
+message FindContactsRequest {
+  string Search = 1;
+  string Department = 2;
+  int32 Page = 3;
+  int32 Limit = 4;
+  string ClubID = 5;
+}
+
+message ContactsResponse {
+  repeated iunite.club.srv.organization.UserClubProfile Contacts = 1;
+  int32 Total = 2;
+}
+
+message UserIDRequest {
+  string UserID = 1;
+  string CurrentUserID = 2;
+}

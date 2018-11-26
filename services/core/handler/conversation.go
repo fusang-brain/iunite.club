@@ -3,14 +3,14 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/iron-kit/go-ironic/utils/agent"
-
+	"github.com/iron-kit/go-ironic"
 	"iunite.club/services/user/proto"
+
+	"github.com/iron-kit/go-ironic/utils/agent"
 
 	"gopkg.in/mgo.v2/bson"
 	"iunite.club/models"
 
-	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/monger"
 	pb "iunite.club/services/core/proto/conversation"
 )
@@ -49,8 +49,12 @@ func (self *ConversationHandler) updateConversationMetaDataByID(ctx context.Cont
 	conversation := new(models.Conversation)
 	ConversationModel.
 		Where(bson.M{"_id": id}).
-		Populate("Members", "Members.User", "User.Profile").
+		// Populate("Members", "Members.User", "User.Profile").
 		FindOne(conversation)
+
+	self.findConversationUsers(ctx, conversation)
+	fmt.Println(conversation, "conversation")
+	
 	if conversation.IsEmpty() {
 		return false, nil
 	}
@@ -109,8 +113,8 @@ func (self *ConversationHandler) updateConversationMetaData(metaData *LCMetaData
 	}
 
 	postData := struct {
-		Name          string
-		UniteMetaData *models.ConversationMetaData
+		Name          string                       `json:"name,omitempty"`
+		UniteMetaData *models.ConversationMetaData `json:"uniteMetaData,omitempty"`
 	}{
 		UniteMetaData: cmd,
 		Name:          cmd.ConversationName,
@@ -121,7 +125,7 @@ func (self *ConversationHandler) updateConversationMetaData(metaData *LCMetaData
 		return false, nil
 	}
 
-	fmt.Println(string(data))
+	fmt.Println(string(data), "leancloud reply")
 
 	return true, cmd
 }
@@ -130,7 +134,7 @@ func (self *ConversationHandler) CreateConversation(ctx context.Context, req *pb
 	ConversationModel := self.model(ctx, "Conversation")
 
 	if req.ConversationID == "" || !bson.IsObjectIdHex(req.ConversationID) {
-		return self.Error(ctx).BadRequest("Conversation can be empty")
+		return self.Error(ctx).BadRequest("Conversation can't be empty")
 	}
 
 	conversation := new(models.Conversation)
@@ -142,9 +146,12 @@ func (self *ConversationHandler) CreateConversation(ctx context.Context, req *pb
 	conversation.IsStartValidate = false
 	conversation.IsTop = false
 	isExist := false
-
+	fmt.Println(conversation, "conversation")
+	fmt.Println(conversation.ID, "会话ID")
 	if conversation.IsEmpty() {
+		fmt.Println("会话不存在需要重新创建")
 		conversation.ID = bson.ObjectIdHex(req.ConversationID)
+		fmt.Println(conversation.ID, "重新创建时的会话ID")
 	} else {
 		isExist = true
 	}
@@ -171,12 +178,14 @@ func (self *ConversationHandler) CreateConversation(ctx context.Context, req *pb
 		}
 	}
 
-	// TODO 更新会话云数据
-	self.updateConversationMetaDataByID(ctx, conversation.ID)
+	// 更新会话元数据
+	_, metaData := self.updateConversationMetaDataByID(ctx, conversation.ID)
+
 
 	rsp.OK = true
 	rsp.ID = conversation.ID.Hex()
 	rsp.IsExists = isExist
+	rsp.MetaData = metaData.ToPB()
 
 	return nil
 }
@@ -211,12 +220,37 @@ func (self *ConversationHandler) GetConversationsByMemberID(ctx context.Context,
 	return nil
 }
 
+func (self *ConversationHandler) findConversationUsers(ctx context.Context, conversation *models.Conversation) {
+	UserModel := self.model(ctx, "User")
+	userIDs := make([]bson.ObjectId, 0)
+
+	for _, u := range conversation.Members {
+		userIDs = append(userIDs, u.UserID)
+	}
+	foundUsers := make([]models.User, 0)
+	UserModel.Where(bson.M{"_id": bson.M{ "$in": userIDs}}).Populate("Profile").FindAll(&foundUsers)
+
+	for k, m := range conversation.Members {
+		for _, u := range foundUsers {
+			if u.ID.Hex() == m.UserID.Hex() {
+				conversation.Members[k].User = &u
+			}
+		}
+	}
+}
+
 func (self *ConversationHandler) FindConversationDetails(ctx context.Context, req *pb.ByID, rsp *pb.ConversationDetails) error {
 	ConversationModel := self.model(ctx, "Conversation")
+
 	conversation := new(models.Conversation)
 	err := ConversationModel.
 		Where(bson.M{"_id": bson.ObjectIdHex(req.ID)}).
+		// Populate("Members").
 		FindOne(conversation)
+
+	// get member users
+	self.findConversationUsers(ctx, conversation)
+
 
 	if err != nil {
 		return self.Error(ctx).BadRequest(err.Error())

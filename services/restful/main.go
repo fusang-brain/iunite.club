@@ -53,6 +53,7 @@ func getWebContainer() *restful.Container {
 	recruitmentHandler := handler.NewRecruitmentHandler(c)
 	announceHandler := handler.NewAnnounceHandler(c)
 	conversationHandler := handler.NewConversationHandler(c)
+	contactHandler := handler.NewContactsHandler(c)
 
 	rc := restful.NewContainer()
 
@@ -265,6 +266,21 @@ func getWebContainer() *restful.Container {
 	setRoute(conversation, conversationHandler.GetAllMembersOfConversation, "GET", "/getAllMembersOfConversation", "conversation")
 	setRoute(conversation, conversationHandler.JoinGroup, "POST", "/joinGroup", "conversation")
 
+	contacts := getWebService("/v1/contacts", "Contacts service")
+	setRoute(contacts, contactHandler.GetFriendList, "GET", "/getFriendList", "contact")
+	setRoute(contacts, contactHandler.GetAllGroup, "GET", "/getAllGroup", "contact")
+	setRoute(contacts, contactHandler.GetContactsList, "GET", "/getContactsList", "contact")
+	setRoute(contacts, contactHandler.GetDepartmentGroupByUserID, "GET", "/getDepartmentGroupByUserID", "contact")
+	setRoute(contacts, contactHandler.GetUsersByDepartmentID, "GET", "/getUsersByDepartmentID", "contact")
+	setRoute(contacts, contactHandler.GetDepartmentsByOrganizationID, "GET", "getDepartmentsByOrganizationID", "contact")
+	setRoute(contacts, contactHandler.GetUserCardDetails, "GET", "getUserCardDetails", "contact")
+	setRoute(contacts, contactHandler.SearchUser, "GET", "/searchUsers", "contacts")
+	setRoute(contacts, contactHandler.AddFriend, "POST", "/addFriend", "contacts")
+	setRoute(contacts, contactHandler.RemoveFriend, "POST", "/removeFriend", "contacts")
+	setRoute(contacts, contactHandler.GetFriendAcceptList, "GET", "getFriendAcceptList", "contacts")
+	setRoute(contacts, contactHandler.GetFrientAcceptCount, "GET", "getFriendAcceptCount", "contacts")
+	setRoute(contacts, contactHandler.AgreeFriendAccept, "POST", "agreeFriendAccept", "contacts")
+
 	rc.Add(file)
 	rc.Add(school)
 	rc.Add(base)
@@ -284,6 +300,7 @@ func getWebContainer() *restful.Container {
 	rc.Add(recruitment)
 	rc.Add(announce)
 	rc.Add(conversation)
+	rc.Add(contacts)
 
 	config := restfulApi.Config{
 		WebServices:                   rc.RegisteredWebServices(),
@@ -411,6 +428,12 @@ func enrichSwaggerObject(swo *spec.Swagger) {
 			TagProps: spec.TagProps{
 				Name:        "announce",
 				Description: "通告",
+			},
+		},
+		{
+			TagProps: spec.TagProps{
+				Name:        "contacts",
+				Description: "联系人",
 			},
 		},
 	}

@@ -8,6 +8,8 @@ import (
 )
 
 type ConversationMember struct {
+	// monger.Schema `json:",inline" bson:",inline"`
+
 	UserID   bson.ObjectId `json:"user_id,omitempty" bson:"user_id,omitempty"`
 	User     *User         `json:"user,omitempty" bson:"user,omitempty" monger:"belongTo,foreignKey=user_id"`
 	Nickname string        `json:"nickname,omitempty" bson:"nickname,omitempty"`
@@ -46,6 +48,37 @@ type ConversationMetaData struct {
 	IsTop               bool                    `json:"IsTop"`
 }
 
+func (cmd *ConversationMetaData) ToPB() *pb.ConversationMetaData {
+
+
+	res := &pb.ConversationMetaData{
+		UniteConversationID: cmd.UniteConversationID,
+		Kind: cmd.Kind,
+		ConversationName: cmd.ConversationName,
+		ConversationAvatar: cmd.ConversationAvatar,
+		// MemberMapper: cmd.MemberMapper,
+		TopMembers: cmd.TopMembers,
+		IsTop: cmd.IsTop,
+	}
+
+	if cmd.MemberMapper != nil {
+		res.MemberMapper = make(map[string]*pb.UserMetaData)
+		for k, v := range cmd.MemberMapper {
+			res.MemberMapper[k] = &pb.UserMetaData{
+				ID: v.ID,
+				RealName: v.RealName,
+				Avatar: v.Avatar,
+				Nickname: v.Nickname,
+				RemarkName: v.RemarkName,
+				GroupNickname: v.GroupNickname,
+				Email: v.Email,
+			}
+		}
+	}
+
+	return res
+}
+
 func (umd *UserMetaData) InitByUser(user *User, remarkName string, groupNickname string) {
 	umd.ID = user.ID.Hex()
 	umd.Nickname = user.Profile.Nickname
@@ -72,12 +105,17 @@ func (self *Conversation) ToPB() *pb.ConversationPB {
 	if len(self.Members) > 0 {
 		members := make([]*pb.ConversationMember, 0)
 		for _, v := range self.Members {
-			members = append(members, &pb.ConversationMember{
+			memberPB := &pb.ConversationMember{
 				Nickname: v.Nickname,
 				UserID:   v.UserID.Hex(),
 				IsTop:    v.IsTop,
-			})
+			}
+			if v.User != nil {
+				memberPB.User = v.User.ToPB()
+			}
+			members = append(members, memberPB)
 		}
+		res.Members = members
 	}
 
 	return res
