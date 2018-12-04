@@ -25,9 +25,11 @@ func (announce *Announce) model(ctx context.Context, name string) monger.Model {
 	return conn.M(name)
 }
 
+// CreateInstructions 创建社长令
 func (announce *Announce) CreateInstructions(ctx context.Context, req *pb.CreateInstructionsRequest, rsp *pb.CreatedResponse) error {
 	// AnnounceModel := announce.model(ctx, "Announce")
 	AnnounceModel := announce.model(ctx, "Announce")
+	UserClubProfileModel := announce.model(ctx, "UserClubProfile")
 	newAnnounce := &models.Announce{
 		Name:   req.Name,
 		Body:   req.Body,
@@ -35,13 +37,31 @@ func (announce *Announce) CreateInstructions(ctx context.Context, req *pb.Create
 		ClubID: bson.ObjectIdHex(req.ClubID),
 	}
 
+	users := make([]models.User, 0)
+
+	UserClubProfileModel.Where(bson.M{
+		"organization_id": req.ClubID,
+		"state": 1,
+	}).FindAll(&users)
+
+
+	for _, value := range users {
+		announceReceiver := new(models.AnnounceReceiver)
+		announceReceiver.HasRead = false
+		announceReceiver.UserID = value.ID
+		newAnnounce.Receivers = append(newAnnounce.Receivers, *announceReceiver)
+	}
+
 	if err := AnnounceModel.Create(newAnnounce); err != nil {
 		return announce.Error(ctx).InternalServerError(err.Error())
 	}
+
 	rsp.OK = true
 	rsp.Announce = newAnnounce.ToPB()
 	return nil
 }
+
+
 
 func (announce *Announce) CreateTask(ctx context.Context, req *pb.CreateTaskRequest, rsp *pb.CreatedResponse) error {
 	AnnounceModel := announce.model(ctx, "Announce")
@@ -118,9 +138,10 @@ func (announce *Announce) GetAnnounces(ctx context.Context, req *pb.GetAnnounces
 		"kind":    req.Kind,
 	}
 	announces := make([]models.Announce, 0, int(req.Limit))
-	if req.Kind != models.KindAnnounceInstructions {
-		condition["receivers.user_id"] = req.UserID
-	}
+	//if req.Kind != models.KindAnnounceInstructions {
+	//	condition["receivers.user_id"] = req.UserID
+	//}
+	condition["receivers.user_id"] = req.UserID
 	query := AnnounceModel.Where(condition).Query()
 	total := query.Query().Count()
 	query.

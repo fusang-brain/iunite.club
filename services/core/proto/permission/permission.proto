@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package iunite.club.srv.core.permission;
+
+service Permission {
+    rpc CreatePermission(CreateRequest) returns(CreatedPermissionResponse) {}
+    rpc DeletePermission(ByIDRequest) returns(DeletedResponse) {}
+}
+
+message ByIDRequest {
+    string ID = 1;
+}
+
+message DeletedResponse {
+    bool OK = 1;
+    string ID = 2;
+}
+
+message CreateRequest {
+    string PermissionName = 1;
+    string PathRule = 2;
+    string Method = 3;
+}
+
+message CreatedPermissionResponse {
+    bool OK = 1;
+    string ID = 2;
+}

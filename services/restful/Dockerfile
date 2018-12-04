@@ -3,6 +3,7 @@ FROM ironkit/golang:latest
 
 ADD html /html
 ADD swigger /swigger
+ADD resource /resource
 ADD restful-web /restful-web
 
 WORKDIR /

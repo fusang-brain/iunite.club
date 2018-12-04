@@ -16,6 +16,12 @@ service Report {
   rpc UpdateTemplate(UpdateTemplateBundle) returns(UpdatedTemplateResponse) {}
   rpc DeleteTemplate(DeleteTemplateRequest) returns(DeletedResponse) {}
   rpc ToggleTemplateEnableState(ToggleTemplateEnableReq) returns(UpdatedTemplateResponse) {}
+  rpc FindPendingTemplates(FindTemplatesRequest) returns(PendingTemplateResponse) {}
+}
+
+message PendingTemplateResponse {
+  repeated ReportTemplatePB Templates = 1;
+  int32 Total = 2;
 }
 
 message ToggleTemplateEnableReq {
@@ -78,6 +84,8 @@ message ReportPB {
   string UserID = 9;
   string ClubID = 10;
   iunite.club.srv.user.User User = 11;
+  string Kind = 12;
+  string TemplateID = 13;
 }
 
 message TemplateConfigPB {
@@ -95,6 +103,22 @@ message TemplateCustomFieldPB {
   int32 Sort = 5;
 }
 
+message TemplateCreator {
+  string ID = 1;
+  string Name = 2;
+  string Nickname = 3;
+  string Avatar = 4;
+  string RealName = 5;
+}
+
+message TemplateUser {
+  string ID = 1;
+  string Name = 2;
+  string Nickname = 3;
+  string Avatar = 4;
+  string RealName = 5;
+}
+
 message ReportTemplatePB {
   string ID = 1;
   google.protobuf.Timestamp CreatedAt = 2;
@@ -106,6 +130,8 @@ message ReportTemplatePB {
   repeated TemplateCustomFieldPB CustomFields = 8;
   TemplateConfigPB Config = 9;
   string ClubID = 10;
+  TemplateCreator Creator = 11;
+  repeated TemplateUser ReceiverInfo = 12;
 }
 
 message PostTemplateBundle {

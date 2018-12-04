@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	ironic "github.com/iron-kit/go-ironic"
+	"github.com/iron-kit/go-ironic"
 	"github.com/iron-kit/go-ironic/protobuf/hptypes"
 	"github.com/iron-kit/monger"
 	"gopkg.in/mgo.v2/bson"
@@ -100,12 +100,14 @@ func (r *Recruitment) FindLatestRecruitmentRecord(ctx context.Context, req *pb.B
 		return r.Error(ctx).NotFound("Not found record")
 	}
 
+	// fmt.Println(record, "====== )))))((((((ooo")
+
 	rsp.Record = record.ToPB()
 
 	return nil
 }
 
-func (r *Recruitment) AddRecruitmentRecord(ctx context.Context, req *pb.ByRecruitmentRecordBundle, rsp *pb.Response) error {
+func (r *Recruitment) AddRecruitmentRecord(ctx context.Context, req *pb.ByRecruitmentRecordBundle, rsp *pb.CreatedResponse) error {
 	RecruitmentRecordModel := r.model(ctx, "RecruitmentRecord")
 	// RecruitmentRecordFormModel := r.model(ctx, "RecruitmentForm")
 	record := new(models.RecruitmentRecord)
@@ -120,7 +122,7 @@ func (r *Recruitment) AddRecruitmentRecord(ctx context.Context, req *pb.ByRecrui
 	//if err := RecruitmentRecordModel.Where(bson.M{"_id": form.RecordID}).FindOne(record); err != nil {
 	//	return r.Error(ctx).InternalServerError(err.Error())
 	//}
-
+	record.HasUploadForm = false
 	record.HasStart = true
 	record.HasEnd = false
 	record.CreateUserID = bson.ObjectIdHex(req.UserID)
@@ -129,13 +131,12 @@ func (r *Recruitment) AddRecruitmentRecord(ctx context.Context, req *pb.ByRecrui
 	if err := RecruitmentRecordModel.Create(record); err != nil {
 		return r.Error(ctx).InternalServerError(err.Error())
 	}
-	//// 更新招新记录
-	//if err := RecruitmentRecordModel.Update(bson.M{"_id": form.ID}, record); err != nil {
-	//	return r.Error(ctx).InternalServerError(err.Error())
-	//}
-
+	// // 更新招新记录
+	// if err := RecruitmentRecordModel.Update(bson.M{"_id": form.ID}, record); err != nil {
+	// 	return r.Error(ctx).InternalServerError(err.Error())
+	// }
 	rsp.OK = true
-
+	rsp.Record = record.ToPB()
 	return nil
 }
 
@@ -199,7 +200,8 @@ func (r *Recruitment) FindRecruitmentFormDetails(ctx context.Context, req *pb.By
 }
 
 func (r *Recruitment) AddRecruitmentFormRecord(ctx context.Context, req *pb.ByRecruitmentFormRecord, rsp *pb.Response) error {
-	RecruitmentFormRecord := r.model(ctx, "RecruitmentForm")
+	RecruitmentFormRecord := r.model(ctx, "RecruitmentFormRecord")
+	RecruitmentFormModel := r.model(ctx, "RecruitmentForm")
 	formRecord := &models.RecruitmentFormRecord{
 		Mobile:          req.RecordFormRecord.Mobile,
 		Name:            req.RecordFormRecord.Name,
@@ -213,11 +215,16 @@ func (r *Recruitment) AddRecruitmentFormRecord(ctx context.Context, req *pb.ByRe
 
 	answers := make([]models.RecruitmentAnswer, 0)
 
+
+	// 通过 RecordID 获取FormID
+	foundForm := new(models.RecruitmentForm)
+	RecruitmentFormModel.FindOne(foundForm, bson.M{"record_id": bson.ObjectIdHex(req.RecordFormRecord.RecordID)})
+
 	for _, v := range req.RecordFormRecord.Answers {
 		answers = append(answers, models.RecruitmentAnswer{
 			ID:      bson.NewObjectId(),
 			ItemKey: bson.NewObjectId(),
-			FormID:  bson.ObjectIdHex(v.FormID),
+			FormID:  foundForm.ID,
 			Answer:  v.Answer,
 		})
 	}
@@ -257,6 +264,7 @@ func (r *Recruitment) FindRecruitmentRecordDetails(ctx context.Context, req *pb.
 	record := new(models.RecruitmentRecord)
 	RecruitmentRecordModel.
 		Where(bson.M{"_id": req.ID}).
+		Populate("Form").
 		FindOne(record)
 
 	if record.IsEmpty() {
@@ -272,14 +280,19 @@ func (r *Recruitment) FindRecruitmentsFormRecordList(ctx context.Context, req *p
 	RecruitmentFormRecordModel := r.model(ctx, "RecruitmentFormRecord")
 
 	records := make([]models.RecruitmentFormRecord, 0)
-	query := RecruitmentFormRecordModel.Where(bson.M{
-		"department_id": req.Department,
+	condition := bson.M{
 		"record_id":     req.RecordID,
 		"status":        req.State,
-	}).Query()
+	}
+	if req.Department != "" {
+		condition["department_id"] = req.Department
+	}
+
+
+	query := RecruitmentFormRecordModel.Where(condition).Query()
 
 	total := query.Query().Count()
-	if err := query.Query().Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).FindAll(&records); err != nil {
+	if err := query.Query().Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).Populate("Department").FindAll(&records); err != nil {
 		return r.Error(ctx).InternalServerError(err.Error())
 	}
 

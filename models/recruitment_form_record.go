@@ -22,8 +22,9 @@ type RecruitmentFormRecord struct {
 	Age             int32               `json:"age,omitempty" bson:"age,omitempty"`
 	SchoolStudentID string              `json:"school_student_id,omitempty" bson:"school_student_id,omitempty"`
 	DepartmentID    bson.ObjectId       `json:"department_id,omitempty" bson:"department_id,omitempty"`
+	Department      *Organization       `json:"department,omitempty" bson:"department" monger:"belongTo,foreignKey=department_id"`
 	RecordID        bson.ObjectId       `json:"record_id,omitempty" bson:"record_id,omitempty"`
-	Status          int32               `json:"status,omitempty" bson:"status,omitempty"` // 0: 报名状态, 1: 已通过 2: 已拒绝
+	Status          int32               `json:"status,omitempty" bson:"status"` // 0: 报名状态, 1: 已通过 2: 已拒绝
 	Answers         []RecruitmentAnswer `json:"answers,omitempty" bson:"answers,omitempty"`
 }
 
@@ -59,6 +60,10 @@ func (self *RecruitmentFormRecord) ToPB() *recruitmentPB.RecruitmentFormRecord {
 		}
 
 		result.Answers = answers
+	}
+
+	if self.Department != nil {
+		result.Department = self.Department.ToPB()
 	}
 
 	return result

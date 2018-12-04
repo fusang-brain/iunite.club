@@ -8,6 +8,7 @@ It is generated from these files:
 	proto/report.proto
 
 It has these top-level messages:
+	PendingTemplateResponse
 	ToggleTemplateEnableReq
 	DeleteTemplateRequest
 	DeletedResponse
@@ -21,6 +22,8 @@ It has these top-level messages:
 	ReportPB
 	TemplateConfigPB
 	TemplateCustomFieldPB
+	TemplateCreator
+	TemplateUser
 	ReportTemplatePB
 	PostTemplateBundle
 	PostTemplateResponse
@@ -40,9 +43,9 @@ import _ "iunite.club/services/user/proto"
 import _ "github.com/golang/protobuf/ptypes/struct"
 
 import (
-	context "context"
 	client "github.com/micro/go-micro/client"
 	server "github.com/micro/go-micro/server"
+	context "context"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -73,6 +76,7 @@ type ReportService interface {
 	UpdateTemplate(ctx context.Context, in *UpdateTemplateBundle, opts ...client.CallOption) (*UpdatedTemplateResponse, error)
 	DeleteTemplate(ctx context.Context, in *DeleteTemplateRequest, opts ...client.CallOption) (*DeletedResponse, error)
 	ToggleTemplateEnableState(ctx context.Context, in *ToggleTemplateEnableReq, opts ...client.CallOption) (*UpdatedTemplateResponse, error)
+	FindPendingTemplates(ctx context.Context, in *FindTemplatesRequest, opts ...client.CallOption) (*PendingTemplateResponse, error)
 }
 
 type reportService struct {
@@ -183,6 +187,16 @@ func (c *reportService) ToggleTemplateEnableState(ctx context.Context, in *Toggl
 	return out, nil
 }
 
+func (c *reportService) FindPendingTemplates(ctx context.Context, in *FindTemplatesRequest, opts ...client.CallOption) (*PendingTemplateResponse, error) {
+	req := c.c.NewRequest(c.name, "Report.FindPendingTemplates", in)
+	out := new(PendingTemplateResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Report service
 
 type ReportHandler interface {
@@ -195,6 +209,7 @@ type ReportHandler interface {
 	UpdateTemplate(context.Context, *UpdateTemplateBundle, *UpdatedTemplateResponse) error
 	DeleteTemplate(context.Context, *DeleteTemplateRequest, *DeletedResponse) error
 	ToggleTemplateEnableState(context.Context, *ToggleTemplateEnableReq, *UpdatedTemplateResponse) error
+	FindPendingTemplates(context.Context, *FindTemplatesRequest, *PendingTemplateResponse) error
 }
 
 func RegisterReportHandler(s server.Server, hdlr ReportHandler, opts ...server.HandlerOption) {
@@ -208,6 +223,7 @@ func RegisterReportHandler(s server.Server, hdlr ReportHandler, opts ...server.H
 		UpdateTemplate(ctx context.Context, in *UpdateTemplateBundle, out *UpdatedTemplateResponse) error
 		DeleteTemplate(ctx context.Context, in *DeleteTemplateRequest, out *DeletedResponse) error
 		ToggleTemplateEnableState(ctx context.Context, in *ToggleTemplateEnableReq, out *UpdatedTemplateResponse) error
+		FindPendingTemplates(ctx context.Context, in *FindTemplatesRequest, out *PendingTemplateResponse) error
 	}
 	type Report struct {
 		report
@@ -254,4 +270,8 @@ func (h *reportHandler) DeleteTemplate(ctx context.Context, in *DeleteTemplateRe
 
 func (h *reportHandler) ToggleTemplateEnableState(ctx context.Context, in *ToggleTemplateEnableReq, out *UpdatedTemplateResponse) error {
 	return h.ReportHandler.ToggleTemplateEnableState(ctx, in, out)
+}
+
+func (h *reportHandler) FindPendingTemplates(ctx context.Context, in *FindTemplatesRequest, out *PendingTemplateResponse) error {
+	return h.ReportHandler.FindPendingTemplates(ctx, in, out)
 }

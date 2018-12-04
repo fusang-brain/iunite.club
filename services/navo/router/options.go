@@ -110,6 +110,7 @@ func RouteReads(sample interface{}, optionalDescription ...string) RouteOption {
 
 func RouteReturns(code int, message string, model interface{}) RouteOption {
 	return func(rb *restful.RouteBuilder) *restful.RouteBuilder {
+		// rb.Writes()
 		return rb.Returns(code, message, model)
 	}
 }

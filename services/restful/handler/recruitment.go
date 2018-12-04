@@ -165,15 +165,27 @@ func (self *RecruitmentHandler) AddRecruitmentRecord(req *restful.Request, rsp *
 		return
 	}
 
-	if _, err := self.recruitmentService.AddRecruitmentRecord(ctx, &recruitmentPB.ByRecruitmentRecordBundle{
+	//if _, err := self.recruitmentService.AddRecruitmentRecord(ctx, &recruitmentPB.ByRecruitmentRecordBundle{
+	//	ClubID: params.Organization,
+	//	UserID: self.GetUserIDFromRequest(req),
+	//}); err != nil {
+	//	ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
+	//	return
+	//}
+
+	reply, err := self.recruitmentService.AddRecruitmentRecord(ctx, &recruitmentPB.ByRecruitmentRecordBundle{
 		ClubID: params.Organization,
 		UserID: self.GetUserIDFromRequest(req),
-	}); err != nil {
+	})
+
+	if err != nil {
 		ErrorResponse(rsp, self.Error().BadRequest(err.Error()))
 		return
 	}
 
-	SuccessResponse(rsp, D{})
+	SuccessResponse(rsp, D{
+		"Record": dto.PBToRecruitmentRecord(reply.Record),
+	})
 	return
 }
 
@@ -217,6 +229,7 @@ func (self *RecruitmentHandler) AddRecruitmentForm(req *restful.Request, rsp *re
 			fields = append(fields, &recruitmentPB.RecruitmentFormField{
 				Subject: f.Label,
 				Key:     f.Key,
+				Kind:    f.Kind,
 				Options: hptypes.EncodeToStruct(opts),
 				Sort:    int32(index),
 			})
@@ -310,8 +323,8 @@ func (self *RecruitmentHandler) AddRecruitmentFormRecord(req *restful.Request, r
 		Name            string       `json:"name,omitempty"`
 		Major           string       `json:"major,omitempty"`
 		Age             int32        `json:"age,omitempty"`
-		SchoolStudentID string       `json:"school_student_id,omitempty"`
-		RecordID        string       `json:"record_id,omitempty"`
+		SchoolStudentID string       `json:"schoolStudentID,omitempty"`
+		RecordID        string       `json:"recordID,omitempty"`
 		Department      string       `json:"department,omitempty"`
 		Answers         []AnswerItem `json:"answers,omitempty"`
 	}{}

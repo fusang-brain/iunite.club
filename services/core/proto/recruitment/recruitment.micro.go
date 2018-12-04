@@ -8,6 +8,7 @@ It is generated from these files:
 	proto/recruitment/recruitment.proto
 
 It has these top-level messages:
+	CreatedResponse
 	FindRecruitmentFormRecordRequest
 	RecruitmentFormRecordsResponse
 	Response
@@ -35,6 +36,7 @@ import fmt "fmt"
 import math "math"
 import _ "github.com/golang/protobuf/ptypes/timestamp"
 import _ "github.com/golang/protobuf/ptypes/struct"
+import _ "iunite.club/services/organization/proto"
 
 import (
 	client "github.com/micro/go-micro/client"
@@ -65,7 +67,7 @@ type RecruitmentService interface {
 	PassedOnePost(ctx context.Context, in *PassedOnePostRequest, opts ...client.CallOption) (*Response, error)
 	RefusedOnePost(ctx context.Context, in *RefusedOnePostRequest, opts ...client.CallOption) (*Response, error)
 	FindLatestRecruitmentRecord(ctx context.Context, in *ByClubIDRequest, opts ...client.CallOption) (*RecruitmentRecordResponse, error)
-	AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, opts ...client.CallOption) (*Response, error)
+	AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, opts ...client.CallOption) (*CreatedResponse, error)
 	AddRecruitmentForm(ctx context.Context, in *ByRecruitmentFormBundle, opts ...client.CallOption) (*Response, error)
 	FindRecruitmentFormDetails(ctx context.Context, in *ByRecruitmentFormID, opts ...client.CallOption) (*RecruitmentRecordFromResponse, error)
 	AddRecruitmentFormRecord(ctx context.Context, in *ByRecruitmentFormRecord, opts ...client.CallOption) (*Response, error)
@@ -132,9 +134,9 @@ func (c *recruitmentService) FindLatestRecruitmentRecord(ctx context.Context, in
 	return out, nil
 }
 
-func (c *recruitmentService) AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, opts ...client.CallOption) (*Response, error) {
+func (c *recruitmentService) AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, opts ...client.CallOption) (*CreatedResponse, error) {
 	req := c.c.NewRequest(c.name, "Recruitment.AddRecruitmentRecord", in)
-	out := new(Response)
+	out := new(CreatedResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -209,7 +211,7 @@ type RecruitmentHandler interface {
 	PassedOnePost(context.Context, *PassedOnePostRequest, *Response) error
 	RefusedOnePost(context.Context, *RefusedOnePostRequest, *Response) error
 	FindLatestRecruitmentRecord(context.Context, *ByClubIDRequest, *RecruitmentRecordResponse) error
-	AddRecruitmentRecord(context.Context, *ByRecruitmentRecordBundle, *Response) error
+	AddRecruitmentRecord(context.Context, *ByRecruitmentRecordBundle, *CreatedResponse) error
 	AddRecruitmentForm(context.Context, *ByRecruitmentFormBundle, *Response) error
 	FindRecruitmentFormDetails(context.Context, *ByRecruitmentFormID, *RecruitmentRecordFromResponse) error
 	AddRecruitmentFormRecord(context.Context, *ByRecruitmentFormRecord, *Response) error
@@ -224,7 +226,7 @@ func RegisterRecruitmentHandler(s server.Server, hdlr RecruitmentHandler, opts .
 		PassedOnePost(ctx context.Context, in *PassedOnePostRequest, out *Response) error
 		RefusedOnePost(ctx context.Context, in *RefusedOnePostRequest, out *Response) error
 		FindLatestRecruitmentRecord(ctx context.Context, in *ByClubIDRequest, out *RecruitmentRecordResponse) error
-		AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, out *Response) error
+		AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, out *CreatedResponse) error
 		AddRecruitmentForm(ctx context.Context, in *ByRecruitmentFormBundle, out *Response) error
 		FindRecruitmentFormDetails(ctx context.Context, in *ByRecruitmentFormID, out *RecruitmentRecordFromResponse) error
 		AddRecruitmentFormRecord(ctx context.Context, in *ByRecruitmentFormRecord, out *Response) error
@@ -259,7 +261,7 @@ func (h *recruitmentHandler) FindLatestRecruitmentRecord(ctx context.Context, in
 	return h.RecruitmentHandler.FindLatestRecruitmentRecord(ctx, in, out)
 }
 
-func (h *recruitmentHandler) AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, out *Response) error {
+func (h *recruitmentHandler) AddRecruitmentRecord(ctx context.Context, in *ByRecruitmentRecordBundle, out *CreatedResponse) error {
 	return h.RecruitmentHandler.AddRecruitmentRecord(ctx, in, out)
 }
 

@@ -15,6 +15,9 @@ type D map[string]interface{}
 
 func WriteError(rsp *restful.Response, err error) {
 	parsedErr := errors.Parse(err.Error())
+	if parsedErr.Code > 0 {
+		rsp.WriteHeader(int(parsedErr.Code))
+	}
 
 	rsp.WriteAsJson(parsedErr)
 }

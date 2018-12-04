@@ -335,9 +335,9 @@ func (u *UserService) FindUsersByClubID(req *kit_iron_srv_user.FindUsersByClubID
 	// fmt.Println(condition)
 	query := UserModel.Where(condition).Populate("UserClubProfiles", "Profile")
 
-	total = query.Count()
+	total = query.Query().Count()
 
-	err := query.Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).FindAll(&users)
+	err := query.Query().Skip(int((req.Page - 1) * req.Limit)).Limit(int(req.Limit)).FindAll(&users)
 	// b, _ := json.Marshal(users)
 
 	// fmt.Println(string(b))

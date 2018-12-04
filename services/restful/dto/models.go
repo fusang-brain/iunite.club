@@ -301,6 +301,7 @@ type RecruitmentRecord struct {
 	RecruitmentFormRefer string           `json:"RecruitmentFormRefer,omitempty"` // 招新报名表的ID
 	HasStart             bool             `json:"HasStart,omitempty"`             // 招新是否已经开始，一般在招新表提交后就正式开始
 	HasEnd               bool             `json:"HasEnd,omitempty"`               // 招新是否已经结束
+	HasUploadForm        bool             `json:"HasEnd,omitempty`                // 是否已经上传招新表单
 }
 
 // RecruitmentFormAnswer 招新表单答案记录表
@@ -397,11 +398,11 @@ type UserMetaData struct {
 }
 
 type ConversationMetaData struct {
-	UniteConversationID string                  `json:"UniteConversationID"`
-	Kind                string                  `json:"Kind"`       // 会话类型
-	ConversationName    string                  `json:"Name"`       // 会话名称
-	ConversationAvatar  string                  `json:"Avatar"`     // 会话头像
+	UniteConversationID string                   `json:"UniteConversationID"`
+	Kind                string                   `json:"Kind"`       // 会话类型
+	ConversationName    string                   `json:"Name"`       // 会话名称
+	ConversationAvatar  string                   `json:"Avatar"`     // 会话头像
 	MemberMapper        map[string]*UserMetaData `json:"UserMapper"` // 用户映射 id => conversation
-	TopMembers          []string                `json:"TopMembers"` // 置顶用户
-	IsTop               bool                    `json:"IsTop"`
+	TopMembers          []string                 `json:"TopMembers"` // 置顶用户
+	IsTop               bool                     `json:"IsTop"`
 }

@@ -4,19 +4,25 @@ package iunite.club.srv.core.recruitment;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "iunite.club/services/organization/proto/organization.proto";
 
 service Recruitment {
   rpc AdjustOnePost(AdjustOnePostRequest) returns(Response) {} // 调剂一次申请
   rpc PassedOnePost(PassedOnePostRequest) returns(Response) {} // 通过一个申请
   rpc RefusedOnePost(RefusedOnePostRequest) returns(Response) {} // 拒绝一个申请
   rpc FindLatestRecruitmentRecord(ByClubIDRequest) returns(RecruitmentRecordResponse) {} // 找到时间纬度上最近的一个招新记录
-  rpc AddRecruitmentRecord(ByRecruitmentRecordBundle) returns(Response) {} // 添加招新记录
+  rpc AddRecruitmentRecord(ByRecruitmentRecordBundle) returns(CreatedResponse) {} // 添加招新记录
   rpc AddRecruitmentForm(ByRecruitmentFormBundle) returns(Response) {} // 添加招新表单
   rpc FindRecruitmentFormDetails(ByRecruitmentFormID) returns(RecruitmentRecordFromResponse) {} // 发现一个招新表详情
   rpc AddRecruitmentFormRecord(ByRecruitmentFormRecord) returns(Response) {} // 添加报名记录
   rpc EndRecruitment(ByRecruitmentID) returns(Response) {} // 结束招新记录
   rpc FindRecruitmentRecordDetails(ByRecruitmentID) returns(RecruitmentRecordResponse) {} 
   rpc FindRecruitmentsFormRecordList(FindRecruitmentFormRecordRequest) returns(RecruitmentFormRecordsResponse) {}
+}
+
+message CreatedResponse {
+  bool OK = 1;
+  RecruitmentRecord Record = 2;
 }
 
 message FindRecruitmentFormRecordRequest {
@@ -83,6 +89,7 @@ message RecruitmentFormRecord {
   string RecordID = 10;
   int32 Status = 11;
   repeated RecruitmentAnswer Answers = 12;
+  iunite.club.srv.organization.Organization Department = 13;
 }
 
 message RecruitmentFormField {
@@ -103,6 +110,7 @@ message RecruitmentRecord {
   RecruitmentForm Form = 6;
   bool HasStart = 7;
   bool HasEnd = 8;
+  bool HasUploadForm = 9;
 }
 
 message RecruitmentRecordResponse {

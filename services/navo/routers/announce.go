@@ -6,6 +6,7 @@ import (
 	"iunite.club/services/navo/dto/announce"
 	"iunite.club/services/navo/handler"
 	"iunite.club/services/navo/router"
+	"time"
 )
 
 func getAuthHeaderParam(r *router.Router) *restful.Parameter {
@@ -33,16 +34,12 @@ func AnnounceRoute(r *router.Router) {
 		router.RouteParams(
 			announceRoute.WS().QueryParameter("page", "页数").DataType("int32"),
 			announceRoute.WS().QueryParameter("limit", "限定").DataType("int32"),
-			announceRoute.WS().QueryParameter("club_id", "社团ID").DataType("string<objectid>"),
+			announceRoute.WS().QueryParameter("club_id", "社团ID").DataType("string"),
 			announceRoute.WS().
-				QueryParameter("kind", "类型").
-				AllowableValues(map[string]string{
-					"instructions": "社长令",
-					"task":         "任务",
-					"reminder":     "提醒",
-				}).
+				QueryParameter("kind", "类型(instructions:社长令,task:任务,reminder:提醒)").
 				DataType("string"),
 		),
+		router.RouteReturns(200, "ok", AnnounceListResponse{}),
 	)
 	announceRoute.POST(
 		"/instructions",
@@ -50,6 +47,10 @@ func AnnounceRoute(r *router.Router) {
 		router.RouteDoc("发布社长令"),
 		router.RouteParam(authHeaderParam),
 		router.RouteReads(dto_announce.CreateInstructionsBundle{}),
+		router.RouteReturns(200, "ok", struct {
+			CreatedAt time.Time
+			ID string
+		}{}),
 	)
 	announceRoute.POST(
 		"/task",
@@ -57,6 +58,10 @@ func AnnounceRoute(r *router.Router) {
 		router.RouteDoc("发布任务"),
 		router.RouteParam(authHeaderParam),
 		router.RouteReads(dto_announce.CreateTaskBundle{}),
+		router.RouteReturns(200, "ok", struct {
+			CreatedAt time.Time
+			ID string
+		}{}),
 	)
 	announceRoute.POST(
 		"/reminder",
@@ -64,6 +69,10 @@ func AnnounceRoute(r *router.Router) {
 		router.RouteDoc("发起提醒"),
 		router.RouteParam(authHeaderParam),
 		router.RouteReads(dto_announce.CreateReminderBundle{}),
+		router.RouteReturns(200, "ok", struct {
+			CreatedAt time.Time
+			ID string
+		}{}),
 	)
 	announceRoute.PUT(
 		"/{id}/marked_to_read",
@@ -71,5 +80,8 @@ func AnnounceRoute(r *router.Router) {
 		router.RouteDoc("标记为已读"),
 		router.RouteParam(authHeaderParam),
 		router.RouteParam(announceRoute.WS().PathParameter("id", "通告ID").DataType("string")),
+		router.RouteReturns(200, "ok", struct {
+			ID string
+		}{}),
 	)
 }

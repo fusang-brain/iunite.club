@@ -4,6 +4,7 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/DataDog/datadog-go v0.0.0-20180822151419-281ae9f2d895 // indirect
 	github.com/Jeffail/gabs v1.1.1 // indirect
+	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Microsoft/go-winio v0.4.11 // indirect
 	github.com/NYTimes/gziphandler v1.0.1 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
@@ -18,6 +19,8 @@ require (
 	github.com/bitly/go-hostpool v0.0.0-20171023180738-a3a6125de932 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
+	github.com/casbin/casbin v1.7.0
+	github.com/casbin/mongodb-adapter v0.0.0-20180919091123-f79831b3b100
 	github.com/cenkalti/backoff v2.0.0+incompatible // indirect
 	github.com/circonus-labs/circonus-gometrics v2.2.4+incompatible // indirect
 	github.com/circonus-labs/circonusllhist v0.0.0-20180430145027-5eb751da55c6 // indirect
@@ -45,6 +48,7 @@ require (
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/google/go-cmp v0.2.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
+	github.com/google/uuid v1.0.0
 	github.com/gotestyourself/gotestyourself v2.1.0+incompatible // indirect
 	github.com/hashicorp/go-discover v0.0.0-20180831154906-f9c9239562a8 // indirect
 	github.com/hashicorp/go-hclog v0.0.0-20181001195459-61d530d6c27f // indirect

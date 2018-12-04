@@ -11,22 +11,24 @@ import (
 type RecruitmentRecord struct {
 	monger.Schema `json:",inline" bson:",inline"`
 
-	ClubID       bson.ObjectId    `json:"club_id,omitempty" bson:"club_id,omitempty"`
-	CreateUserID bson.ObjectId    `json:"create_user_id,omitempty" bson:"create_user_id,omitempty"`
-	Form         *RecruitmentForm `json:"form,omitempty" bson:"form,omitempty" monger:"belongTo,foreignKey=record_id`
-	HasStart     bool             `json:"has_start,omitempty" bson:"has_start"`
-	HasEnd       bool             `json:"has_end,omitempty" bson:"has_end"`
+	ClubID        bson.ObjectId    `json:"club_id,omitempty" bson:"club_id,omitempty"`
+	CreateUserID  bson.ObjectId    `json:"create_user_id,omitempty" bson:"create_user_id,omitempty"`
+	Form          *RecruitmentForm `json:"form,omitempty" bson:"form,omitempty" monger:"hasOne,foreignKey=record_id"`
+	HasStart      bool             `json:"has_start,omitempty" bson:"has_start"`
+	HasEnd        bool             `json:"has_end,omitempty" bson:"has_end"`
+	HasUploadForm bool             `json:"has_upload_form" bson:"has_upload_form"`
 }
 
 func (self *RecruitmentRecord) ToPB() *pb.RecruitmentRecord {
 	result := &pb.RecruitmentRecord{
-		ID:           self.ID.Hex(),
-		CreatedAt:    hptypes.TimestampProto(self.CreatedAt),
-		UpdatedAt:    hptypes.TimestampProto(self.UpdatedAt),
-		ClubID:       self.ClubID.Hex(),
-		CreateUserID: self.CreateUserID.Hex(),
-		HasStart:     self.HasStart,
-		HasEnd:       self.HasEnd,
+		ID:            self.ID.Hex(),
+		CreatedAt:     hptypes.TimestampProto(self.CreatedAt),
+		UpdatedAt:     hptypes.TimestampProto(self.UpdatedAt),
+		ClubID:        self.ClubID.Hex(),
+		CreateUserID:  self.CreateUserID.Hex(),
+		HasStart:      self.HasStart,
+		HasEnd:        self.HasEnd,
+		HasUploadForm: self.HasUploadForm,
 	}
 
 	if self.Form != nil {

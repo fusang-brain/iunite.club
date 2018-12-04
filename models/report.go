@@ -10,6 +10,7 @@ import (
 type Report struct {
 	monger.Schema `json:",inline" bson:",inline"`
 
+	Kind        string                 `json:"kind,omitempty" bson:"kind,omitempty"`
 	ClubID      bson.ObjectId          `json:"club_id,omitempty" bson:"club_id,omitempty"`
 	UserID      bson.ObjectId          `json:"user_id,omitempty" bson:"user_id,omitempty"`
 	User        *User                  `json:"user,omitempty" bson:"user,omitempty" monger:"belongTo,foreignKey=user_id"`
@@ -17,16 +18,22 @@ type Report struct {
 	Description string                 `json:"description,omitempty" bson:"description,omitempty"`
 	Body        string                 `json:"body,omitempty" bson:"body,omitempty"`
 	Receivers   []bson.ObjectId        `json:"receivers,omitempty" bson:"receivers,omitempty"`
-	Results     map[string]interface{} `json:"results,omitempty" bson:"results,omitempty"` // 自定义字段内容
+	Results     map[string]interface{} `json:"results,omitempty" bson:"results,omitempty"`         // 自定义字段内容
+	TemplateID  bson.ObjectId          `json:"template_id,omitempty" bson:"template_id,omitempty"` // 模板ID
 }
 
 func (r *Report) ToPB() *pb.ReportPB {
+	// fmt.Println(r, "report")
 	result := &pb.ReportPB{
 		ID:          r.ID.Hex(),
 		Title:       r.Title,
 		Description: r.Description,
 		Body:        r.Body,
+		Kind:        r.Kind,
+		CreatedAt:   hptypes.TimestampProto(r.CreatedAt),
+		UpdatedAt:   hptypes.TimestampProto(r.UpdatedAt),
 		Results:     hptypes.EncodeToStruct(r.Results),
+		TemplateID:  r.TemplateID.Hex(),
 	}
 
 	if len(r.Receivers) > 0 {

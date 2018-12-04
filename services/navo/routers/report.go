@@ -10,8 +10,8 @@ import (
 
 func getPaganizationParams(route *router.Route) []*restful.Parameter {
 	return []*restful.Parameter{
-		route.WS().QueryParameter("page", "页数").DataType("int32"),
-		route.WS().QueryParameter("limit", "限定").DataType("int32"),
+		route.WS().QueryParameter("page", "页数").DataType("int32").DefaultValue("1"),
+		route.WS().QueryParameter("limit", "限定").DataType("int32").DefaultValue("15"),
 	}
 }
 
@@ -24,6 +24,7 @@ func ReportRoute(r *router.Router) {
 		router.Description("汇报"),
 		router.Produces(restful.MIME_JSON),
 	)
+
 	paganizationParams := getPaganizationParams(reports)
 
 	reports.GET(
@@ -33,6 +34,17 @@ func ReportRoute(r *router.Router) {
 		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteParams(paganizationParams...),
 		router.RouteParam(reports.WS().QueryParameter("club_id", "社团ID")),
+		// router.RouteReturns(200, "ok", ),
+	)
+
+	reports.GET(
+		"/templates",
+		reportsHandler.GetReportTemplates,
+		router.RouteDoc("获取社团内的自定义模板列表"),
+		router.RouteParam(getAuthHeaderParam(r)),
+		router.RouteParams(paganizationParams...),
+		router.RouteParam(reports.WS().QueryParameter("club_id", "社团ID")),
+		router.RouteReturns(200, "ok", TemplatesResponse{}),
 	)
 
 	reports.GET(
@@ -42,6 +54,7 @@ func ReportRoute(r *router.Router) {
 		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteParams(paganizationParams...),
 		router.RouteParam(reports.WS().QueryParameter("club_id", "社团ID")),
+		router.RouteReturns(200, "ok", TemplatesResponse{}),
 	)
 
 	reports.POST(
@@ -50,6 +63,7 @@ func ReportRoute(r *router.Router) {
 		router.RouteDoc("发布汇报"),
 		router.RouteParam(getAuthHeaderParam(r)),
 		router.RouteReads(dto_report.SimpleReportBundle{}),
+
 	)
 
 	reports.POST(

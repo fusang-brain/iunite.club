@@ -31,9 +31,9 @@ func (r *Report) FindReports(ctx context.Context, req *pb.FindReportsRequest, rs
 		// "user_id": req.UserID,
 		"club_id": req.ClubID,
 		"$or": []bson.M{
-			{
-				"user_id": req.UserID,
-			},
+			//{
+			//	"user_id": req.UserID,
+			//},
 			{
 				"receivers": req.UserID,
 			},
@@ -46,6 +46,7 @@ func (r *Report) FindReports(ctx context.Context, req *pb.FindReportsRequest, rs
 
 	if err := query.
 		Query().
+		Populate("User", "User.Profile").
 		Skip(int((req.Page - 1) * req.Limit)).
 		Limit(int(req.Limit)).
 		FindAll(&reports); err != nil {
@@ -80,7 +81,7 @@ func (r *Report) PostReport(ctx context.Context, req *pb.PostReportBundle, rsp *
 			}
 			newReport.Receivers = receivers
 		}
-
+		newReport.Kind = "DEFAULT"
 		newReport.Title = req.Title
 		newReport.Description = req.Description
 	}
@@ -95,11 +96,12 @@ func (r *Report) PostReport(ctx context.Context, req *pb.PostReportBundle, rsp *
 		if foundTemplate.IsEmpty() {
 			return r.Error(ctx).NotFound("Not found report template")
 		}
-
+		newReport.Kind = "TEMPLATE"
 		newReport.Title = foundTemplate.Title
 		newReport.Description = foundTemplate.Description
 		newReport.Receivers = foundTemplate.Receivers
 		newReport.Results = hptypes.DecodeToMap(req.Results)
+		newReport.TemplateID = bson.ObjectIdHex(req.TemplateID)
 	}
 
 	if err := ReportModel.Create(newReport); err != nil {
@@ -172,6 +174,7 @@ func (r *Report) PostTemplate(ctx context.Context, req *pb.PostTemplateBundle, r
 
 func (r *Report) FindTemplates(ctx context.Context, req *pb.FindTemplatesRequest, rsp *pb.TemplatesResponse) error {
 	ReportTemplateModel := r.model(ctx, "ReportTemplate")
+	UserModel := r.model(ctx, "User")
 
 	query := ReportTemplateModel.Where(bson.M{
 		"club_id": req.ClubID,
@@ -181,9 +184,52 @@ func (r *Report) FindTemplates(ctx context.Context, req *pb.FindTemplatesRequest
 	templates := make([]models.ReportTemplate, 0, req.Limit)
 	query.
 		Query().
+		Populate("Creator", "Creator.Profile").
 		Skip(int((req.Page - 1) * req.Limit)).
 		Limit(int(req.Limit)).
 		FindAll(&templates)
+
+	for key, value := range templates {
+		// fmt.Println("==== getUser ", value.Receivers)
+		users := make([]models.User, 0, len(value.Receivers))
+		UserModel.Where(bson.M{"_id": bson.M{"$in": value.Receivers}}).Populate("Profile").FindAll(&users)
+		// fmt.Println("users", users)
+		// value.SetReceiverInfo(users)
+		templates[key].SetReceiverInfo(users)
+		// fmt.Println(templates[key].ReceiversInfo)
+	}
+
+	// UserModel.Where(bson.M{"_id": bson.M{"$in": }})
+
+
+	pbTemplates := make([]*pb.ReportTemplatePB, 0, req.Limit)
+
+	for _, v := range templates {
+		pbTemplates = append(pbTemplates, v.ToPB())
+	}
+
+	rsp.Total = int32(total)
+	rsp.Templates = pbTemplates
+
+	return nil
+}
+
+func (r *Report) FindPendingTemplates(ctx context.Context, req *pb.FindTemplatesRequest, rsp *pb.PendingTemplateResponse) error {
+	ReportTemplateModel := r.model(ctx, "ReportTemplate")
+
+	query := ReportTemplateModel.Where(bson.M{
+		"club_id": req.ClubID,
+		"enable": true,
+	})
+
+	total := query.Query().Count()
+	templates := make([]models.ReportTemplate, 0, req.Limit)
+	query.
+		Query().
+		Skip(int((req.Page - 1) * req.Limit)).
+		Limit(int(req.Limit)).
+		FindAll(&templates)
+
 
 	pbTemplates := make([]*pb.ReportTemplatePB, 0, req.Limit)
 
@@ -202,7 +248,7 @@ func (r *Report) FindOneReport(ctx context.Context, req *pb.ByIDRequest, rsp *pb
 	foundReport := new(models.Report)
 	if err := ReportModel.Where(bson.M{
 		"_id": req.ID,
-	}).FindOne(foundReport); err != nil {
+	}).Populate("User", "User.Profile").FindOne(foundReport); err != nil {
 		return r.Error(ctx).InternalServerError(err.Error())
 	}
 

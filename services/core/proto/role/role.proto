@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package iunite.club.srv.core.role;
+
+import "google/protobuf/timestamp.proto";
+import "iunite.club/services/user/proto/user.proto";
+
+service Role {
+    rpc CreateRoleGroup(CreateRoleGroupRequest) returns(CreatedGroupResponse) {}
+    rpc FindAllRolesByOrganization(ByOrganizationRequest) returns(RolesResponse) {}
+    rpc FindAllGroupByOrganization(ByOrganizationRequest) returns(GroupsResponse) {}
+    rpc FindUsersByRoleID(ByRoleRequest) returns(UsersResponse) {}
+    rpc UpdateRoleGroup(UpdateRoleGroupRequest) returns(UpdatedResponse) {}
+    rpc DeleteRoleGroup(ByGroupIDRequest) returns(DeletedRoleGroupResponse) {}
+    rpc UpdateRole(UpdateRoleRequest) returns(UpdateRoleResponse) {}
+    rpc DeleteRole(ByIDRequest) returns(DeletedResponse) {}
+    rpc CreateRole(CreateRoleRequest) returns(CreatedRoleResponse) {}
+    rpc AddUsersToRole(UsersAndRoleRequest) returns(CreatedResponse) {}
+    rpc RemoveUsersToRole(UsersAndRoleRequest) returns(DeletedResponse) {}
+}
+
+message RoleGroupPB {
+    string GroupName = 1;
+    string GroupDescription = 2;
+    string Organization = 3;
+    string ID = 4;
+}
+
+message RolePB {
+    string ID = 1;
+    string Name = 2;
+    string Level = 3;
+    string GroupID = 4;
+    string Organization = 5;
+    RoleGroupPB Group = 6;
+}
+
+message UpdateRoleRequest {
+    string ID = 1;
+    string Name = 2;
+    string Level = 3;
+    string GroupID = 4;
+    string Organization = 5;
+}
+
+message UpdateRoleResponse {
+    string ID = 1;
+    google.protobuf.Timestamp UpdatedAt = 2;
+}
+
+message ByIDRequest {
+    string ID = 1;
+}
+
+message DeletedResponse {
+    bool OK = 1;
+    google.protobuf.Timestamp DeletedAt = 2;
+}
+
+message CreateRoleRequest {
+    string Name = 1;
+    string Level = 2;
+    string GroupID = 3;
+    string Organization = 4;
+}
+
+message CreatedRoleResponse {
+    string ID = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+}
+
+message UsersAndRoleRequest {
+    repeated string Users = 1;
+    string Role = 2;
+}
+
+message CreatedResponse {
+    bool OK = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+}
+
+message UpdateRoleGroupRequest {
+    RoleGroupPB RoleGroup = 1;
+}
+
+message UpdatedResponse {
+    bool OK = 1;
+    google.protobuf.Timestamp UpdatedAt = 2;
+}
+
+message ByGroupIDRequest {
+    string GroupID = 1;
+}
+
+message DeletedRoleGroupResponse {
+    bool OK = 1;
+    google.protobuf.Timestamp DeletedAt = 2;
+}
+
+message ByRoleRequest {
+    string Role = 1;
+}
+
+message UsersResponse {
+    repeated iunite.club.srv.user.User Users = 1;
+    int32 Total = 2;
+}
+
+message ByOrganizationRequest {
+    string Organization = 1;
+}
+
+message RolesResponse {
+    repeated RolePB Roles = 1;
+    int32 Total = 2;
+}
+
+message GroupsResponse {
+    repeated RoleGroupPB Groups = 1;
+    int32 Total = 2;
+}
+
+message CreateRoleGroupRequest {
+    string Name = 1;
+    string Description = 2;
+    string Organization = 3;
+}
+
+message CreatedGroupResponse {
+    string ID = 1;
+    google.protobuf.Timestamp CreatedAt = 2;
+}

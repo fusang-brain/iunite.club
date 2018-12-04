@@ -39,6 +39,7 @@ func getRouter() *router.Router {
 	routers.AnnounceRoute(r)
 	routers.ReportRoute(r)
 	routers.ApprovedRoute(r)
+	routers.RoleRoute(r)
 	return r
 }
 

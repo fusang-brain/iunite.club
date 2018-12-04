@@ -140,6 +140,10 @@ func PBToRecruitmentFormRecords(pb *recruitmentPB.RecruitmentFormRecord) *Recrui
 		result.Answers = answers
 	}
 
+	if pb.Department != nil {
+		result.AcceptDepartment = *PBToDepartment(pb.Department)
+	}
+
 	return result
 }
 
@@ -203,17 +207,22 @@ func PBToRecruitmentRecord(pb *recruitmentPB.RecruitmentRecord) *RecruitmentReco
 	}
 
 	result := &RecruitmentRecord{
-		ID:           pb.ID,
-		CreatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
-		UpdatedAt:    utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
-		Organization: pb.ClubID,
-		CreateUser:   pb.CreateUserID,
-		HasStart:     pb.HasStart,
-		HasEnd:       pb.HasEnd,
+		ID:            pb.ID,
+		CreatedAt:     utils.Time2MicroUnix(hptypes.Timestamp(pb.CreatedAt)),
+		UpdatedAt:     utils.Time2MicroUnix(hptypes.Timestamp(pb.UpdatedAt)),
+		Organization:  pb.ClubID,
+		CreateUser:    pb.CreateUserID,
+		HasStart:      pb.HasStart,
+		HasEnd:        pb.HasEnd,
+		HasUploadForm: pb.HasUploadForm,
 	}
 
 	if pb.Form != nil {
 		result.RecruitmentForm = PBToRecruitmentForm(pb.Form)
+		result.RecruitmentFormRefer = pb.Form.ID
+	} else {
+		result.RecruitmentFormRefer = ""
+		result.RecruitmentForm = new(RecruitmentForm)
 	}
 
 	return result
@@ -798,13 +807,13 @@ func PBToApprovedTask(pb *approvedPB.ApprovedPB) *ApprovedTask {
 
 func PBToUserMetaData(pb *conversationPB.UserMetaData) *UserMetaData {
 	return &UserMetaData{
-		ID: pb.ID,
-		RealName: pb.RealName,
-		Avatar: pb.Avatar,
-		Nickname: pb.Nickname,
-		RemarkName: pb.RemarkName,
+		ID:            pb.ID,
+		RealName:      pb.RealName,
+		Avatar:        pb.Avatar,
+		Nickname:      pb.Nickname,
+		RemarkName:    pb.RemarkName,
 		GroupNickname: pb.GroupNickname,
-		Email: pb.Email,
+		Email:         pb.Email,
 	}
 }
 
@@ -815,12 +824,12 @@ func PBToConversatoinMetaData(pb *conversationPB.ConversationMetaData) *Conversa
 
 	res := &ConversationMetaData{
 		UniteConversationID: pb.UniteConversationID,
-		Kind: pb.Kind,
-		ConversationName: pb.ConversationName,
-		ConversationAvatar: pb.ConversationAvatar,
+		Kind:                pb.Kind,
+		ConversationName:    pb.ConversationName,
+		ConversationAvatar:  pb.ConversationAvatar,
 		// MemberMapper: pb.MemberMapper,
 		TopMembers: pb.TopMembers,
-		IsTop: pb.IsTop,
+		IsTop:      pb.IsTop,
 	}
 
 	if pb.MemberMapper != nil {

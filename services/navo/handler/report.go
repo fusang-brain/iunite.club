@@ -130,6 +130,36 @@ func (r *Reports) PendingReportTemplates(req *restful.Request, rsp *restful.Resp
 		return
 	}
 
+	templatesResp, err := r.reportService.FindPendingTemplates(ctx, &pb.FindTemplatesRequest{
+		UserID: r.GetUserIDFromRequest(req),
+		Page:   params.Page,
+		Limit:  params.Limit,
+		ClubID: params.ClubID,
+	})
+
+	if err != nil {
+		WriteError(rsp, err)
+		return
+	}
+
+	WriteJsonResponse(rsp, templatesResp)
+	return
+}
+
+// GetReportTemplates 获取汇报模板列表
+func (r *Reports) GetReportTemplates(req *restful.Request, rsp *restful.Response) {
+	ctx := context.Background()
+	params := struct {
+		Page   int32  `json:"page,omitempty" query:"page"`
+		Limit  int32  `json:"limit,omitempty" query:"limit"`
+		ClubID string `json:"club_id,omitempty" query:"club_id" validate:"nonzero,objectid"`
+	}{}
+
+	if err := r.BindAndValidate(req, &params); err != nil {
+		WriteError(rsp, err)
+		return
+	}
+
 	templatesResp, err := r.reportService.FindTemplates(ctx, &pb.FindTemplatesRequest{
 		UserID: r.GetUserIDFromRequest(req),
 		Page:   params.Page,
